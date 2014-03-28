@@ -28,7 +28,7 @@ trait TestDirectory extends SuiteMixin { this: Suite =>
     testDirectory = new Path(directory.getPath())
     try super.withFixture(test)
     finally {
-      //deleteFile(directory)
+      deleteFile(directory)
     }
   }
 
