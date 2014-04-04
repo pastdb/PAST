@@ -18,7 +18,6 @@ project/plugins/project/
 *.iml
 
 # Eclipse
-
 .classpath
 .project
 
