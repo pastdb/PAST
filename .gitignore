@@ -17,3 +17,8 @@ project/plugins/project/
 .idea_modules/
 *.iml
 
+# Eclipse
+
+.classpath
+.project
+
