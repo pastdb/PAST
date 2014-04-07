@@ -15,3 +15,7 @@ libraryDependencies ++= Seq(
   "net.ceedubs" %% "ficus" % "1.0.0" // scala wrapper for config
 )
 
+javacOptions ++= Seq(
+  "-encoding", "UTF-8"
+)
+
