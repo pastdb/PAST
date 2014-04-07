@@ -1,48 +1,11 @@
 import com.typesafe.config.{Config, ConfigFactory}
-import java.io.File
 import java.net.URI
 import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.fs.{FileSystem, Path}
+import org.apache.hadoop.fs.FileSystem
 import org.scalatest._
 import past.storage.Database
+import past.test.util.TestDirectory
 import scala.collection.JavaConverters._
-import scala.util.Random
-
-/**
- * Mixin that creates a temporary directory for the lifetime of a test.
- * The directory is stored in `testDirectory` as a `Path` instance.
- * TODO: Move this trait to a different place.
- */
-trait TestDirectory extends SuiteMixin { this: Suite =>
-
-  var testDirectory: Path = _
-
-  abstract override def withFixture(test: NoArgTest) = {
-    var directory: File = null
-
-    do {
-      directory = new File(System.getProperty("java.io.tmpdir"),
-        "test_%s_%s".format(System.nanoTime, Random.alphanumeric.take(9).toList.mkString))
-    } while (!directory.mkdir())
-
-    testDirectory = new Path(directory.getPath())
-    try super.withFixture(test)
-    finally {
-      deleteFile(directory)
-    }
-  }
-
-  private def deleteFile(file: File) {
-    if (!file.exists) return
-    if (file.isFile) {
-      file.delete()
-    }
-    else {
-      file.listFiles().foreach(deleteFile)
-      file.delete()
-    }
-  }
-}
 
 class DatabaseSpec extends FlatSpec with TestDirectory {
 
