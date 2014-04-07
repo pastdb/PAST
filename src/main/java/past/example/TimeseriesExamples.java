@@ -1,4 +1,4 @@
-// Thomas Mühlematter
+// Thomas MÃ¼hlematter
 
 package past.example;
 
