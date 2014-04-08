@@ -3,7 +3,9 @@ package past.storage
 import com.typesafe.config._
 import net.ceedubs.ficus.FicusConfig._
 import org.apache.hadoop.fs.{FileSystem, Path}
+import past.storage.DBType.DBType
 import past.util.RegexUtil._
+import scala.collection.mutable
 
 /**
  * Represents a Database. Note that if the database does not exist, it is not
@@ -26,6 +28,10 @@ class Database(name: String, filesystem: FileSystem, conf: Config) {
   val path = new Path(conf.as[String]("path"), name)
   /** The path to the Magic file */
   private val magicPath = new Path(path, Database.MagicFileName)
+  /** Path to where the time series are stored */
+  private val timeseriesPath = new Path(path, Database.TimeseriesPath)
+  /** Map of timeseriesName -> timeSeries */
+  private val timeseries = mutable.Map[String, Timeseries]()
 
   /** Creates the database. If it already exists, nothing happens. */
   def create(): Unit = {
@@ -37,17 +43,40 @@ class Database(name: String, filesystem: FileSystem, conf: Config) {
     // TODO: write the current version too?
     magic.writeInt(Database.Magic)
     magic.close()
+
+    filesystem.mkdirs(timeseriesPath)
   }
   
   /** Checks if the database exists */
   def exists: Boolean = {
     filesystem.exists(magicPath)
+    // TODO: Check if the Magic value is correct
+  }
+
+  /** Checks if there is a time series with the given name */
+  def hasTimeseries(name: String): Boolean = {
+    return timeseries.contains(name)
+  }
+
+  /** Optionally returns the Timeseries with the given name */
+  def getTimeseries(name: String): Option[Timeseries] = {
+    return timeseries.get(name)
+  }
+
+  /** Creats a timeseries in this database */
+  def createTimeseries(name: String, schema: Schema): Boolean = {
+    if (hasTimeseries(name)) return false
+
+    timeseries += name -> new Timeseries(name, schema, timeseriesPath, filesystem)
+    true
   }
 }
 
 object Database {
   val Magic = 1729
   val MagicFileName = "magic"
+
+  val TimeseriesPath = "timeseries"
 
   /**
    * The regex for valid database identifiers,
