@@ -1,4 +1,4 @@
-// Thomas Mühlematter
+// Thomas Muhlematter
 
 package past;
 
