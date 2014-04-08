@@ -1,5 +1,3 @@
-// Thomas Mühlematter
-
 package past.example;
 
 import java.util.Hashtable;
