@@ -2,17 +2,17 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html>
         <head>
-          <title>Database - past.storage.Database</title>
-          <meta name="description" content="Database - past.storage.Database" />
-          <meta name="keywords" content="Database past.storage.Database" />
+          <title>Past - past.Past</title>
+          <meta name="description" content="Past - past.Past" />
+          <meta name="keywords" content="Past past.Past" />
           <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
           
-      <link href="../../lib/template.css" media="screen" type="text/css" rel="stylesheet" />
-      <link href="../../lib/diagrams.css" media="screen" type="text/css" rel="stylesheet" id="diagrams-css" />
+      <link href="../lib/template.css" media="screen" type="text/css" rel="stylesheet" />
+      <link href="../lib/diagrams.css" media="screen" type="text/css" rel="stylesheet" id="diagrams-css" />
       <script type="text/javascript">
          if(top === self) {
-            var url = '../../index.html';
-            var hash = 'past.storage.Database';
+            var url = '../index.html';
+            var hash = 'past.Past';
             var anchor = window.location.hash;
             var anchor_opt = '';
             if (anchor.length >= 1)
@@ -24,9 +24,9 @@
         </head>
         <body class="type">
       <div id="definition">
-        <a href="Database$.html" title="Go to companion"><img src="../../lib/class_to_object_big.png" /></a>
-        <p id="owner"><a href="../package.html" class="extype" name="past">past</a>.<a href="package.html" class="extype" name="past.storage">storage</a></p>
-        <h1><a href="Database$.html" title="Go to companion">Database</a></h1>
+        <img src="../lib/class_big.png" />
+        <p id="owner"><a href="package.html" class="extype" name="past">past</a></p>
+        <h1>Past</h1>
       </div>
 
       <h4 id="signature" class="signature">
@@ -35,14 +35,11 @@
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <span class="name">Database</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+        <span class="name">Past</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
       </span>
       </h4>
       
-          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Represents a Database. Note that if the database does not exist, it is not
-created on object instantiation, <code>create</code> has to be called.</p><h4> Configuration options </h4><p>Each database instance takes a set of configuration options.
-Required options:</p><ul><li><code>path</code>: <code>String</code> : the path under which the database will create its files.
-</li></ul></div><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
           <div class="superTypes hiddenContent"><span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
         </div></div>
@@ -62,7 +59,7 @@ Required options:</p><ul><li><code>path</code>: <code>String</code> : the path u
                 <span class="filtertype">Inherited<br />
                 </span>
                 <ol id="linearization">
-                  <li class="in" name="past.storage.Database"><span>Database</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                  <li class="in" name="past.Past"><span>Past</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                 </ol>
               </div><div id="ancestors">
             <span class="filtertype"></span>
@@ -82,20 +79,19 @@ Required options:</p><ul><li><code>path</code>: <code>String</code> : the path u
         <div id="allMembers">
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
-              <ol><li name="past.storage.Database#&lt;init&gt;" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="&lt;init&gt;(name:String,filesystem:org.apache.hadoop.fs.FileSystem,conf:com.typesafe.config.Config):past.storage.Database"></a>
-      <a id="&lt;init&gt;:Database"></a>
+              <ol><li name="past.Past#&lt;init&gt;" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="&lt;init&gt;():past.Past"></a>
+      <a id="&lt;init&gt;:Past"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">Database</span><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="filesystem">filesystem: <span class="extype" name="org.apache.hadoop.fs.FileSystem">FileSystem</span></span>, <span name="conf">conf: <span class="extype" name="com.typesafe.config.Config">Config</span></span>)</span>
+        <span class="name">Past</span><span class="params">()</span>
       </span>
       </h4>
-      <p class="shortcomment cmt"></p><div class="fullcomment"><div class="comment cmt"></div><dl class="paramcmts block"><dt class="param">name</dt><dd class="cmt"><p>the database identifier which has to match <a href="Database$.html#validNamePattern:scala.util.matching.Regex" class="extmbr" name="past.storage.Database#validNamePattern">Database.validNamePattern</a>.</p></dd><dt class="param">filesystem</dt><dd class="cmt"><p>the filesystem on which the database lives.</p></dd><dt class="param">conf</dt><dd class="cmt"><p>configuration options for the database.
-</p></dd></dl></div>
+      
     </li></ol>
             </div>
 
@@ -195,39 +191,13 @@ Required options:</p><ul><li><code>path</code>: <code>String</code> : the path u
         <span class="name">clone</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.AnyRef">AnyRef</span></span>
       </span>
       </h4>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../java$lang.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../java$lang.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
                 <span class="name">@throws</span><span class="args">(<span>
       
       <span class="defval" name="classOf[java.lang.CloneNotSupportedException]">...</span>
     </span>)</span>
               
         </dd></dl></div>
-    </li><li name="past.storage.Database#create" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="create():Unit"></a>
-      <a id="create():Unit"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">create</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
-      </span>
-      </h4>
-      <p class="shortcomment cmt">Creates the database.</p><div class="fullcomment"><div class="comment cmt"><p>Creates the database. If it already exists, nothing happens.</p></div></div>
-    </li><li name="past.storage.Database#createTimeseries" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="createTimeseries(name:String,schema:past.storage.Schema):Boolean"></a>
-      <a id="createTimeseries(String,Schema):Boolean"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">createTimeseries</span><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="schema">schema: <a href="Schema.html" class="extype" name="past.storage.Schema">Schema</a></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
-      </span>
-      </h4>
-      <p class="shortcomment cmt">Creats a timeseries in this database</p>
     </li><li name="scala.AnyRef#eq" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="eq(x$1:AnyRef):Boolean"></a>
       <a id="eq(AnyRef):Boolean"></a>
@@ -254,19 +224,6 @@ Required options:</p><ul><li><code>path</code>: <code>String</code> : the path u
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="past.storage.Database#exists" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="exists:Boolean"></a>
-      <a id="exists:Boolean"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">exists</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
-      </span>
-      </h4>
-      <p class="shortcomment cmt">Checks if the database exists</p>
     </li><li name="scala.AnyRef#finalize" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="finalize():Unit"></a>
       <a id="finalize():Unit"></a>
@@ -279,7 +236,7 @@ Required options:</p><ul><li><code>path</code>: <code>String</code> : the path u
         <span class="name">finalize</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../java$lang.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../java$lang.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
                 <span class="name">@throws</span><span class="args">(<span>
       
       <span class="symbol">classOf[java.lang.Throwable]</span>
@@ -299,32 +256,6 @@ Required options:</p><ul><li><code>path</code>: <code>String</code> : the path u
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="past.storage.Database#getTimeseries" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="getTimeseries(name:String):Option[past.storage.Timeseries]"></a>
-      <a id="getTimeseries(String):Option[Timeseries]"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">getTimeseries</span><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.Option">Option</span>[<a href="Timeseries.html" class="extype" name="past.storage.Timeseries">Timeseries</a>]</span>
-      </span>
-      </h4>
-      <p class="shortcomment cmt">Optionally returns the Timeseries with the given name</p>
-    </li><li name="past.storage.Database#hasTimeseries" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="hasTimeseries(name:String):Boolean"></a>
-      <a id="hasTimeseries(String):Boolean"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">hasTimeseries</span><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
-      </span>
-      </h4>
-      <p class="shortcomment cmt">Checks if there is a time series with the given name</p>
     </li><li name="scala.AnyRef#hashCode" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="hashCode():Int"></a>
       <a id="hashCode():Int"></a>
@@ -390,19 +321,6 @@ Required options:</p><ul><li><code>path</code>: <code>String</code> : the path u
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
-    </li><li name="past.storage.Database#path" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="path:org.apache.hadoop.fs.Path"></a>
-      <a id="path:Path"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">val</span>
-      </span>
-      <span class="symbol">
-        <span class="name">path</span><span class="result">: <span class="extype" name="org.apache.hadoop.fs.Path">Path</span></span>
-      </span>
-      </h4>
-      <p class="shortcomment cmt">The path of the database which may or may not exist.</p>
     </li><li name="scala.AnyRef#synchronized" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a>
       <a id="synchronized[T0](⇒T0):T0"></a>
@@ -515,6 +433,6 @@ Required options:</p><ul><li><code>path</code>: <code>String</code> : the path u
       <div id="tooltip"></div>
 
       <div id="footer">  </div>
-      <script defer="defer" type="text/javascript" id="jquery-js" src="../../lib/jquery.js"></script><script defer="defer" type="text/javascript" id="jquery-ui-js" src="../../lib/jquery-ui.js"></script><script defer="defer" type="text/javascript" id="tools-tooltip-js" src="../../lib/tools.tooltip.js"></script><script defer="defer" type="text/javascript" id="template-js" src="../../lib/template.js"></script>
+      <script defer="defer" type="text/javascript" id="jquery-js" src="../lib/jquery.js"></script><script defer="defer" type="text/javascript" id="jquery-ui-js" src="../lib/jquery-ui.js"></script><script defer="defer" type="text/javascript" id="tools-tooltip-js" src="../lib/tools.tooltip.js"></script><script defer="defer" type="text/javascript" id="template-js" src="../lib/template.js"></script>
     </body>
       </html>
