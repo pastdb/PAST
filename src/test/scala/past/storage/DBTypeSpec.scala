@@ -1,6 +1,6 @@
 package past.storage
 
-import java.io.{FileInputStream, FileOutputStream}
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 import past.storage.DBType._
 import org.scalatest.FlatSpec
 
@@ -9,18 +9,35 @@ import org.scalatest.FlatSpec
  */
 class DBTypeSpec extends FlatSpec{
 
+  val numbers = (1 to 100).toList
 
-  def serializeTest[T](values:List[T],typ:DBType[T],filename:String) = {
-    val out = new FileOutputStream(filename)
-    values.foreach(x => typ.serialize(x,out))
-    out.close
-    val in = new FileInputStream(filename)
-    values.foreach(x => assert(x == typ.unserialize(in)))
+  def serializeTest[T](values:List[T], typ:DBType[T]) = {
+    val out = new ByteArrayOutputStream()
+    values.foreach(x => {
+      out.reset()
+      typ.serialize(x, out)
+      assert(x == typ.unserialize(new ByteArrayInputStream(out.toByteArray)))
+    })
   }
 
-  serializeTest((1 to 100).toList,DBInt32,"filename.txt")
-  serializeTest((1 to 100).toList.map(_.toLong),DBInt64,"filename.txt")
-  serializeTest((1 to 100).toList.map(_.toFloat),DBFloat32,"filename.txt")
-  serializeTest((1 to 100).toList.map(_.toDouble),DBFloat64,"filename.txt")
-  serializeTest((1 to 100).toList.map(_.toString.padTo(8,'\0')),DBString(8),"filename.txt")
+  "DBInt32" should "serialize/unserialize" in {
+    serializeTest(numbers, DBInt32)
+  }
+
+  "DBInt64" should "serialize/unserialize" in {
+    serializeTest(numbers.map(_.toLong), DBInt64)
+  }
+
+  "DBFloat32" should "serialize/unserialize" in {
+    serializeTest(numbers.map(_.toFloat), DBFloat32)
+  }
+
+  "DBFloat64" should "serialize/unserialize" in {
+    serializeTest(numbers.map(_.toDouble), DBFloat64)
+  }
+
+  "DBString(8)" should "serialize/unserialize" in {
+    serializeTest(numbers.map(_.toString.padTo(8,'\0')), DBString(8))
+  }
 }
+
