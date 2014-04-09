@@ -33,7 +33,7 @@ class Timeseries private (name: String, wantedSchema: Schema,
   /** The path of the Timeseries */
   val path = new Path(containingPath, name)
   private val schemaPath = new Path(path, Timeseries.SchemaFilename)
-  private val dataPath = new Path(containingPath, Timeseries.DataDirName)
+  private val dataPath = new Path(path, Timeseries.DataDirName)
 
   if (!_exists && createMode) {
     filesystem.mkdirs(path)
