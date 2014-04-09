@@ -1,6 +1,6 @@
 package past.storage
 
-import org.apache.hadoop.fs.{FileSystem, Path}
+import org.apache.hadoop.fs.{FSDataInputStream, FSInputStream, FileSystem, Path}
 import past.storage.DBType.DBType
 import javax.security.auth.login.Configuration
 import java.net.URI
@@ -64,9 +64,9 @@ class Timeseries private (name: String, wantedSchema: Schema,
   /*
     for now :
       - values are just un bunch of Any
-      - TODO check order :s
+      - TODO check order of time series:s
   */
-  def insert(values : List[(String,List[Any])]){      //cannot overload  insert(values : List[Any]), thx JVM !
+  def insert(values : List[(String,List[_])]){
     val data = schema.fields.map(x => values.find(y => x._1 == y._1) match {
       case Some((name,typ)) => (name,typ,x._2)
       case None => throw new IllegalArgumentException(x._1 + "not inserted") //TODO also check type :s
@@ -77,7 +77,17 @@ class Timeseries private (name: String, wantedSchema: Schema,
       data.foreach{ x =>
         typ.serialize(x,file)
       }
+      file.close()
     }
+  }
+
+  def get(range:Range,columns:String*):Map[String,FSDataInputStream] = {
+     columns.map(name => {
+       val path = new Path(dataPath,name)
+       if (!filesystem.exists(path))
+         throw new IllegalArgumentException("Column " + name + " does not exist")
+       name -> filesystem.open(path)
+     }).toMap
   }
 }
 
