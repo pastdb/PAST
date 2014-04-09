@@ -3,7 +3,6 @@ package past.storage
 import org.apache.hadoop.fs.{FileSystem, FSDataInputStream, FSDataOutputStream, Path}
 import past.storage.DBType._
 import scala.collection.mutable
-import scala.reflect.runtime.universe
 
 /**
  * Represents the schema of a time series. On creation, it performs
@@ -89,14 +88,12 @@ object Schema {
   /** Loads a schema from `input` */
   // TODO: refactor this to a constructor?
   def load(input: FSDataInputStream): Schema = {
-    val runtimeMirror = universe.runtimeMirror(getClass.getClassLoader)
     val fields = new UTFIterator(input).map({ str =>
       val fieldParts = str.split(FieldSeparator)
       // get the object
-      val module = runtimeMirror.staticModule(fieldParts(1))
-      val obj = runtimeMirror.reflectModule(module)
-      // the final field
-      (fieldParts(0), obj.instance.asInstanceOf[DBType[_]])
+      val clazz = Class.forName(fieldParts(1))
+      val obj = clazz.getField("MODULE$").get(clazz)
+      fieldParts(0) -> obj.asInstanceOf[DBType[_]]
     }).toList
     new Schema(fields.head, fields.tail: _*)
   }
