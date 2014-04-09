@@ -15,7 +15,7 @@ public class TimeseriesExamples {
 	
 	public static void main(String[] args) {
 		
-		// we create a new hashtable to represent an attribute of the time series
+		/*// we create a new hashtable to represent an attribute of the time series
 		Hashtable<Integer, DBType> attribute = new Hashtable<Integer,DBType>();
 		attribute.put(0, new DBType(5));
 		attribute.put(1, new DBType(1));
@@ -32,7 +32,7 @@ public class TimeseriesExamples {
 		System.out.println(ts.getValue("velocity", 3)); // returns null as the value doesn't exist anymore
 		
 		ts.removeAttribute("velocity");
-		System.out.println(ts.getAttribute("velocity")); // returns null as the attribute doesn't exist anymore
+		System.out.println(ts.getAttribute("velocity")); // returns null as the attribute doesn't exist anymore   */
 		
 		
 	}

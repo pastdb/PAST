@@ -26,9 +26,9 @@ public class Functions {
 
 		for (Integer i : data.keySet()) {
 
-			if (data.get(i) > min) {
+			/*if (data.get(i) > min) {
 				min = data.get(i);
-			}
+			} */
 
 		}
 
@@ -50,9 +50,9 @@ public class Functions {
 
 		for (Integer i : data.keySet()) {
 
-			if (data.get(i) > max) {
+			/*if (data.get(i) > max) {
 				max = data.get(i);
-			}
+			} */
 
 		}
 

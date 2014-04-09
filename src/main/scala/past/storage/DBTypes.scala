@@ -2,6 +2,7 @@ package past.storage
 
 import java.nio.ByteBuffer
 import java.io._
+import org.apache.hadoop.fs.{FSDataInputStream, FSDataOutputStream}
 
 object DBType {
 
@@ -12,29 +13,9 @@ object DBType {
    * @param size Size in bytes of the object to serialize
    * @tparam T  Type of the object to serialize
    */
-  abstract class DBType[T](val size:Int) {
-
-    private var bytes = new Array[Byte](size) //temporary array needed for conversions
-
-    def serialize(value:T, out:OutputStream) = writeBytes(toByteBuffer(value),out)
-
-    def unserialize(data:InputStream): T = {
-      data.read(bytes)
-      fromBytes(bytes)
-    }
-
-    /*
-      methods to be implemented by the subclasses
-     */
-    protected def toByteBuffer(value:T):ByteBuffer
-    protected def fromBytes(data:Array[Byte]):T
-
-    private def writeBytes(v:ByteBuffer,out:OutputStream){
-      v.clear
-      v.get(bytes)
-      out.write(bytes)
-    }
-
+  abstract class DBType[T](val size: Int) {
+    def serialize(value: Any, out: FSDataOutputStream) //= writeBytes(toByteBuffer(value), out)
+    def unserialize(in: FSDataInputStream): T
   }
 
   /*
@@ -42,31 +23,34 @@ object DBType {
    */
 
   object DBInt32 extends DBType[Int](4) {
-    def toByteBuffer(value:Int):ByteBuffer = ByteBuffer.allocate(size).putInt(value)
-    def fromBytes(data:Array[Byte]) = ByteBuffer.wrap(data).getInt
+    def serialize(value: Any, out: FSDataOutputStream) = out.writeInt(value.asInstanceOf[Int])
+    def unserialize(in: FSDataInputStream): Int = in.readInt()
   }
 
   object DBInt64 extends DBType[Long](8) {
-    def toByteBuffer(value:Long):ByteBuffer = ByteBuffer.allocate(size).putLong(value)
-    def fromBytes(data:Array[Byte]) = ByteBuffer.wrap(data).getLong
+    def serialize(value: Any, out: FSDataOutputStream) = out.writeLong(value.asInstanceOf[Long])
+    def unserialize(in: FSDataInputStream): Long = in.readLong()
   }
 
   object DBFloat32 extends DBType[Float](4) {
-    def toByteBuffer(value:Float):ByteBuffer = ByteBuffer.allocate(size).putFloat(value)
-    def fromBytes(data:Array[Byte]) = ByteBuffer.wrap(data).getFloat
+    def serialize(value: Any, out: FSDataOutputStream) = out.writeFloat(value.asInstanceOf[Float])
+    def unserialize(in: FSDataInputStream): Float = in.readFloat()
   }
 
   object DBFloat64 extends DBType[Double](8) {
-    def toByteBuffer(value:Double):ByteBuffer = ByteBuffer.allocate(size).putDouble(value)
-    def fromBytes(data:Array[Byte]) = ByteBuffer.wrap(data).getDouble
+    def serialize(value: Any, out: FSDataOutputStream) = out.writeDouble(value.asInstanceOf[Double])
+    def unserialize(in: FSDataInputStream): Double = in.readDouble()
   }
 
-  case class DBString(val nbChars:Int) extends DBType[String](nbChars) {
-    /* in scala Char	16 bit unsigned Unicode character. Range from U+0000 to U+FFFF
-        is this the same in Java ? I hope...
-     */
-    def toByteBuffer(value:String):ByteBuffer = ByteBuffer.allocate(size).put(value.substring(0,Math.min(nbChars,value.length)).getBytes) //or assert ?
-    def fromBytes(data:Array[Byte]) = new String(data).toString
+  case class DBString(val nbChars: Int) extends DBType[String](nbChars) {
+
+    def serialize(value: Any, out: FSDataOutputStream) = {
+      val tmp = value.toString
+      val withCorrectSize = tmp.substring(0, Math.min(nbChars, tmp.length)).padTo(nbChars,'\0')
+      out.writeUTF(withCorrectSize)
+    }
+
+    def unserialize(in: FSDataInputStream): String = in.readUTF()
   }
 
   /*case class DBRecords(fields:List[(TypeName,DBType)]) extends DBType {

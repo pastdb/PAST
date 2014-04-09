@@ -1,23 +1,35 @@
 package past.storage
 
-import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 import past.storage.DBType._
 import org.scalatest.FlatSpec
+import org.apache.hadoop.fs.FileSystem
+import org.apache.hadoop.fs.Path
+import java.net.URI
+import org.apache.hadoop.conf.Configuration
+import past.test.util.TestDirectory
 
 /**
  * Created by Eric on 03.04.14.
  */
-class DBTypeSpec extends FlatSpec{
+class DBTypeSpec extends FlatSpec with TestDirectory{
 
   val numbers = (1 to 100).toList
 
   def serializeTest[T](values:List[T], typ:DBType[T]) = {
-    val out = new ByteArrayOutputStream()
+    val filesystem = FileSystem.get(new URI("file:///tmp"), new Configuration())
+
+
+    val out = filesystem.create(new Path("test"))
     values.foreach(x => {
-      out.reset()
       typ.serialize(x, out)
-      assert(x == typ.unserialize(new ByteArrayInputStream(out.toByteArray)))
     })
+    out.close()
+
+    val in = filesystem.open(new Path("test"))
+    values.foreach(x => {
+      assert(x == typ.unserialize(in))
+    })
+    in.close()
   }
 
   "DBInt32" should "serialize/unserialize" in {

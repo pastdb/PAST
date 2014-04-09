@@ -2,6 +2,9 @@ package past.storage
 
 import org.apache.hadoop.fs.{FileSystem, Path}
 import past.storage.DBType.DBType
+import javax.security.auth.login.Configuration
+import java.net.URI
+import org.apache.hadoop.conf.Configuration
 
 /**
  * Represents a time series.
@@ -56,6 +59,25 @@ class Timeseries private (name: String, wantedSchema: Schema,
    */
   def this(name: String, schema: Schema, containingPath: Path, filesystem: FileSystem) = {
     this(name, schema, containingPath, filesystem, true)
+  }
+
+  /*
+    for now :
+      - values are just un bunch of Any
+      - TODO check order :s
+  */
+  def insert(values : List[(String,List[Any])]){      //cannot overload  insert(values : List[Any]), thx JVM !
+    val data = schema.fields.map(x => values.find(y => x._1 == y._1) match {
+      case Some((name,typ)) => (name,typ,x._2)
+      case None => throw new IllegalArgumentException(x._1 + "not inserted") //TODO also check type :s
+    })
+
+    data.foreach{case (name,data,typ) =>
+      val file = filesystem.append(new Path(dataPath,name))
+      data.foreach{ x =>
+        typ.serialize(x,file)
+      }
+    }
   }
 }
 
