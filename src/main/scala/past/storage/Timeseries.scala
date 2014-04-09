@@ -93,8 +93,13 @@ class Timeseries private (name: String, wantedSchema: Schema,
         throw new IllegalArgumentException("File " + path + " does not exist")
       new Iterator[T] {
         val file = filesystem.open(path)
-        override def hasNext = file.available() > 0
+        val toRead = (range.end - range.start) * typ.size
+        var read = 0
+        file.seek(range.start * typ.size)
+
+        override def hasNext = read < toRead
         override def next = {
+          read += typ.size
           typ.unserialize(file)
         }
         def close = file.close

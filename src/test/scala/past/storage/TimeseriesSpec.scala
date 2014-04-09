@@ -34,7 +34,7 @@ class TimeseriesSpec extends FlatSpec with TestDirectory {
     val db = new Timeseries(name, testDirectory, filesystem)
     val data = List(1,2,3,4,5,6,7,8,9)
     db.insert(List(("ts",data)))
-    db.get[Int](0 to 9,"ts").zip(data.toIterator).foreach{case (x,y) =>
+    db.get[Int](2 to 8,"ts").zip(data.take(8).drop(2).toIterator).foreach{case (x,y) =>
       assert(x == y)
     }
   }
