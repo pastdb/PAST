@@ -61,7 +61,7 @@ object Schema {
   type Field = (String, DBType[_])
 
   // the name - type separator used in storing field info
-  private val FieldSeparator = ":"
+  private val FieldSeparator = "\0"
 
   /**
    * An iterator over the UTF strings of `input`. It will return
