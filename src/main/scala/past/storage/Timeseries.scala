@@ -73,7 +73,11 @@ class Timeseries private (name: String, wantedSchema: Schema,
     })
 
     data.foreach{case (name,data,typ) =>
-      val file = filesystem.append(new Path(dataPath,name))
+      val path = new Path(dataPath,name)
+      val file = if (!filesystem.exists(path))
+                    filesystem.create(path)
+                else
+                    filesystem.append(path)
       data.foreach{ x =>
         typ.serialize(x,file)
       }
@@ -81,13 +85,21 @@ class Timeseries private (name: String, wantedSchema: Schema,
     }
   }
 
-  def get(range:Range,columns:String*):Map[String,FSDataInputStream] = {
-     columns.map(name => {
-       val path = new Path(dataPath,name)
-       if (!filesystem.exists(path))
-         throw new IllegalArgumentException("Column " + name + " does not exist")
-       name -> filesystem.open(path)
-     }).toMap
+  def get[T](range:Range,column:String):Iterator[T] = schema.fields.get(column) match {
+    case None => throw new IllegalArgumentException("Column " + column + " does not exist")
+    case Some(typ:DBType[T]) =>
+      val path = new Path(dataPath,column)
+      if (!filesystem.exists(path))
+        throw new IllegalArgumentException("File " + path + " does not exist")
+      new Iterator[T] {
+        val file = filesystem.open(path)
+        override def hasNext = file.available() > 0
+        override def next = {
+          typ.unserialize(file)
+        }
+        def close = file.close
+      }
+    case x => throw new IllegalStateException("Fatal error when acceding column " + column)
   }
 }
 

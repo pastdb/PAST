@@ -3,8 +3,7 @@ import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.FileSystem
 import org.scalatest._
 import past.storage.DBType._
-import past.storage.Schema
-import past.storage.Timeseries
+import past.storage.{DBType, Schema, Timeseries}
 import past.test.util.TestDirectory
 
 class TimeseriesSpec extends FlatSpec with TestDirectory {
@@ -17,7 +16,7 @@ class TimeseriesSpec extends FlatSpec with TestDirectory {
 
   trait Builder extends NameGenerator {
     // TODO: richer schema
-    val schema = new Schema(("ts", DBInt32))
+    val schema = new Schema(("ts", DBType.DBInt32))
     val timeseries = new Timeseries(name, schema, testDirectory, filesystem)
   }
 
@@ -29,5 +28,14 @@ class TimeseriesSpec extends FlatSpec with TestDirectory {
 
   it should "be creatable" in new Builder {
     assert(new Timeseries(name, testDirectory, filesystem).schema == schema)
+  }
+
+  "Data" should "be able to be inserted and retrieved" in new Builder  {
+    val db = new Timeseries(name, testDirectory, filesystem)
+    val data = List(1,2,3,4,5,6,7,8,9)
+    db.insert(List(("ts",data)))
+    db.get[Int](0 to 9,"ts").zip(data.toIterator).foreach{case (x,y) =>
+      assert(x == y)
+    }
   }
 }
