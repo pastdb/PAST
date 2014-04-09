@@ -19,13 +19,13 @@ class DBTypeSpec extends FlatSpec with TestDirectory{
     val filesystem = FileSystem.get(new URI("file:///tmp"), new Configuration())
 
 
-    val out = filesystem.create(new Path("test"))
+    val out = filesystem.create(new Path(testDirectory, "test"))
     values.foreach(x => {
       typ.serialize(x, out)
     })
     out.close()
 
-    val in = filesystem.open(new Path("test"))
+    val in = filesystem.open(new Path(testDirectory, "test"))
     values.foreach(x => {
       assert(x == typ.unserialize(in))
     })
