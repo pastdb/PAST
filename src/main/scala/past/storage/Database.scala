@@ -29,9 +29,14 @@ class Database(name: String, filesystem: FileSystem, conf: Config) {
   /** The path to the Magic file */
   private val magicPath = new Path(path, Database.MagicFileName)
   /** Path to where the time series are stored */
-  private val timeseriesPath = new Path(path, Database.TimeseriesPath)
+  private val timeseriesPath = new Path(path, Database.TimeseriesDirName)
   /** Map of timeseriesName -> timeSeries */
   private val timeseries = mutable.Map[String, Timeseries]()
+
+  if (exists) {
+    timeseries ++= filesystem.listStatus(timeseriesPath).filter(_.isDir).map(f =>
+      (f.getPath.getName, new Timeseries(f.getPath.getName, timeseriesPath, filesystem)))
+  }
 
   /** Creates the database. If it already exists, nothing happens. */
   def create(): Unit = {
@@ -76,7 +81,7 @@ object Database {
   val Magic = 1729
   val MagicFileName = "magic"
 
-  val TimeseriesPath = "timeseries"
+  val TimeseriesDirName = "timeseries"
 
   /**
    * The regex for valid database identifiers,

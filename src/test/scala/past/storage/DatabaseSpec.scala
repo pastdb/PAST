@@ -3,7 +3,9 @@ import java.net.URI
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.FileSystem
 import org.scalatest._
+import past.storage.DBType._
 import past.storage.Database
+import past.storage.Schema
 import past.test.util.TestDirectory
 import scala.collection.JavaConverters._
 
@@ -24,6 +26,16 @@ class DatabaseSpec extends FlatSpec with TestDirectory {
   it should "be creatable" in new Builder {
     db.create()
     assert(db.exists)
+  }
+
+  it should "be able to create timeseries" in new Builder {
+    db.create()
+    val schema = new Schema(("id", DBInt32), ("A", DBFloat32), ("B", DBInt64))
+    assert(!db.hasTimeseries("T"))
+    assert(db.createTimeseries("T", schema))
+    assert(db.hasTimeseries("T"))
+    assert(new Database(dbName, filesystem, config).hasTimeseries("T"))
+    assert(new Database(dbName, filesystem, config).getTimeseries("T").get.schema == schema)
   }
 }
 
