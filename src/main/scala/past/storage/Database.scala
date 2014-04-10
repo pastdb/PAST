@@ -8,8 +8,8 @@ import past.util.RegexUtil._
 import scala.collection.mutable
 
 /**
- * Represents a Database. Note that if the database does not exist, it is not
- * created on object instantiation, `create` has to be called.
+ * Represents a Database. If the database does not exist at the specified path,
+ * it gets created.
  * 
  * == Configuration options ==
  * Each database instance takes a set of configuration options.
@@ -23,6 +23,7 @@ import scala.collection.mutable
  */
 class Database(name: String, filesystem: FileSystem, conf: Config) {
   require(Database.isValidName(name), "Name is not valid")
+  require(conf.hasPath("path"), "path is not in the configuration")
 
   /** The path of the database which may or may not exist. */
   val path = new Path(conf.as[String]("path"), name)
@@ -33,15 +34,15 @@ class Database(name: String, filesystem: FileSystem, conf: Config) {
   /** Map of timeseriesName -> timeSeries */
   private val timeseries = mutable.Map[String, Timeseries]()
 
-  if (exists) {
-    timeseries ++= filesystem.listStatus(timeseriesPath).filter(_.isDir).map(f =>
-      (f.getPath.getName, new Timeseries(f.getPath.getName, timeseriesPath, filesystem)))
+  if (Database.exists(name, new Path(conf.as[String]("path")), filesystem)) {
+    // create the database
+    filesystem.listStatus(timeseriesPath).filter(_.isDir).foreach { f =>
+      timeseries += 
+        f.getPath.getName ->
+        new Timeseries(f.getPath.getName, timeseriesPath, filesystem)
+    }
   }
-
-  /** Creates the database. If it already exists, nothing happens. */
-  def create(): Unit = {
-    if (exists) return
-
+  else {
     filesystem.mkdirs(path)
     // Create the Magic file
     val magic = filesystem.create(magicPath)
@@ -50,12 +51,6 @@ class Database(name: String, filesystem: FileSystem, conf: Config) {
     magic.close()
 
     filesystem.mkdirs(timeseriesPath)
-  }
-  
-  /** Checks if the database exists */
-  def exists: Boolean = {
-    filesystem.exists(magicPath)
-    // TODO: Check if the Magic value is correct
   }
 
   /** Checks if there is a time series with the given name */
@@ -95,6 +90,17 @@ object Database {
    */
   def isValidName(name: String): Boolean = {
     validNamePattern accepts name
+  }
+
+  /**
+   * Checks if a database exists.
+   * @param name The name of the database
+   * @param path The path that contains the database
+   */
+  def exists(name: String, path: Path, filesystem: FileSystem): Boolean = {
+    val magicPath = new Path(new Path(path, name), Database.MagicFileName)
+    filesystem.exists(magicPath)
+    // TODO: Check if the Magic value is correct
   }
 }
 

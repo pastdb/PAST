@@ -16,26 +16,37 @@ class DatabaseSpec extends FlatSpec with TestDirectory {
   trait Builder {
     val config: Config = ConfigFactory.parseMap(Map("path" -> testDirectory.toString).asJava)
     val dbName = "pastdb_%s".format(System.nanoTime)
-    val db = new Database(dbName, filesystem, config)
   }
 
-  "A new Database" should "not exist" in new Builder {
-    assert(db.exists === false)
+  "A non-created Database" should "not exist" in new Builder {
+    assert(!Database.exists(dbName, testDirectory, filesystem))
   }
 
   it should "be creatable" in new Builder {
-    db.create()
-    assert(db.exists)
+    val db = new Database(dbName, filesystem, config)
+    assert(Database.exists(dbName, testDirectory, filesystem))
+  }
+
+  "A created Database" should "not have a non-created timeseries" in new Builder {
+    val db = new Database(dbName, filesystem, config)
+    assert(!db.hasTimeseries("T"))
   }
 
   it should "be able to create timeseries" in new Builder {
-    db.create()
+    val db = new Database(dbName, filesystem, config)
     val schema = new Schema(("id", DBInt32), ("A", DBFloat32), ("B", DBInt64))
-    assert(!db.hasTimeseries("T"))
     assert(db.createTimeseries("T", schema))
     assert(db.hasTimeseries("T"))
     assert(new Database(dbName, filesystem, config).hasTimeseries("T"))
-    assert(new Database(dbName, filesystem, config).getTimeseries("T").get.schema == schema)
+  }
+
+  it should "be able to load existing timeseries" in new Builder {
+    val db = new Database(dbName, filesystem, config)
+    val schema = new Schema(("id", DBInt32), ("A", DBFloat32), ("B", DBInt64))
+    db.createTimeseries("T", schema)
+    assert(db.hasTimeseries("T"))
+    assert(schema ==
+      new Database(dbName, filesystem, config).getTimeseries("T").get.schema)
   }
 }
 
