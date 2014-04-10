@@ -39,8 +39,8 @@
       </span>
       </h4>
       
-          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Represents a Database. Note that if the database does not exist, it is not
-created on object instantiation, <code>create</code> has to be called.</p><h4> Configuration options </h4><p>Each database instance takes a set of configuration options.
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Represents a Database. If the database does not exist at the specified path,
+it gets created.</p><h4> Configuration options </h4><p>Each database instance takes a set of configuration options.
 Required options:</p><ul><li><code>path</code>: <code>String</code> : the path under which the database will create its files.
 </li></ul></div><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
@@ -202,19 +202,6 @@ Required options:</p><ul><li><code>path</code>: <code>String</code> : the path u
     </span>)</span>
               
         </dd></dl></div>
-    </li><li name="past.storage.Database#create" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="create():Unit"></a>
-      <a id="create():Unit"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">create</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
-      </span>
-      </h4>
-      <p class="shortcomment cmt">Creates the database.</p><div class="fullcomment"><div class="comment cmt"><p>Creates the database. If it already exists, nothing happens.</p></div></div>
     </li><li name="past.storage.Database#createTimeseries" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="createTimeseries(name:String,schema:past.storage.Schema):Boolean"></a>
       <a id="createTimeseries(String,Schema):Boolean"></a>
@@ -254,19 +241,6 @@ Required options:</p><ul><li><code>path</code>: <code>String</code> : the path u
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="past.storage.Database#exists" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="exists:Boolean"></a>
-      <a id="exists:Boolean"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">exists</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
-      </span>
-      </h4>
-      <p class="shortcomment cmt">Checks if the database exists</p>
     </li><li name="scala.AnyRef#finalize" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="finalize():Unit"></a>
       <a id="finalize():Unit"></a>

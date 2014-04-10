@@ -176,16 +176,16 @@
       </span>
       </h4>
       
-    </li><li name="past.storage.Database#TimeseriesPath" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="TimeseriesPath:String"></a>
-      <a id="TimeseriesPath:String"></a>
+    </li><li name="past.storage.Database#TimeseriesDirName" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="TimeseriesDirName:String"></a>
+      <a id="TimeseriesDirName:String"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">TimeseriesPath</span><span class="result">: <span class="extype" name="java.lang.String">String</span></span>
+        <span class="name">TimeseriesDirName</span><span class="result">: <span class="extype" name="java.lang.String">String</span></span>
       </span>
       </h4>
       
@@ -247,6 +247,20 @@
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="past.storage.Database#exists" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="exists(name:String,path:org.apache.hadoop.fs.Path,filesystem:org.apache.hadoop.fs.FileSystem):Boolean"></a>
+      <a id="exists(String,Path,FileSystem):Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">exists</span><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="path">path: <span class="extype" name="org.apache.hadoop.fs.Path">Path</span></span>, <span name="filesystem">filesystem: <span class="extype" name="org.apache.hadoop.fs.FileSystem">FileSystem</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      </h4>
+      <p class="shortcomment cmt">Checks if a database exists.</p><div class="fullcomment"><div class="comment cmt"><p>Checks if a database exists.</p></div><dl class="paramcmts block"><dt class="param">name</dt><dd class="cmt"><p>The name of the database</p></dd><dt class="param">path</dt><dd class="cmt"><p>The path that contains the database
+</p></dd></dl></div>
     </li><li name="scala.AnyRef#finalize" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="finalize():Unit"></a>
       <a id="finalize():Unit"></a>
