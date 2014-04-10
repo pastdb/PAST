@@ -5,13 +5,17 @@ import org.apache.spark.api.java.*;
 import java.util.HashMap;
 import java.util.Map;
 
-
+/**
+ * this class will execute command that user want
+ * @author ntran
+ *
+ */
 public class Command {
 
 	/*  List of commands available on the console */
 	static String commandsList[] = {"quit", "exit", "help", "load", "memList", "wordcount"};
 	
-	/*  */
+	/* variable save by the user */
 	static Map<String, JavaRDD<String> > map_variable = new HashMap<String, JavaRDD<String> >();
 	
 	/* spark context */
@@ -26,16 +30,22 @@ public class Command {
 		int size = userCommandLine.length;
 
 		switch(userCommandLine[0].trim()) {
+		
+		/*
+		 * standard commands
+		 */
 		case "quit": return false;
 		case "exit": return false;
 		case "help": help( (size > 1) ? userCommandLine[1].trim() : ""); break;
-		
 		case "memList": {
 			for (String key: map_variable.keySet()) {
 			    System.out.println("key : " + key + " - value : " + map_variable.get(key));
 			}
 		} break;
 		
+		/*
+		 * related with load/save data commands
+		 */
 		case "load": {
 			if(size != 3) System.out.println("Usage: load <file> <save in variable>");
 			else {
@@ -43,6 +53,28 @@ public class Command {
 			}
 		} break;
 		
+		
+		
+		/*
+		 * Processing And Storage of Time series commands 
+		 */
+		
+		/* Time Series */
+		/* TODO */
+		
+		/* Transformations*/
+		/* TODO */
+		
+		/* Complex */
+		/* TODO */
+		
+		/* Functions */
+		/* TODO */
+		
+		
+		/*
+		 * Test for spark commands
+		 */
 		case "wordcount": {
 			if(size != 2) System.out.println("Usage: wordcount <save in variable>");
 			else if(map_variable.containsKey(userCommandLine[1].trim())) {
