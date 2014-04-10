@@ -19,7 +19,8 @@ public class Transformations {
 	
 	private static ArrayList<Double> resultsTime = new ArrayList<Double>();
 	private static ArrayList<Double> resultsData = new ArrayList<Double>();
-	
+	private static ArrayList<Complex> resultsDFT = new ArrayList<Complex>();
+
 	private static void initTimeSeries(String pathTime, String pathValues) {
 		try {
 			BufferedReader brT = new BufferedReader(new FileReader(pathTime));
@@ -175,6 +176,35 @@ public class Transformations {
 		}
 	}
 	
+	private static void DFT(Double timeStart, Double timeEnd) {
+		for (int i = 0; i < data.size(); ++i) {
+			double sumReal = 0;
+			double sumImag = 0;
+			for (int j = 0; j < data.size(); ++j) {
+				double angle = (2*Math.PI*i*j)/(data.size());
+				sumReal = data.get(i) * Math.cos(angle);
+				sumImag = data.get(i) * Math.sin(angle);
+			}
+			resultsDFT.add(new Complex(sumReal, sumImag));
+		}
+	}
+	
+	private static void writeDFT(String pathNewValues) {
+		try {
+			FileWriter outValues = new FileWriter(pathNewValues);
+			BufferedWriter bV = new BufferedWriter(outValues);
+			for (int i = 0; i < resultsDFT.size(); ++i) {
+				bV.write(resultsDFT.get(i).toString());
+			}
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
 	private static void writeToFile(String pathNewTime, String pathNewValues) {
 		try {
 			FileWriter outTime = new FileWriter(pathNewTime);
@@ -195,9 +225,5 @@ public class Transformations {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-	}
-	
-	public static void main(String args[]) {
-		
 	}
 }
