@@ -14,7 +14,7 @@ import java.util.Collections;
 public class Transformations {
 	
 	/*
-	 * implements different functions and transformations of the time seires
+	 * implements different functions and transformations of the time series
 	 */
 	
 	private static Double epsilon = 0.00000001; // assume Double as equal
@@ -132,6 +132,7 @@ public class Transformations {
 		avg /= count;
 		return avg;
 	}
+
 	
 	/*
 	 * Compute the average on range intervals and subtract the average from original values
@@ -157,7 +158,6 @@ public class Transformations {
 				resultsData.add(data.get(i-rangeInterval+1) - tempAverage);
 			}
 		}
-		
 	}
 	
 	
@@ -213,6 +213,7 @@ public class Transformations {
 		}
 		return maxVal;
 	}	
+
 	
 	/*
 	 * Method used to filter given windows of the time series by replacing with 
@@ -235,6 +236,7 @@ public class Transformations {
 			resultsData.add(data.get(i));
 		}
 	}
+
 	
 	/* 
 	 * Moving average smoother, replace data value with average on neighbors
@@ -268,6 +270,7 @@ public class Transformations {
 			}		
 		}
 	}
+
 	
 	/*
 	 * DFT of time series
@@ -286,6 +289,7 @@ public class Transformations {
 			resultsDFT.add(new Complex(sumReal, sumImag));
 		}
 	}
+
 	
 	/*
 	 * DFT uses a different write to file, as it has to write complex numbers
@@ -306,6 +310,7 @@ public class Transformations {
 			e.printStackTrace();
 		}
 	}
+	
 	
 	/*
 	 * Write new values to file
@@ -333,4 +338,70 @@ public class Transformations {
 			e.printStackTrace();
 		}
 	}
+	
+	
+	/*
+	 * Shifting time series (window) with coefficient
+	 * @param pathNewTime path of the output file for time values
+	 * @param pathNewValues path of the output file for data values
+	 * @param coeff coefficient to shift with
+	 */
+	private static void shift(Double timeStart, Double timeEnd, int coeff) {
+		int startIndex = binarySearch(timeStart);
+		for (int i = startIndex; times.get(i) <= timeEnd; ++i) {
+			resultsTime.add(times.get(i));
+			resultsData.add(data.get(i) + coeff);
+		}
+	}
+
+	
+	/*
+	 * Scaling time series (window) with coefficient
+	 * @param pathNewTime path of the output file for time values
+	 * @param pathNewValues path of the output file for data values
+	 * @param coeff coefficient to scale with
+	 */
+	private static void scale(Double timeStart, Double timeEnd, int coeff) {
+		int startIndex = binarySearch(timeStart);
+		for (int i = startIndex; times.get(i) <= timeEnd; ++i) {
+			resultsTime.add(times.get(i));
+			resultsData.add(data.get(i)*coeff);
+		}
+	}
+	
+	
+	/*
+	 * Standard deviation of the time series
+	 * @param pathNewTime path of the output file for time values
+	 * @param pathNewValues path of the output file for data values
+	 */
+	private static Double stdDeviation(Double timeStart, Double timeEnd) {
+		int startIndex = binarySearch(timeStart);
+		double avg = mean(timeStart, timeEnd);
+		double STD = 0;
+		int count = 0;
+		for (int i = startIndex; times.get(i) <= timeEnd; ++i) {
+			STD += (times.get(i) - avg)*(times.get(i) - avg);
+			count ++;
+		}
+		STD = Math.sqrt(STD/count);
+		return STD;
+	}
+	
+	
+	/*
+	 * Normalization of time series
+	 * @param pathNewTime path of the output file for time values
+	 * @param pathNewValues path of the output file for data values
+	 * @return new time series
+	 */
+	private static void normalize(Double timeStart, Double timeEnd) {
+		int startIndex = binarySearch(timeStart);
+		double avg = mean(timeStart, timeEnd);
+		double std = stdDeviation(timeStart, timeEnd);
+		for (int i = startIndex; times.get(i) <= timeEnd; ++i) {
+			resultsData.add((data.get(i)-avg)/std);
+		}
+	}
+	
 }
