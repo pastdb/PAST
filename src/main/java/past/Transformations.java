@@ -13,14 +13,25 @@ import java.util.Collections;
 
 public class Transformations {
 	
-	private static Double epsilon = 0.000001; // assume equal
+	/*
+	 * implements different functions and transformations of the time seires
+	 */
+	
+	private static Double epsilon = 0.00000001; // assume Double as equal
 	private static ArrayList<Double> times = new ArrayList<Double>();
 	private static ArrayList<Double> data = new ArrayList<Double>();
 	
 	private static ArrayList<Double> resultsTime = new ArrayList<Double>();
 	private static ArrayList<Double> resultsData = new ArrayList<Double>();
 	private static ArrayList<Complex> resultsDFT = new ArrayList<Complex>();
-
+	
+	
+	/*
+	 * Initialize ArrayLists with data from files; could be split if we 
+	 * need to read multiple files with data
+	 * @param pathTime path to the file with times
+	 * @param pathValues path to the file with data
+	 */	
 	private static void initTimeSeries(String pathTime, String pathValues) {
 		try {
 			BufferedReader brT = new BufferedReader(new FileReader(pathTime));
@@ -46,6 +57,12 @@ public class Transformations {
 		}
 	}
 	
+	
+	/*
+	 * If only window frame is needed, use binary search to find
+	 * position of where the first time occurs
+	 * @param timeStart first time of the currently needed time series
+	 */
 	private static int binarySearch(Double timeStart) {
 		int first = 0;
 		int last = data.size();
@@ -66,48 +83,44 @@ public class Transformations {
 		return middle;	
 	}
 	
-	private static void sqrtTransform(Double timeStart, Double timeEnd, Boolean sw) {
+	
+	/*
+	 * Power transformation of time series: square root (on complete data set 
+	 * or partial window frame with start and end time given)
+	 * @param timeStart start of the time frame (can be the first one)
+	 * @param timeEnd end of the time frame (can be the last one) 
+	 */
+	private static void sqrtTransform(Double timeStart, Double timeEnd) {
 		int startIndex = binarySearch(timeStart);
-		if (sw) { //output only window frame
-			for (int i = startIndex; times.get(i) <= timeEnd; ++i) {
-				resultsTime.add(times.get(i));
-				resultsData.add(Math.sqrt(data.get(i)));
-			}
+		for (int i = startIndex; times.get(i) <= timeEnd; ++i) {
+			resultsTime.add(times.get(i));
+			resultsData.add(Math.sqrt(data.get(i)));
 		}
-		else {
-			resultsTime = times;
-			for (int i = 0; i < times.size(); ++i) {
-				if (times.get(i) >= timeStart && times.get(i) <= timeEnd) {
-					resultsData.add(Math.sqrt(data.get(i)));
-				}
-				else {
-					resultsData.add(data.get(i));
-				}
-			}
+	}
+
+	
+	/*
+	 * Power transformation of time series: logarithm (on complete data set 
+	 * or partial window frame with start and end time given)
+	 * @param timeStart start of the time frame (can be the first one)
+	 * @param timeEnd end of the time frame (can be the last one) 
+	 */
+	private static void logTransform(Double timeStart, Double timeEnd) {
+		int startIndex = binarySearch(timeStart);
+		for (int i = startIndex; times.get(i) <= timeEnd; ++i) {
+			resultsTime.add(times.get(i));
+			resultsData.add(Math.log(data.get(i)));
 		}
 	}
 	
-	private static void logTransform(Double timeStart, Double timeEnd, Boolean sw) {
-		int startIndex = binarySearch(timeStart);
-		if (sw) { // only for window frame
-			for (int i = startIndex; times.get(i) <= timeEnd; ++i) {
-				resultsTime.add(times.get(i));
-				resultsData.add(Math.log(data.get(i)));
-			}
-		}
-		else {
-			resultsTime = times;
-			for (int i = 0; i < times.size(); ++i) {
-				if (times.get(i) >= timeStart && times.get(i) <= timeEnd) {
-					resultsData.add(Math.log(data.get(i)));
-				}
-				else {
-					resultsData.add(data.get(i));
-				}
-			}
-		}
-	}
 	
+	/*
+	 * Compute average of time series (on complete data set 
+	 * or partial window frame with start and end time given)
+	 * @param timeStart start of the time frame (can be the first one)
+	 * @param timeEnd end of the time frame (can be the last one) 
+	 * @return avg average of time series
+	 */
 	private static Double mean(Double timeStart, Double timeEnd) {
 		Double avg = .0;
 		int count = 0;
@@ -120,6 +133,39 @@ public class Transformations {
 		return avg;
 	}
 	
+	/*
+	 * Compute the average on range intervals and subtract the average from original values
+	 * @param timeStart start of the time frame (can be the first one)
+	 * @param timeEnd end of the time frame (can be the last one) 
+	 * @param rangeInterval size of the interval on which the average is computed
+	 */
+	private static void subtractMean(Double timeStart, Double timeEnd, int rangeInterval) {
+		int startIndex = binarySearch(timeStart);
+		int endIndex = binarySearch(timeEnd);
+		int i = startIndex;
+		while(i + rangeInterval < endIndex) {
+			double tempAverage = mean(times.get(i), times.get(i+rangeInterval));
+			for (int j = i; j < rangeInterval; ++j) {
+				resultsData.add(data.get(j) - tempAverage);
+			}
+			i = i + rangeInterval;
+		}
+		if (i > endIndex) {
+			// do the same for the last interval
+			double tempAverage = mean(times.get(i-rangeInterval+1), timeEnd);
+			for (int j = i-rangeInterval+1; j < timeEnd; ++j) {
+				resultsData.add(data.get(i-rangeInterval+1) - tempAverage);
+			}
+		}
+		
+	}
+	
+	
+	/*
+	 * Range of the time series: highest value - lowest value
+	 * @param timeStart start of the time frame (can be the first one)
+	 * @param timeEnd end of the time frame (can be the last one) 
+	 */
 	private static Double range(Double timeStart, Double timeEnd) {
 		int startIndex = binarySearch(timeStart);
 		ArrayList<Double> sortedData = new ArrayList<Double>();
@@ -131,6 +177,14 @@ public class Transformations {
 		return range;
 	}
 	
+	
+	/*
+	 * Compute mode of time series (on complete data set 
+	 * or partial window frame with start and end time given)
+	 * @param timeStart start of the time frame (can be the first one)
+	 * @param timeEnd end of the time frame (can be the last one) 
+	 * @return maxVal mode of the time series
+	 */
 	private static Double mode(Double timeStart, Double timeEnd) {
 		int startIndex = binarySearch(timeStart);
 		ArrayList<Double> sortedData = new ArrayList<Double>();
@@ -160,6 +214,12 @@ public class Transformations {
 		return maxVal;
 	}	
 	
+	/*
+	 * Method used to filter given windows of the time series by replacing with 
+	 * mode over the window frame
+	 * @param timeStart start of the time frame (can be the first one)
+	 * @param timeEnd end of the time frame (can be the last one)
+	 */
 	private static void filterByMode(Double timeStart, Double timeEnd) {
 		Double mode = mode(timeStart, timeEnd);
 		for (int i = 0; i < data.size(); ++i) {
@@ -176,6 +236,44 @@ public class Transformations {
 		}
 	}
 	
+	/* 
+	 * Moving average smoother, replace data value with average on neighbors
+	 * @param timeStart start of the time frame (can be the first one)
+	 * @param timeEnd end of the time frame (can be the last one)
+	 * @param kSmoother range of neighbors
+	 */
+	private static void movingAverageSmoother(Double timeStart, Double timeEnd, int kSmoother) {
+		int startIndex = binarySearch(timeStart);
+		int endIndex = binarySearch(timeEnd);
+		for (int i = startIndex; i <= endIndex; ++i) {
+			if (i - kSmoother >= startIndex && i + kSmoother <= endIndex) {
+				double tempAverage = mean(times.get(i-kSmoother), times.get(i+kSmoother));
+				resultsData.add(tempAverage);
+			}
+			else {
+				if (i - kSmoother < startIndex && i + kSmoother <= endIndex) {
+					double tempAverage = mean(timeStart, times.get(i+kSmoother));
+					resultsData.add(tempAverage);
+				}
+				else {
+					if (i - kSmoother >= startIndex && i + kSmoother > endIndex) {
+						double tempAverage = mean(times.get(i-kSmoother), timeEnd);
+						resultsData.add(tempAverage);
+					}
+					else {
+						double tempAverage = mean(timeStart, timeEnd);
+						resultsData.add(tempAverage);
+					}
+				}
+			}		
+		}
+	}
+	
+	/*
+	 * DFT of time series
+	 * @param timeStart start of the time frame (can be the first one)
+	 * @param timeEnd end of the time frame (can be the last one)
+	 */
 	private static void DFT(Double timeStart, Double timeEnd) {
 		for (int i = 0; i < data.size(); ++i) {
 			double sumReal = 0;
@@ -189,6 +287,10 @@ public class Transformations {
 		}
 	}
 	
+	/*
+	 * DFT uses a different write to file, as it has to write complex numbers
+	 * @param pathNewValues path of the output file
+	 */
 	private static void writeDFT(String pathNewValues) {
 		try {
 			FileWriter outValues = new FileWriter(pathNewValues);
@@ -204,7 +306,12 @@ public class Transformations {
 			e.printStackTrace();
 		}
 	}
-
+	
+	/*
+	 * Write new values to file
+	 * @param pathNewTime path of the output file for time values
+	 * @param pathNewValues path of the output file for data values
+	 */
 	private static void writeToFile(String pathNewTime, String pathNewValues) {
 		try {
 			FileWriter outTime = new FileWriter(pathNewTime);
