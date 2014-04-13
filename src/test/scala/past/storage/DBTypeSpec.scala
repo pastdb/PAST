@@ -33,23 +33,30 @@ class DBTypeSpec extends FlatSpec with TestDirectory{
   }
 
   "DBInt32" should "serialize/unserialize" in {
+    assert(DBInt32.unserialize(DBInt32.serialize(11)) == 11)
     serializeTest(numbers, DBInt32)
   }
 
   "DBInt64" should "serialize/unserialize" in {
+    assert(DBInt64.unserialize(DBInt64.serialize(549879)) == 549879)
     serializeTest(numbers.map(_.toLong), DBInt64)
   }
 
   "DBFloat32" should "serialize/unserialize" in {
+    assert(DBFloat32.unserialize(DBFloat32.serialize(549.879f)) == 549.879f)
     serializeTest(numbers.map(_.toFloat), DBFloat32)
   }
 
   "DBFloat64" should "serialize/unserialize" in {
+    assert(DBFloat64.unserialize(DBFloat64.serialize(5434679.879)) == 5434679.879)
     serializeTest(numbers.map(_.toDouble), DBFloat64)
   }
 
   "DBString(8)" should "serialize/unserialize" in {
-    serializeTest(numbers.map(_.toString.padTo(8,'\0')), DBString(8))
+    val typ = DBString(8)
+    assert(typ.unserialize(typ.serialize("5434679.879")) == "5434679.")
+    serializeTest(numbers.map(_.toString.padTo(8,'\0')), typ)
   }
+
 }
 

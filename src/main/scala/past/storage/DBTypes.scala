@@ -13,9 +13,13 @@ object DBType {
    * @param size Size in bytes of the object to serialize
    * @tparam T  Type of the object to serialize
    */
-  abstract class DBType[T](val size: Int) {
+  abstract class DBType[T](val size: Int) extends Serializable{
+
     def serialize(value: Any, out: FSDataOutputStream) //= writeBytes(toByteBuffer(value), out)
     def unserialize(in: FSDataInputStream): T
+
+    def serialize(value: T): Array[Byte]
+    def unserialize(in: Array[Byte]): T
   }
 
   /*
@@ -25,21 +29,41 @@ object DBType {
   object DBInt32 extends DBType[Int](4) {
     def serialize(value: Any, out: FSDataOutputStream) = out.writeInt(value.asInstanceOf[Int])
     def unserialize(in: FSDataInputStream): Int = in.readInt()
+
+    def serialize(value: Int): Array[Byte] =
+      ByteBuffer.allocate(size).putInt(value).clear.array().asInstanceOf[Array[Byte]]
+
+    def unserialize(in: Array[Byte]): Int = ByteBuffer.wrap(in).getInt
   }
 
   object DBInt64 extends DBType[Long](8) {
     def serialize(value: Any, out: FSDataOutputStream) = out.writeLong(value.asInstanceOf[Long])
     def unserialize(in: FSDataInputStream): Long = in.readLong()
+
+    def serialize(value: Long): Array[Byte] =
+      ByteBuffer.allocate(size).putLong(value).clear.array().asInstanceOf[Array[Byte]]
+
+    def unserialize(in: Array[Byte]): Long = ByteBuffer.wrap(in).getLong
   }
 
   object DBFloat32 extends DBType[Float](4) {
     def serialize(value: Any, out: FSDataOutputStream) = out.writeFloat(value.asInstanceOf[Float])
     def unserialize(in: FSDataInputStream): Float = in.readFloat()
+
+    def serialize(value: Float): Array[Byte] =
+      ByteBuffer.allocate(size).putFloat(value).clear.array().asInstanceOf[Array[Byte]]
+
+    def unserialize(in: Array[Byte]): Float = ByteBuffer.wrap(in).getFloat
   }
 
   object DBFloat64 extends DBType[Double](8) {
     def serialize(value: Any, out: FSDataOutputStream) = out.writeDouble(value.asInstanceOf[Double])
     def unserialize(in: FSDataInputStream): Double = in.readDouble()
+
+    def serialize(value: Double): Array[Byte] =
+      ByteBuffer.allocate(size).putDouble(value).clear.array().asInstanceOf[Array[Byte]]
+
+    def unserialize(in: Array[Byte]): Double = ByteBuffer.wrap(in).getDouble
   }
 
   case class DBString(val nbChars: Int) extends DBType[String](nbChars) {
@@ -51,6 +75,10 @@ object DBType {
     }
 
     def unserialize(in: FSDataInputStream): String = in.readUTF()
+
+    def serialize(value: String): Array[Byte] = value.substring(0,Math.min(nbChars,value.length)).getBytes
+
+    def unserialize(in: Array[Byte]): String = new String(in).toString
   }
 
   /*case class DBRecords(fields:List[(TypeName,DBType)]) extends DBType {

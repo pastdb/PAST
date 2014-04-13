@@ -5,6 +5,15 @@ import past.storage.DBType.DBType
 import javax.security.auth.login.Configuration
 import java.net.URI
 import org.apache.hadoop.conf.Configuration
+import org.apache.spark.rdd.RDD
+import scala.reflect.ClassTag
+import org.apache.hadoop.io._
+import org.apache.hadoop.mapred._
+import scala.Some
+import org.apache.spark.util.Utils
+import org.apache.spark._
+import org.apache.spark.rdd._
+import org.apache.spark.SparkContext._
 
 /**
  * Represents a time series.
@@ -66,6 +75,7 @@ class Timeseries private (name: String, wantedSchema: Schema,
       - values are just un bunch of Any
       - TODO check order of time series:s
   */
+  @deprecated("will probably be removed")
   def insert(values : List[(String,List[_])]){
     val data = schema.fields.map(x => values.find(y => x._1 == y._1) match {
       case Some((name,typ)) => (name,typ,x._2)
@@ -85,7 +95,8 @@ class Timeseries private (name: String, wantedSchema: Schema,
     }
   }
 
-  def get[T](range:Range,column:String):Iterator[T] = schema.fields.get(column) match {
+  @deprecated("will probably be removed")
+  def get[T](range: Range,column: String):Iterator[T] = schema.fields.get(column) match {
     case None => throw new IllegalArgumentException("Column " + column + " does not exist")
     case Some(typ:DBType[T]) =>
       val path = new Path(dataPath,column)
@@ -106,6 +117,33 @@ class Timeseries private (name: String, wantedSchema: Schema,
       }
     case x => throw new IllegalStateException("Fatal error when acceding column " + column)
   }
+
+
+  def insertAtColum[T](sc: SparkContext,column:String, data: List[T]) = schema.fields.get(column) match {
+    case Some(typ:DBType[T]) =>
+      val outputDir = new java.io.File(dataPath.toString, column).getAbsolutePath
+
+      val onPlaceData = sc.sequenceFile(outputDir, classOf[NullWritable], classOf[BytesWritable], 0)
+      val rdd = sc.makeRDD(data.map(typ.serialize(_)))
+
+      onPlaceData
+        .union(rdd
+          .map(x => (NullWritable.get(), new BytesWritable(x))))
+        .saveAsSequenceFile(outputDir)
+    case _ => throw new IllegalArgumentException("Column " + column + " does not exist")
+  }
+
+  def getRDD[T](sc: SparkContext,column: String)(implicit arg0: ClassTag[T]): RDD[T] = schema.fields.get(column) match {
+    case Some(typ:DBType[T]) =>
+
+      val outputDir = new java.io.File(dataPath.toString, column).getAbsolutePath
+      sc.sequenceFile(outputDir, classOf[NullWritable], classOf[BytesWritable], 0).map(x => typ.unserialize(x._2.getBytes))
+       /*sc.hadoopFile(path.toString, classOf[TextInputFormat], classOf[LongWritable], classOf[Text],0)//.map(pair => pair._2.toString)
+      //sc.hadoopFile[NullWritable,ByteWritable,FileSystem](path.toString)
+      TextInputFormat */
+    case _ => throw new IllegalArgumentException("Column " + column + " does not exist")
+  }
+
 }
 
 object Timeseries {
