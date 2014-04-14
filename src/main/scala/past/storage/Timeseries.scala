@@ -119,28 +119,24 @@ class Timeseries private (name: String, wantedSchema: Schema,
   }
 
 
-  def insertAtColum[T](sc: SparkContext,column:String, data: List[T]) = schema.fields.get(column) match {
+
+  def insertAtColum[T](sc: SparkContext,column:String, data: List[T])(implicit arg0: ClassTag[T]): Unit = insertAtColum(sc,column,sc.makeRDD(data))
+
+  def insertAtColum[T](sc: SparkContext,column:String, data: RDD[T])(implicit arg0: ClassTag[T]): Unit = schema.fields.get(column) match {
     case Some(typ:DBType[T]) =>
       val outputDir = new java.io.File(dataPath.toString, column).getAbsolutePath
-
       val onPlaceData = sc.sequenceFile(outputDir, classOf[NullWritable], classOf[BytesWritable], 0)
-      val rdd = sc.makeRDD(data.map(typ.serialize(_)))
-
-      onPlaceData
-        .union(rdd
-          .map(x => (NullWritable.get(), new BytesWritable(x))))
-        .saveAsSequenceFile(outputDir)
+      onPlaceData.union(
+       data.map(x => (NullWritable.get(), new BytesWritable(typ.serialize(x))))
+      ).saveAsSequenceFile(outputDir)
     case _ => throw new IllegalArgumentException("Column " + column + " does not exist")
   }
 
+  //TODO take range
   def getRDD[T](sc: SparkContext,column: String)(implicit arg0: ClassTag[T]): RDD[T] = schema.fields.get(column) match {
     case Some(typ:DBType[T]) =>
-
       val outputDir = new java.io.File(dataPath.toString, column).getAbsolutePath
       sc.sequenceFile(outputDir, classOf[NullWritable], classOf[BytesWritable], 0).map(x => typ.unserialize(x._2.getBytes))
-       /*sc.hadoopFile(path.toString, classOf[TextInputFormat], classOf[LongWritable], classOf[Text],0)//.map(pair => pair._2.toString)
-      //sc.hadoopFile[NullWritable,ByteWritable,FileSystem](path.toString)
-      TextInputFormat */
     case _ => throw new IllegalArgumentException("Column " + column + " does not exist")
   }
 
