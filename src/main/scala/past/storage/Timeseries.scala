@@ -119,9 +119,22 @@ class Timeseries private (name: String, wantedSchema: Schema,
   }
 
 
-
+	/**
+	* Insert data at a certain column
+	*
+	* @param sc SparkContext
+	* @param column column name where the data will be appended
+	* @param data raw data to insert
+	*/
   def insertAtColum[T](sc: SparkContext,column:String, data: List[T])(implicit arg0: ClassTag[T]): Unit = insertAtColum(sc,column,sc.makeRDD(data))
 
+	/**
+	* Insert data at a certain column
+	*
+	* @param sc SparkContext
+	* @param column column name where the data will be appended
+	* @param data an RDD representing the data to be inserted
+	*/
   def insertAtColum[T](sc: SparkContext,column:String, data: RDD[T])(implicit arg0: ClassTag[T]): Unit = schema.fields.get(column) match {
     case Some(typ:DBType[T]) =>
       val outputDir = new java.io.File(dataPath.toString, column).getAbsolutePath
@@ -132,7 +145,13 @@ class Timeseries private (name: String, wantedSchema: Schema,
     case _ => throw new IllegalArgumentException("Column " + column + " does not exist")
   }
 
-  //TODO take range
+  //TODO take range#
+  /**
+	* Retrieve column data to a spark RDD
+	*
+	* @param sc SparkContext
+	* @param column column name where to retrieve data
+	*/
   def getRDD[T](sc: SparkContext,column: String)(implicit arg0: ClassTag[T]): RDD[T] = schema.fields.get(column) match {
     case Some(typ:DBType[T]) =>
       val outputDir = new java.io.File(dataPath.toString, column).getAbsolutePath
