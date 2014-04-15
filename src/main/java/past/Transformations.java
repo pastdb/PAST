@@ -426,8 +426,8 @@ public class Transformations {
 	 * @param timeEnd end of the time frame (can be the last one)
 	 * @return DFTdata computed fourier transform
 	 */
-	private static ArrayList<Complex> DFT(Hashtable<Integer, Double> tsData, int timeStart, int timeEnd) {
-		ArrayList<Complex> DFTdata = new ArrayList<Complex>();
+	private static Hashtable<Integer, Complex> DFT(Hashtable<Integer, Double> tsData, int timeStart, int timeEnd) {
+		Hashtable<Integer, Complex> DFTdata = new Hashtable<Integer, Complex>();
 		ArrayList<Integer> keys = new ArrayList<Integer>(tsData.keySet());
 		Collections.sort(keys);
 				
@@ -439,7 +439,7 @@ public class Transformations {
 				sumReal = tsData.get(keys.get(i)) * Math.cos(angle);
 				sumImag = tsData.get(keys.get(i)) * Math.sin(angle);
 			}
-			DFTdata.add(new Complex(sumReal, sumImag));
+			DFTdata.put(i, new Complex(sumReal, sumImag));
 		}
 		return DFTdata;
 	}
