@@ -23,7 +23,7 @@ public class Transformations {
 	 * @param timeEnd end of the time frame (can be the last one) 
 	 * @return resultTsData transformed time series
 	 */
-	private static Hashtable<Integer, Double> sqrtTransform(Hashtable<Integer, Double> tsData, int timeStart, int timeEnd) {
+	public static Hashtable<Integer, Double> sqrtTransform(Hashtable<Integer, Double> tsData, int timeStart, int timeEnd) {
 		Hashtable<Integer, Double> resultTsData = new Hashtable<Integer, Double>();
 		ArrayList<Integer> keys = new ArrayList<Integer>(tsData.keySet());
 		Collections.sort(keys);
@@ -45,7 +45,7 @@ public class Transformations {
 	 * @param timeEnd end of the time frame (can be the last one) 
 	 * @return resultTsData transformed time series
 	 */
-	private static Hashtable<Integer, Double> logTransform(Hashtable<Integer, Double> tsData, int timeStart, int timeEnd) {
+	public static Hashtable<Integer, Double> logTransform(Hashtable<Integer, Double> tsData, int timeStart, int timeEnd) {
 		Hashtable<Integer, Double> resultTsData = new Hashtable<Integer, Double>();
 		ArrayList<Integer> keys = new ArrayList<Integer>(tsData.keySet());
 		Collections.sort(keys);
@@ -67,7 +67,7 @@ public class Transformations {
 	 * @param timeEnd end of the time frame (can be the last one) 
 	 * @return avg average of time series
 	 */
-	private static Double mean(Hashtable<Integer, Double> tsData, int timeStart, int timeEnd) {
+	public static Double mean(Hashtable<Integer, Double> tsData, int timeStart, int timeEnd) {
 		Double avg = .0;
 		int count = 0;
 		ArrayList<Integer> keys = new ArrayList<Integer>(tsData.keySet());
@@ -90,7 +90,7 @@ public class Transformations {
 	 * @param timeEnd end of the time frame (can be the last one) 
 	 * @return resultTsData transformed time series
 	 */
-	private static Hashtable<Integer, Double> subtractMean(Hashtable<Integer, Double> tsData, int timeStart, int timeEnd) {
+	public static Hashtable<Integer, Double> subtractMean(Hashtable<Integer, Double> tsData, int timeStart, int timeEnd) {
 		Hashtable<Integer, Double> resultTsData = new Hashtable<Integer, Double>();
 		ArrayList<Integer> keys = new ArrayList<Integer>(tsData.keySet());
 		Collections.sort(keys);
@@ -111,7 +111,7 @@ public class Transformations {
 	 * @param timeEnd end of the time frame (can be the last one) 
 	 * @return range time series range on interval
 	 */
-	private static Double range(Hashtable<Integer, Double> tsData, int timeStart, int timeEnd) {
+	public static Double range(Hashtable<Integer, Double> tsData, int timeStart, int timeEnd) {
 		ArrayList<Integer> keys = new ArrayList<Integer>(tsData.keySet());
 		Double min = tsData.get(timeStart);
 		Double max = tsData.get(timeStart);
@@ -135,7 +135,7 @@ public class Transformations {
 	 * @param timeEnd end time of frame
 	 * @return resultFrame values extracted from time series
 	 */
-	private static ArrayList<Double> extractFrame(Hashtable<Integer, Double> tsData, int timeStart, int timeEnd) {
+	public static ArrayList<Double> extractFrame(Hashtable<Integer, Double> tsData, int timeStart, int timeEnd) {
 		ArrayList<Double> resultFrame = new ArrayList<Double>();
 		ArrayList<Integer> keys = new ArrayList<Integer>(tsData.keySet());
 		Collections.sort(keys);
@@ -156,10 +156,10 @@ public class Transformations {
 	 * @param timeEnd end of the time frame (can be the last one) 
 	 * @return maxVal mode of the time series
 	 */
-	private static Double mode(Hashtable<Integer, Double> tsData, int timeStart, int timeEnd) {
+	public static Double mode(Hashtable<Integer, Double> tsData, int timeStart, int timeEnd) {
 		ArrayList<Double> sortedData = extractFrame(tsData, timeStart, timeEnd);
 		Collections.sort(sortedData);
-		
+
 		Double maxVal = sortedData.get(0);
 		int maxOccur = 0, tempMaxOccur = 0, i = 0;
 		Double tempMaxVal = maxVal;
@@ -177,6 +177,7 @@ public class Transformations {
 				tempMaxVal = sortedData.get(i);
 				tempMaxOccur = 0;
 			}
+			i++;
 		}
 		return maxVal;
 	}	
@@ -190,7 +191,7 @@ public class Transformations {
 	 * @param coeff coefficient to shift with
 	 * @return resultTsData shifted time series
 	 */
-	private static Hashtable<Integer, Double> shift(Hashtable<Integer, Double> tsData, int timeStart, int timeEnd, int coeff) {
+	public static Hashtable<Integer, Double> shift(Hashtable<Integer, Double> tsData, int timeStart, int timeEnd, int coeff) {
 		Hashtable<Integer, Double> resultTsData = new Hashtable<Integer, Double>();
 		ArrayList<Integer> keys = new ArrayList<Integer>(tsData.keySet());
 		Collections.sort(keys);
@@ -211,7 +212,7 @@ public class Transformations {
 	 * @param coeff coefficient to scale with
 	 * @return resultTsData scaled time series
 	 */
-	private static Hashtable<Integer, Double> scale(Hashtable<Integer, Double> tsData, int timeStart, int timeEnd, int coeff) {
+	public static Hashtable<Integer, Double> scale(Hashtable<Integer, Double> tsData, int timeStart, int timeEnd, int coeff) {
 		Hashtable<Integer, Double> resultTsData = new Hashtable<Integer, Double>();
 		ArrayList<Integer> keys = new ArrayList<Integer>(tsData.keySet());
 		Collections.sort(keys);
@@ -231,7 +232,7 @@ public class Transformations {
 	 * @param pathNewValues path of the output file for data values
 	 * @return STD standard deviation for time series interval
 	 */
-	private static Double stdDeviation(Hashtable<Integer, Double> tsData, int timeStart, int timeEnd) {
+	public static Double stdDeviation(Hashtable<Integer, Double> tsData, int timeStart, int timeEnd) {
 		double avg = mean(tsData, timeStart, timeEnd);
 		double STD = 0;
 		int count = 0;
@@ -255,7 +256,7 @@ public class Transformations {
 	 * @param pathNewValues path of the output file for data values
 	 * @return resultTsData normalized time series
 	 */
-	private static Hashtable<Integer, Double> normalize(Hashtable<Integer, Double> tsData, int timeStart, int timeEnd) {
+	public static Hashtable<Integer, Double> normalize(Hashtable<Integer, Double> tsData, int timeStart, int timeEnd) {
 		double avg = mean(tsData, timeStart, timeEnd);
 		double std = stdDeviation(tsData, timeStart, timeEnd);
 		Hashtable<Integer, Double> resultTsData = new Hashtable<Integer, Double>();
@@ -277,9 +278,9 @@ public class Transformations {
 	 * @param timeStart first time of the currently needed time series
 	 * @return middle position for the required time series start
 	 */
-	private static int binarySearch(ArrayList<Integer> searchData, int timeStart) {
+	public static int binarySearch(ArrayList<Integer> searchData, int timeStart) {
 		int first = 0;
-		int last = searchData.size();
+		int last = searchData.size() - 1;
 		int middle = (first + last)/2;
 		
 		while (first <= last) {
@@ -297,9 +298,9 @@ public class Transformations {
 		return middle;	
 	}
 
-	private static int binarySearch(ArrayList<Double> searchData, Double timeStart) {
+	public static int binarySearch(ArrayList<Double> searchData, Double timeStart) {
 		int first = 0;
-		int last = searchData.size();
+		int last = searchData.size() - 1;
 		int middle = (first + last)/2;
 		
 		while (first <= last) {
@@ -326,7 +327,7 @@ public class Transformations {
 	 * @param kSmoother range of neighbors
 	 * @return resultTsData transformed time series
 	 */
-	private static Hashtable<Integer, Double> movingAverageSmoother(Hashtable<Integer, Double> tsData, int timeStart, int timeEnd, int kSmoother) {
+	public static Hashtable<Integer, Double> movingAverageSmoother(Hashtable<Integer, Double> tsData, int timeStart, int timeEnd, int kSmoother) {
 		Hashtable<Integer, Double> resultTsData = new Hashtable<Integer, Double>();
 		ArrayList<Integer> keys = new ArrayList<Integer>(tsData.keySet());
 		Collections.sort(keys);
@@ -362,21 +363,22 @@ public class Transformations {
 	 * @param dimensions number of dimensions to be used in new time series
 	 * @return PAA PAA representation of time series
 	 */
-	private static Hashtable<Integer, Double> piecewiseAggregateApproximation(Hashtable<Integer, Double> tsData, int timeStart, int timeEnd, int dimensions) {
+	public static Hashtable<Integer, Double> piecewiseAggregateApproximation(Hashtable<Integer, Double> tsData, int timeStart, int timeEnd, int dimensions) {
 		Hashtable<Integer, Double> PAA = new Hashtable<Integer, Double>();
 		ArrayList<Integer> keys = new ArrayList<Integer>(tsData.keySet());
 		Collections.sort(keys);
 		int startIndex = binarySearch(keys,timeStart);
 		int endIndex = binarySearch(keys, timeEnd);
-		int length = endIndex - startIndex;
-		for (int i = 0; i < dimensions; ++i) {
+		int length = endIndex - startIndex + 1;
+		for (int i = 1; i <= dimensions; ++i) {
 			double temp = 0;
-			int start = (length/dimensions)*(i-1)+1;
+			int start = (length/dimensions)*(i-1);
 			int end = (length/dimensions)*i;
 			for (int j = start; j < end; ++j) {
 				temp += tsData.get(keys.get(j));
 			}
-			temp *= (dimensions/length);
+			temp *= dimensions;
+			temp /= length;
 			PAA.put(i, temp);
 		}
 		return PAA;
@@ -393,7 +395,7 @@ public class Transformations {
 	 * @param cardinality number of breakpoints of the SAX transformation
 	 * @return SAX transformation of time series
 	 */
-	private static Hashtable<Integer, Integer> symbolicAggregateApproximation(Hashtable<Integer, Double> tsData, int timeStart, int timeEnd, int dimensions, int cardinality) {
+	public static Hashtable<Integer, Integer> symbolicAggregateApproximation(Hashtable<Integer, Double> tsData, int timeStart, int timeEnd, int dimensions, int cardinality) {
 		// list with start times for each symbol;
 		// symbol is represented by index in list;
 		ArrayList<Double> mapSymbolTime = new ArrayList<Double>();
@@ -401,8 +403,9 @@ public class Transformations {
 		
 		ArrayList<Integer> keys = new ArrayList<Integer>(PAA.keySet());
 		Collections.sort(keys);
+		System.out.println(keys);
 		
-		Double timeRange = range(PAA, keys.get(0), keys.get(keys.size()));
+		Double timeRange = range(PAA, keys.get(0), keys.get(keys.size()-1));
 		Double intervalDuration = timeRange/cardinality;
 				
 		for (int i = 0; i < cardinality; ++i) {
@@ -426,7 +429,7 @@ public class Transformations {
 	 * @param timeEnd end of the time frame (can be the last one)
 	 * @return DFTdata computed fourier transform
 	 */
-	private static Hashtable<Integer, Complex> DFT(Hashtable<Integer, Double> tsData, int timeStart, int timeEnd) {
+	public static Hashtable<Integer, Complex> DFT(Hashtable<Integer, Double> tsData, int timeStart, int timeEnd) {
 		Hashtable<Integer, Complex> DFTdata = new Hashtable<Integer, Complex>();
 		ArrayList<Integer> keys = new ArrayList<Integer>(tsData.keySet());
 		Collections.sort(keys);
