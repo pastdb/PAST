@@ -1,8 +1,8 @@
 package past;
 
 public class Complex {
-    private static double re;
-    private static double im;
+    private double re;
+    private double im;
 
     public Complex(double real, double imag) {
         re = real;

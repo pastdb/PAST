@@ -12,7 +12,7 @@ public class Transformations {
 	 * implements different functions and transformations of the time series
 	 */
 	
-	private static Double epsilon = 0.00000001; // assume Double as equal
+	public static Double epsilon = 0.00000001; // assume Double as equal
 
 	
 	/*
@@ -50,7 +50,7 @@ public class Transformations {
 		ArrayList<Integer> keys = new ArrayList<Integer>(tsData.keySet());
 		Collections.sort(keys);
 		for (int i:keys) {
-			if (i > timeStart && i < timeEnd) {
+			if (i >= timeStart && i <= timeEnd) {
 				Double temp = Math.log(tsData.get(i));
 				resultTsData.put(i, temp);
 			}
@@ -433,7 +433,7 @@ public class Transformations {
 		Hashtable<Integer, Complex> DFTdata = new Hashtable<Integer, Complex>();
 		ArrayList<Integer> keys = new ArrayList<Integer>(tsData.keySet());
 		Collections.sort(keys);
-				
+			
 		for (int i:keys) {
 			double sumReal = 0;
 			double sumImag = 0;
