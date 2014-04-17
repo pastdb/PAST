@@ -14,6 +14,10 @@ public class Message {
 		System.out.println("unknown command");
 	}
 	
+	public static void invalidChar() {
+		System.out.println("invalid char");
+	}
+	
 	public static void goodbye() {
 		System.out.println("goodbye");
 	}

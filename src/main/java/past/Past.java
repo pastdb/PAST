@@ -1,15 +1,13 @@
 package past;
 
 import java.io.Console;
-import java.util.ArrayList;
-import java.util.Arrays;
 
 /**
  * The Main Class of the framework Processing And Storage of Time series.
  * 
  * This class, it's allow user to interact with the console to apply several function 
  * in relation of time series. 
- * @author ntran
+ * 
  *
  */
 public class Past {
@@ -25,37 +23,31 @@ public class Past {
             System.exit(1);
 		}
 		
-		/*
-		 *    
-		 */
-		boolean isContinue = true;
-		String userCommandLine[] = null;
-		String userCommand = null;
-		String commandsList[] = Command.commandsList;
-		ArrayList<String> validCommand = new ArrayList<String>(Arrays.asList(commandsList));
-		
 		/* 
 		 * welcome message 
 		 */
 		Message.intro();
+		
+		/*
+		 * isContinue: console continue until quit 
+		 * userInput: userInput string 
+		 */
+		final String VALID_CHAR = "[a-zA-Z0-9,=()'\\s-]*";
+		boolean isContinue = true;
+		String userInput = null;
 		
 		/*  
 		 * main part of this class.
 		 * it parses user'command and divide in word to put in an array and lunch the command.  
 		 */
 		do{
-			userCommandLine = trimString(con.readLine("past>  ").trim().split(" "));
-			
-			userCommand = userCommandLine[0];
-			if(userCommand.length() == 0) {
-				/* do nothing */
-			}
-			else if(validCommand.contains(userCommand)) {
-				isContinue = Command.executeCommand(userCommandLine);
+			userInput = con.readLine("past>  ").trim();
+			if(!userInput.matches(VALID_CHAR)) {
+				Message.invalidChar();
 			}
 			else {
-				Message.unknowCommand();
-			}	
+				isContinue = Command.executeCommand(InputConsoleParser(userInput));
+			}
 		} while(isContinue);
 		
 		/* 
@@ -68,11 +60,13 @@ public class Past {
 	/*
 	 * for each String, it take out some space before and after a word
 	 */
-	private static String[] trimString(String[] tab) {
-		String[] tmp = tab;
-		for(int i=0; i<tab.length; i++) {
-			tmp[i] = tab[i].trim();
-		}
-		return tmp;
+	private static String[] InputConsoleParser(String userInput) {
+		String tmp = userInput.trim();
+		tmp = tmp.replace("=", " = ");
+		tmp = tmp.replace(",", " , ");
+		tmp = tmp.replace("(", " ( ");
+		tmp = tmp.replace(")", " ) ");
+		tmp = tmp.replaceAll("\\s+"," ");
+		return tmp.split(" ");
 	}
 }
