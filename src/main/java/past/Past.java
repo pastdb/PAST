@@ -19,20 +19,27 @@ public class Past {
 		 */
 		Console con = System.console();
 		if(con == null) {
-			Message.errorConsole();
+			System.err.println("No console.");
             System.exit(1);
 		}
 		
 		/* 
 		 * welcome message 
 		 */
-		Message.intro();
+		System.out.println("************ WELCOME TO *************\n");
+		System.out.println("      ****  ****  **** *****");
+		System.out.println("      *  *  *  *  *      *");
+		System.out.println("      ****  ****  ****   *");
+		System.out.println("      *     *  *     *   *");
+		System.out.println("      *     *  *  ****   *");
+		System.out.println("Processing And Storage of Time series");
+		System.out.println("Big Data Project v0.1 \n\n --> Type help for more information.\n\n");
 		
 		/*
 		 * isContinue: console continue until quit 
 		 * userInput: userInput string 
 		 */
-		final String VALID_CHAR = "[a-zA-Z0-9,=()'\\s-]*";
+		final String VALID_CHAR = "[a-zA-Z0-9,=:()'\\s-]*";
 		boolean isContinue = true;
 		String userInput = null;
 		
@@ -43,7 +50,7 @@ public class Past {
 		do{
 			userInput = con.readLine("past>  ").trim();
 			if(!userInput.matches(VALID_CHAR)) {
-				Message.invalidChar();
+				System.out.println("invalid char");
 			}
 			else {
 				isContinue = Command.executeCommand(InputConsoleParser(userInput));
@@ -53,7 +60,7 @@ public class Past {
 		/* 
 		 * goodbye message and exit 
 		 */
-		Message.goodbye();
+		System.out.println("GOODBYE");
 		System.exit(0);
 	}
 	
@@ -63,6 +70,7 @@ public class Past {
 	private static String[] InputConsoleParser(String userInput) {
 		String tmp = userInput.trim();
 		tmp = tmp.replace("=", " = ");
+		tmp = tmp.replace(":", " : ");
 		tmp = tmp.replace(",", " , ");
 		tmp = tmp.replace("(", " ( ");
 		tmp = tmp.replace(")", " ) ");

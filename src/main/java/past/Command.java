@@ -4,21 +4,45 @@ import org.apache.spark.api.java.*;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 /**
- * this class will execute command that user want
- *
+ * Command class contain available command that user can use and the help function.
+ * - check user command
+ * - execute the user command if the command is valid (using ExecuteCommand Class)
  */
 public class Command {
 
-	/*  List of commands available on the console */
-	static String commandsList[] = {"quit", "exit", "help", "load", "memList", "wordcount"};
+	/*  
+	 * List of commands available on the console 
+	 * 
+	 * - adding commands must also to be add in command() function and help() function
+	 * - the executing command will be on the class Execute
+	 */
+	static String commands[] = {
+		/* standard commands */
+		"quit", "exit", "help", "var",
+		/* database */
+		"USE", "OPEN", "CLOSE DATABASE", "SHOW", "DROP", "EXIST", "GET", "CREATE",
+		/* Time Serie */
+		"CREATE TS SCHEMA", "SHOW TS SCHEMA", "INSERT", "SELECT RANGE", "MAX VALUE", "MIN VALUE",
+		/* Transformations */
+		"SQRT TRANSFORM", "LOG TRANSFORM", "MEAN", "SHIFT", 
+		"SCALE", "STD DEVIATION", "NORMALIZE", "SEARCH", "MOVING AVERAGE", "DFT",
+		/* Compression */
+		
+		/* indexing */
+		
+		/* clustering */
+		
+		/* prediction */
+	};
+	/* help to use contain */
+	static private ArrayList<String> commandsList = new ArrayList<String>(Arrays.asList(commands));
 	
 	/* variable save by the user */
 	static Map<String, Object > map_variable = new HashMap<String, Object >();
-	
-	/* spark context */
-//	static JavaSparkContext sc = new JavaSparkContext("local", "PAST");
 	
 	/**
 	 * 
@@ -30,6 +54,9 @@ public class Command {
 
 		if(userInput[0].length() == 0) { // no input
 			//do nothing
+		}
+		else if(!(commandsList.contains(userInput[0]) || (size > 2 && commandsList.contains(userInput[2])))) {
+			System.out.println("unknown command");
 		}
 		else if(size > 1 && userInput[1].compareTo("=") == 0) { // save in variable
 			
@@ -52,87 +79,104 @@ public class Command {
 
 		switch(userCommandLine[0].trim()) {
 		
-		/*
+		/* ************************************
 		 * standard commands
-		 */
+		 *************************************/
+		
 		case "quit": return false;
 		case "exit": return false;
+		//case "ls" : break;
 		case "help": help( (size > 1) ? userCommandLine[1].trim() : ""); break;
-		case "memList": {
+		case "var": {
 			for (String key: map_variable.keySet()) {
 			    System.out.println("key : " + key + " - value : " + map_variable.get(key));
 			}
 		} break;
 		
-		/*
-		 * related with load/save data commands
-		 */
-		case "load": {
-			if(size != 3) System.out.println("Usage: load <file> <save in variable>");
-			else {
-//				map_variable.put(userCommandLine[2].trim(), sc.textFile(userCommandLine[1].trim()));
-			}
-		} break;
+		/* ************************************
+		 * database
+		 *************************************/ 
+		
+		/* open database(name: String, filesystem: FileSystem, conf: Config) */
+		case "USE" : break;
+		case "OPEN" : ExecuteCommand.openDB(null); break;
+		/* close database */
+		case "CLOSE DATABASE" : break;
+		/* show list of TimeSeries */
+		case "SHOW" : break;
+		/* drop a timeSeries */
+		case "DROP" : break;
+		/* exist a timeSeries with name ... */
+		case "EXIST" : break;
+		/* get a timeSeries */
+		case "GET" : break;
+		/* create a timeSeries */
+		case "CREATE" : break;
 		
 		
+		/* ************************************
+		 * Time Series
+		 *************************************/
 		
-		/*
-		 * Processing And Storage of Time series commands 
-		 */
+		/* create the timeSerie schema */
+		case "CREATE TS SCHEMA" : break;
+		/* show the schema of this timeSerie */
+		case "SHOW TS SCHEMA" : break;
+		/* insert data at a certain column */
+		case "INSERT" : break;
+		/* select timeSerie Range from timeStart to timeEnd */
+		case "SELECT RANGE": break;
+		/* find max value of timeSerie */
+		case "MAX VALUE" : break;
+		/* find min value of timeSerie */
+		case "MIN VALUE" : break;
 		
-		/* Time Series */
-		/* TODO */
-		case "Timeseries" : break;
-		case "addAttribute" : break;
-		case "getAttribute" : break;
-		case "removeAttrivute" : break;
-		case "addValue" : break;
-		case "getValue" : break;
-		case "removeValue" : break;
-		case "getTimeseries" : break;
 		
-		/* Transformations*/
-		/* TODO */
-		case "sqrtTransform" : break;
-		case "logTransform" : break;
-		case "mean" : break;
-		case "subtractMean" : break;
-		case "range" : break;
-		case "extractFrame" : break;
-		case "mode" : break;
-		case "shift" : break;
-		case "scale" : break;
-		case "stdDeviation" : break;
-		case "normalize" : break;
-		case "binarySearch" : break;
-		case "movingAverageSmoother" : break;
-		case "piecewiseAggregateApproximation" : break;
-		case "symolicAggregateApproximation" : break;
+		/* ************************************
+		 * Transformations
+		 *************************************/
+		
+		/* power transformation of timeSerie: square root */
+		case "SQRT TRANSFORM" : break;
+		/* power transformation of timeSerie: logarithm */
+		case "LOG TRANSFORM" : break;
+		/* average of timeSerie */
+		case "MEAN" : break;
+		/* shifting timeSerie with coefficient */
+		case "SHIFT" : break;
+		/* scaling timeSerie with coefficient */
+		case "SCALE" : break;
+		/* standard deviation of timeSeries */
+		case "STD DEVIATION" : break;
+		/* normalize the TimeSerie */
+		case "NORMALIZE" : break;
+		/* search the first time occurs */
+		case "SEARCH" : break;
+		/* moving average */
+		case "MOVING AVERAGE" : break;
+		//case "piecewiseAggregateApproximation" : break;
+		//case "symolicAggregateApproximation" : break;
+		
+		/* DFT of timeSerie */
 		case "DFT" : break;
 		
-		/* Complex */
-		/* TODO */
-		case "Complex" : break;
-		case "toString" : break;
+		/* ************************************
+		 * Compression 
+		 *************************************/
 		
-		/* Functions */
-		/* TODO */
-		case "min" : break;
-		case "max" : break;
+		/* ************************************
+		 * indexing 
+		 *************************************/
 		
+		/* ************************************
+		 * clustering 
+		 *************************************/
 		
+		/* ************************************
+		 * prediction 
+		 *************************************/
 		
-		/*
-		 * Test for spark commands
-		 */
-		case "wordcount": {
-			if(size != 2) System.out.println("Usage: wordcount <save in variable>");
-			else if(map_variable.containsKey(userCommandLine[1].trim())) {
-//				WordCount.wordcount(map_variable.get(userCommandLine[1]));
-			}
-			else System.out.println("unknown variable");
-		} break; 
-		
+				
 		default: System.out.println("oups it may have a code error");
 		}
 
@@ -150,12 +194,65 @@ public class Command {
 		case "exit" : System.out.println("exit the framework"); break;
 		case "load" : System.out.println("  load take parametter ");
 		default: {
-			System.out.println("Available commands ");
-			String tmp = "";
-			for(String s: commandsList) tmp += s + " ";
-			System.out.println("Commands List: " + tmp);
+			System.out.println("List of commands:\n");
+			
+			System.out.println("************************************");
+			System.out.println("standard commands");
+			System.out.println("************************************");
+			System.out.println("quit");
+			System.out.println("help");
+			System.out.println("var");
+			System.out.println("************************************");
+			System.out.println("database commands");
+			System.out.println("************************************");
+			System.out.println("OPEN");
+			System.out.println("CLOSE DATABASE");
+			System.out.println("SHOW");
+			System.out.println("DROP");
+			System.out.println("EXIST");
+			System.out.println("GET");
+			System.out.println("CREATE");
+			System.out.println("************************************");
+			System.out.println("Time Series commands");
+			System.out.println("************************************");
+			System.out.println("CREATE TS SCHEMA");
+			System.out.println("SHOW TS SCHEMA");
+			System.out.println("INSERT");
+			System.out.println("SELECT RANGE");
+			System.out.println("MAX VALUE");
+			System.out.println("MIN VALUE");
+			System.out.println("************************************");
+			System.out.println("Transformation commands");
+			System.out.println("************************************");
+			System.out.println("SQRT TRANSFORM");
+			System.out.println("LOG TRANSFORM");
+			System.out.println("MEAN");
+			System.out.println("SHIFT");
+			System.out.println("SCALE");
+			System.out.println("STD DEVIATION");
+			System.out.println("NORMALIZE");
+			System.out.println("SEARCH");
+			System.out.println("MOVING AVERAGE");
+			System.out.println("************************************");
+			System.out.println("Compression commands");
+			System.out.println("************************************");
+			System.out.println("");
+			System.out.println("************************************");
+			System.out.println("indexing");
+			System.out.println("************************************");
+			System.out.println("");
+			System.out.println("************************************");
+			System.out.println("clustering");
+			System.out.println("************************************");
+			System.out.println("");
+			System.out.println("************************************");
+			System.out.println("prediction");
+			System.out.println("************************************");
+			System.out.println("");
+			System.out.println("");
 		}
 		}
+		
 	}
 
 }
