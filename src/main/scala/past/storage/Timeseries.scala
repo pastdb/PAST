@@ -125,6 +125,7 @@ class Timeseries private (name: String, wantedSchema: Schema,
    */
   def insert(sc: SparkContext,columns: List[(String, List[_])]): Unit = {
     assert(columns.size == schema.fields.size)
+    columns.foreach(s => assert(columns.head._2.size == s._2.size))
     columns.foreach {c =>
       insertAtColum(sc,c._1,c._2)
     }
