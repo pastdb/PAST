@@ -55,12 +55,16 @@ class Database(name: String, filesystem: FileSystem, conf: Config) {
 
   /** Checks if there is a time series with the given name */
   def hasTimeseries(name: String): Boolean = {
-    return timeseries.contains(name)
+    timeseries.contains(name)
   }
 
   /** Optionally returns the Timeseries with the given name */
   def getTimeseries(name: String): Option[Timeseries] = {
-    return timeseries.get(name)
+    timeseries.get(name)
+  }
+
+  def getTimeseries: List[String] = {
+     timeseries.keys.toList
   }
 
   /** Creats a timeseries in this database */
