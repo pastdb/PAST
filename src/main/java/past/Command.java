@@ -36,7 +36,7 @@ public class Command {
 		
 		/* clustering */
 		
-		/* prediction */
+		/* Forecasting */
 	};
 	/* help to use contain */
 	static private ArrayList<String> commandsList = new ArrayList<String>(Arrays.asList(commands));
@@ -99,7 +99,7 @@ public class Command {
 		
 		/* open database(name: String, filesystem: FileSystem, conf: Config) */
 		case "USE" : break;
-		case "OPEN" : ExecuteCommand.openDB(null); break;
+		case "OPEN" : ExecuteCommand.openDB(Arrays.copyOfRange(userCommandLine, 1, size)); break;
 		/* close database */
 		case "CLOSE DATABASE" : break;
 		/* show list of TimeSeries */
@@ -173,7 +173,7 @@ public class Command {
 		 *************************************/
 		
 		/* ************************************
-		 * prediction 
+		 * Forecasting 
 		 *************************************/
 		
 				
@@ -246,7 +246,7 @@ public class Command {
 			System.out.println("************************************");
 			System.out.println("");
 			System.out.println("************************************");
-			System.out.println("prediction");
+			System.out.println("Forecasting");
 			System.out.println("************************************");
 			System.out.println("");
 			System.out.println("");
