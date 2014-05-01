@@ -46,9 +46,9 @@ class TimeseriesSpec extends FlatSpec with TestDirectory {
     val db = new Timeseries(name, testDirectory, filesystem)
     val data = List(1,2,3,4,5,6,7,8,9)
     val sc = new SparkContext("local", "Data test")
-    db.insertAtColum(sc,"ts",data)
+    db.insert(sc,List(("ts",data)))
     val output = db.getRDD[Int](sc,"ts")
-    assert(output.collect().toList === data)
+    assert(output.collect().toList == data)
   }
 
   /*"Data" should "be able to be inserted at different times with spark" in new Builder {
