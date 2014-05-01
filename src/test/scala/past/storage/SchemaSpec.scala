@@ -29,5 +29,16 @@ class SchemaSpec extends FlatSpec with TestDirectory {
     assert(new Schema(("ts", DBInt32)) != new Schema(("ts", DBFloat32)))
     assert(new Schema(("Ts", DBInt32)) != new Schema(("id", DBInt32)))
   }
+
+  it should "require the id field to be numeric" in {
+    new Schema(("ts", DBInt32))
+    new Schema(("ts", DBInt64))
+    new Schema(("ts", DBFloat32))
+    new Schema(("ts", DBFloat64))
+
+    intercept[java.lang.IllegalArgumentException] {
+      new Schema(("ts", DBString(2)))
+    }
+  }
 }
 
