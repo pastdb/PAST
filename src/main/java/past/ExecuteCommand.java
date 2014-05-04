@@ -11,6 +11,9 @@ import java.nio.file.FileSystems;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Scanner;
+
+import scala.*;
 
 import past.storage.*;
 
@@ -199,25 +202,19 @@ public class ExecuteCommand {
 		else if(size == 3 && userInput[1].compareTo(":") != 0) {
 			System.out.println("  you forget to put ':'");
 		}
-		else if(size == 3 && !variable.keySet().contains(userInput[2])) {
+		else if(size == 3 && variable.keySet().contains(userInput[2])) {
 			System.out.println("  variable name already exist");
 		}
 		else if(!db.hasTimeseries(nameTS)) {
 			System.out.println("  no found timeserie");
 		}
 		else {
-
-			if(size == 3) {
-				String v_name = userInput[2];
-				// TODO
-				// recuperation de la time serie et sauvegarde dans variable avec la nom
-
-			}
-			else {
-				String v_name = generateNameVariable();
-				// TODO
-				// recuperation de la time serie et sauvegarde dans variable avec
-			}
+			String v_name = (size == 3) ? userInput[2] : generateNameVariable();  
+	
+			Option<Timeseries> tmp = db.getTimeseries(nameTS);
+			Timeseries ts = tmp.get();
+			variable.put(v_name, ts);
+			System.out.println("  TimeSerie has been save in variable name " + v_name);
 		}
 	}
 
@@ -239,12 +236,12 @@ public class ExecuteCommand {
 			System.out.println("  no database open");
 		}
 		else if(size < 2 || size > 4 || size == 3) {
-			System.out.println("  input must be : CREATE 'name of timeSerie' 'Schema' : [name]");
+			System.out.println("  input must be : CREATE 'name of timeSerie' 'Schema' [: name]");
 		} 
 		else if(size == 4 && userInput[2].compareTo(":") != 0) {
 			System.out.println("  you forget to put ':'");
 		}
-		else if(size == 4 && !variable.keySet().contains(userInput[3])) {
+		else if(size == 4 && variable.keySet().contains(userInput[3])) {
 			System.out.println("  variable name already exist");
 		}
 		else if(db.hasTimeseries(nameTS)) {
@@ -252,24 +249,21 @@ public class ExecuteCommand {
 		}
 		else if(!variable.containsKey(nameSchema)) {
 			System.out.println("  schema not found");
-			System.out.println("  (to create schema: name_var = CREATE_SCHEMA");
+			System.out.println("  (to create schema tape: CREATE_SCHEMA");
 		}
 		else {
 
 			Schema schema = (Schema)variable.get(nameSchema);
 			db.createTimeseries(nameTS, schema);
 			System.out.println("  TimeSerie has been created in database name " + nameDB);
-
-			if(size == 4) {
-				String v_name = userInput[3];
-				// TODO
-				// recuperation de la time serie et sauvegarde dans variable avec la nom
-			}
-			else {
-				String v_name = generateNameVariable();
-				// TODO
-				// recuperation de la time serie et sauvegarde dans variable avec
-			}
+			
+			// save in variable
+			String v_name = (size == 4) ? userInput[3] : generateNameVariable();  
+			
+			Option<Timeseries> tmp = db.getTimeseries(nameTS);
+			Timeseries ts = tmp.get();
+			variable.put(v_name, ts);
+			System.out.println("  TimeSerie has been save in variable name " + v_name);
 		}
 	}
 
@@ -282,20 +276,107 @@ public class ExecuteCommand {
 	 */
 	public static void createSchema() {
 
+//		try {
+//			System.out.println("  CREATE schema:");
+//
+//			Scanner sc = new Scanner(System.in);
+//			System.out.println("    enter the number of field:");
+//			int n = sc.nextInt();
+//			
+//			Field schemaField[] = new Field[n];
+//			DBType type[] = {DBInt32, DBInt64, DBFloat32, DBFloat64};
+//			String nameField = null;
+//			
+//			
+//			for(int i=0; i<n; i++) {
+//				System.out.println("    enter the name of the " + n+1 + " field :");
+//				nameField = sc.nextLine().trim();
+//				
+//				System.out.println("    select the value type : [0]");
+//				System.out.println("     [0] int32");
+//				System.out.println("     [1] int64");
+//				System.out.println("     [2] float32");
+//				System.out.println("     [3] float64");
+//				//System.out.println("     [4] string");
+//				n = sc.nextInt();
+//				
+//			}
+//		
+//		}
+//		catch (Exception e) {
+//			System.out.println("    create schema fail: invalid input");
+//		}
+		//Schema s = new Schema(new Tuple2<String, DBType.DBType<?>>("temps", DBInt32));
+		//Schema s = new Schema(Field("temps", DBInt32));
 	}
 
 	/*
 	 * SHOW_SCHEMA of the timeSerie
 	 */
-	public static void showSchema() {
+	public static void showSchema(String userInput[]) {
+		int size = userInput.length;
+		String nameTS = null;
+
+		if(size > 0) {
+			nameTS = userInput[0];
+		}
+
+		if(size != 1) {
+			System.out.println("  input must be : GET 'name of timeSerie'");
+		} 
+		else if(!variable.keySet().contains(nameTS)) {
+			System.out.println("  Timeserie not found");
+		}
+		else {
+			
+			Object ob = variable.get(nameTS);
+			try {
+				Schema schema = ( (Timeseries)ob ).schema();
+				System.out.println("  Schema of the timeserie: ");
+				System.out.println(schema.toString());
+			}
+			catch (Exception e) {
+				System.out.println("  the variable is not a Timeserie");
+			}
+		}
 
 	}
 
 	/*
 	 * GET_SCHEMA of the timeSerie
 	 */
-	public static void getSchema() {
-
+	public static void getSchema(String userInput[]) {
+		int size = userInput.length;
+		String nameTS = null;
+		
+		if(size > 0) {
+			nameTS = userInput[0];
+		}
+		
+		if(size < 1 || size > 3 || size == 2) {
+			System.out.println("  input must be : GET 'name of timeSerie' [: name]");
+		} 
+		else if(size == 3 && userInput[1].compareTo(":") != 0) {
+			System.out.println("  you forget to put ':'");
+		}
+		else if(size == 3 && variable.keySet().contains(userInput[2])) {
+			System.out.println("  variable name already exist");
+		}
+		else if(!variable.keySet().contains(nameTS)) {
+			System.out.println("  Timeserie not found");
+		}
+		else {
+			Object ob = variable.get(nameTS);
+			try {
+				Schema schema = ( (Timeseries)ob ).schema();
+				String v_name = (size == 3) ? userInput[2] : generateNameVariable();
+				variable.put(v_name, schema);
+				System.out.println("  Schema of the timeserie: ");
+			}
+			catch (Exception e) {
+				System.out.println("  the variable is not a Timeserie");
+			}
+		}
 	}
 
 	/* ************************************
