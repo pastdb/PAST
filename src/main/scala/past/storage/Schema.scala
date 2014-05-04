@@ -19,6 +19,11 @@ class Schema(val id: Schema.Field, restFields: Schema.Field*) extends Equals {
       "Duplicate field(s): %s".format(duplicates.mkString(", ")))
   }
 
+  require(id._2 match {
+    case DBType.DBInt32 | DBType.DBInt64 | DBType.DBFloat32 | DBType.DBFloat64 => true
+    case _ => false },
+    "The id field should have numeric type")
+
   /** The fields of the schema, including the id */
   val fields = Map(id :: restFields.toList: _*)
 

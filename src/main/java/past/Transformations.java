@@ -1,30 +1,32 @@
 package past;
 
+import java.awt.Point;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Hashtable;
-//import past.storage.DBType;
+import past.storage.DBType;
 
 
 public class Transformations {
-	//TODO: change all Doubles to DBType ?
 	/*
 	 * implements different functions and transformations of the time series
 	 */
-	
 	public static Double epsilon = 0.00000001; // assume Double as equal
 
 	
 	/*
 	 * Power transformation of time series: square root (on complete data set 
 	 * or partial window frame with start and end time given)
-	 * @param tsData time series
+	 * @param ts time series
+	 * @param attribute
 	 * @param timeStart start of the time frame (can be the first one)
 	 * @param timeEnd end of the time frame (can be the last one) 
 	 * @return resultTsData transformed time series
 	 */
-	public static Hashtable<Integer, Double> sqrtTransform(Hashtable<Integer, Double> tsData, int timeStart, int timeEnd) {
-		Hashtable<Integer, Double> resultTsData = new Hashtable<Integer, Double>();
+	public static Hashtable<Integer, DBType> sqrtTransform(Timeseries ts, String attribute, int timeStart, int timeEnd) {
+		Hashtable<Integer, DBType> tsData = ts.getTimeseries().get(attribute);
+		
+		Hashtable<Integer, DBType> resultTsData = new Hashtable<Integer, DBType>();
 		ArrayList<Integer> keys = new ArrayList<Integer>(tsData.keySet());
 		Collections.sort(keys);
 		for (int i:keys) {
@@ -40,13 +42,16 @@ public class Transformations {
 	/*
 	 * Power transformation of time series: logarithm (on complete data set 
 	 * or partial window frame with start and end time given)
-	 * @param tsData time series
+	 * @param ts time series
+	 * @param attribute
 	 * @param timeStart start of the time frame (can be the first one)
 	 * @param timeEnd end of the time frame (can be the last one) 
 	 * @return resultTsData transformed time series
 	 */
-	public static Hashtable<Integer, Double> logTransform(Hashtable<Integer, Double> tsData, int timeStart, int timeEnd) {
-		Hashtable<Integer, Double> resultTsData = new Hashtable<Integer, Double>();
+	public static Hashtable<Integer, DBType> logTransform(Timeseries ts, String attribute, int timeStart, int timeEnd) {
+		Hashtable<Integer, DBType> tsData = ts.getTimeseries().get(attribute);
+		
+		Hashtable<Integer, DBType> resultTsData = new Hashtable<Integer, DBType>();
 		ArrayList<Integer> keys = new ArrayList<Integer>(tsData.keySet());
 		Collections.sort(keys);
 		for (int i:keys) {
@@ -62,12 +67,15 @@ public class Transformations {
 	/*
 	 * Compute average of time series (on complete data set 
 	 * or partial window frame with start and end time given)
-	 * @param tsData time series
+	 * @param ts time series
+	 * @param attribute
 	 * @param timeStart start of the time frame (can be the first one)
 	 * @param timeEnd end of the time frame (can be the last one) 
 	 * @return avg average of time series
 	 */
-	public static Double mean(Hashtable<Integer, Double> tsData, int timeStart, int timeEnd) {
+	public static Double mean(Timeseries ts, String attribute, int timeStart, int timeEnd) {
+		Hashtable<Integer, DBType> tsData = ts.getTimeseries().get(attribute);
+		
 		Double avg = .0;
 		int count = 0;
 		ArrayList<Integer> keys = new ArrayList<Integer>(tsData.keySet());
@@ -85,16 +93,19 @@ public class Transformations {
 	
 	/*
 	 * Compute the average on interval and subtract the average from original values
-	 * @param tsData time series
+	 * @param ts time series
+	 * @param attribute
 	 * @param timeStart start of the time frame (can be the first one)
 	 * @param timeEnd end of the time frame (can be the last one) 
 	 * @return resultTsData transformed time series
 	 */
-	public static Hashtable<Integer, Double> subtractMean(Hashtable<Integer, Double> tsData, int timeStart, int timeEnd) {
-		Hashtable<Integer, Double> resultTsData = new Hashtable<Integer, Double>();
+	public static Hashtable<Integer, DBType> subtractMean(Timeseries ts, String attribute, int timeStart, int timeEnd) {
+		Hashtable<Integer, DBType> tsData = ts.getTimeseries().get(attribute);
+		
+		Hashtable<Integer, DBType> resultTsData = new Hashtable<Integer, DBType>();
 		ArrayList<Integer> keys = new ArrayList<Integer>(tsData.keySet());
 		Collections.sort(keys);
-		double average = mean(tsData, timeStart, timeEnd);
+		double average = mean(ts, attribute, timeStart, timeEnd);
 		for (int i:keys) {
 			if (i >= timeStart && i <= timeEnd) {
 				resultTsData.put(i, tsData.get(i)-average);
@@ -106,12 +117,15 @@ public class Transformations {
 	
 	/*
 	 * Range of the time series: highest value - lowest value
-	 * @param tsData time series
+	 * @param ts time series
+	 * @param attribute
 	 * @param timeStart start of the time frame (can be the first one)
 	 * @param timeEnd end of the time frame (can be the last one) 
 	 * @return range time series range on interval
 	 */
-	public static Double range(Hashtable<Integer, Double> tsData, int timeStart, int timeEnd) {
+	public static Double range(Timeseries ts, String attribute, int timeStart, int timeEnd) {
+		Hashtable<Integer, DBType> tsData = ts.getTimeseries().get(attribute);	
+		
 		ArrayList<Integer> keys = new ArrayList<Integer>(tsData.keySet());
 		Double min = tsData.get(timeStart);
 		Double max = tsData.get(timeStart);
@@ -130,13 +144,16 @@ public class Transformations {
 
 	/*
 	 * Helper function to extract only partial values from the time series
-	 * @param tsData time series
+	 * @param ts time series
+	 * @param attribute
 	 * @param timeStart start time of frame
 	 * @param timeEnd end time of frame
 	 * @return resultFrame values extracted from time series
 	 */
-	public static ArrayList<Double> extractFrame(Hashtable<Integer, Double> tsData, int timeStart, int timeEnd) {
-		ArrayList<Double> resultFrame = new ArrayList<Double>();
+	public static ArrayList<DBType> extractFrame(Timeseries ts, String attribute, int timeStart, int timeEnd) {
+		Hashtable<Integer, DBType> tsData = ts.getTimeseries().get(attribute);
+		
+		ArrayList<DBType> resultFrame = new ArrayList<DBType>();
 		ArrayList<Integer> keys = new ArrayList<Integer>(tsData.keySet());
 		Collections.sort(keys);
 		for (int i:keys) {
@@ -151,13 +168,16 @@ public class Transformations {
 	/*
 	 * Compute mode of time series (on complete data set 
 	 * or partial window frame with start and end time given)
-	 * @param tsData time series
+	 * @param ts time series
+	 * @param attribute
 	 * @param timeStart start of the time frame (can be the first one)
 	 * @param timeEnd end of the time frame (can be the last one) 
 	 * @return maxVal mode of the time series
 	 */
-	public static Double mode(Hashtable<Integer, Double> tsData, int timeStart, int timeEnd) {
-		ArrayList<Double> sortedData = extractFrame(tsData, timeStart, timeEnd);
+	public static Double mode(Timeseries ts, String attribute, int timeStart, int timeEnd) {
+		Hashtable<Integer, DBType> tsData = ts.getTimeseries().get(attribute);
+
+		ArrayList<DBType> sortedData = extractFrame(ts, attribute, timeStart, timeEnd);
 		Collections.sort(sortedData);
 
 		Double maxVal = sortedData.get(0);
@@ -185,14 +205,17 @@ public class Transformations {
 	
 	/*
 	 * Shifting time series (window) with coefficient
-	 * @param tsData time series
+	 * @param ts time series
+	 * @param attribute
 	 * @param pathNewTime path of the output file for time values
 	 * @param pathNewValues path of the output file for data values
 	 * @param coeff coefficient to shift with
 	 * @return resultTsData shifted time series
 	 */
-	public static Hashtable<Integer, Double> shift(Hashtable<Integer, Double> tsData, int timeStart, int timeEnd, int coeff) {
-		Hashtable<Integer, Double> resultTsData = new Hashtable<Integer, Double>();
+	public static Hashtable<Integer, DBType> shift(Timeseries ts, String attribute, int timeStart, int timeEnd, int coeff) {
+		Hashtable<Integer, DBType> tsData = ts.getTimeseries().get(attribute);
+
+		Hashtable<Integer, DBType> resultTsData = new Hashtable<Integer, DBType>();
 		ArrayList<Integer> keys = new ArrayList<Integer>(tsData.keySet());
 		Collections.sort(keys);
 		for (int i:keys) {
@@ -206,14 +229,17 @@ public class Transformations {
 	
 	/*
 	 * Scaling time series (window) with coefficient
-	 * @param tsData time series
+	 * @param ts time series
+	 * @param attribute
 	 * @param pathNewTime path of the output file for time values
 	 * @param pathNewValues path of the output file for data values
 	 * @param coeff coefficient to scale with
 	 * @return resultTsData scaled time series
 	 */
-	public static Hashtable<Integer, Double> scale(Hashtable<Integer, Double> tsData, int timeStart, int timeEnd, int coeff) {
-		Hashtable<Integer, Double> resultTsData = new Hashtable<Integer, Double>();
+	public static Hashtable<Integer, DBType> scale(Timeseries ts, String attribute, int timeStart, int timeEnd, int coeff) {
+		Hashtable<Integer, DBType> tsData = ts.getTimeseries().get(attribute);
+
+		Hashtable<Integer, DBType> resultTsData = new Hashtable<Integer, DBType>();
 		ArrayList<Integer> keys = new ArrayList<Integer>(tsData.keySet());
 		Collections.sort(keys);
 		for (int i:keys) {
@@ -227,13 +253,16 @@ public class Transformations {
 	
 	/*
 	 * Standard deviation of the time series
-	 * @param tsData time series
+	 * @param ts time series
+	 * @param attribute
 	 * @param pathNewTime path of the output file for time values
 	 * @param pathNewValues path of the output file for data values
 	 * @return STD standard deviation for time series interval
 	 */
-	public static Double stdDeviation(Hashtable<Integer, Double> tsData, int timeStart, int timeEnd) {
-		double avg = mean(tsData, timeStart, timeEnd);
+	public static Double stdDeviation(Timeseries ts, String attribute, int timeStart, int timeEnd) {
+		Hashtable<Integer, DBType> tsData = ts.getTimeseries().get(attribute);
+
+		double avg = mean(ts, attribute, timeStart, timeEnd);
 		double STD = 0;
 		int count = 0;
 		ArrayList<Integer> keys = new ArrayList<Integer>(tsData.keySet());
@@ -251,15 +280,18 @@ public class Transformations {
 	
 	/*
 	 * Normalization of time series
-	 * @param tsData time series
+	 * @param ts time series
+	 * @param attribute
 	 * @param pathNewTime path of the output file for time values
 	 * @param pathNewValues path of the output file for data values
 	 * @return resultTsData normalized time series
 	 */
-	public static Hashtable<Integer, Double> normalize(Hashtable<Integer, Double> tsData, int timeStart, int timeEnd) {
-		double avg = mean(tsData, timeStart, timeEnd);
-		double std = stdDeviation(tsData, timeStart, timeEnd);
-		Hashtable<Integer, Double> resultTsData = new Hashtable<Integer, Double>();
+	public static Hashtable<Integer, DBType> normalize(Timeseries ts, String attribute, int timeStart, int timeEnd) {
+		Hashtable<Integer, DBType> tsData = ts.getTimeseries().get(attribute);
+
+		double avg = mean(ts, attribute, timeStart, timeEnd);
+		double std = stdDeviation(ts, attribute, timeStart, timeEnd);
+		Hashtable<Integer, DBType> resultTsData = new Hashtable<Integer, DBType>();
 		ArrayList<Integer> keys = new ArrayList<Integer>(tsData.keySet());
 		Collections.sort(keys);
 		for (int i:keys) {
@@ -298,7 +330,7 @@ public class Transformations {
 		return middle;	
 	}
 
-	public static int binarySearch(ArrayList<Double> searchData, Double timeStart) {
+	public static int binarySearch(ArrayList<DBType> searchData, Double timeStart) {
 		int first = 0;
 		int last = searchData.size() - 1;
 		int middle = (first + last)/2;
@@ -321,33 +353,36 @@ public class Transformations {
 	
 	/* 
 	 * Moving average smoother, replace data value with average on neighbors
-	 * @param tsData time series
+	 * @param ts time series
+	 * @param attribute
 	 * @param timeStart start of the time frame (can be the first one)
 	 * @param timeEnd end of the time frame (can be the last one)
 	 * @param kSmoother range of neighbors
 	 * @return resultTsData transformed time series
 	 */
-	public static Hashtable<Integer, Double> movingAverageSmoother(Hashtable<Integer, Double> tsData, int timeStart, int timeEnd, int kSmoother) {
-		Hashtable<Integer, Double> resultTsData = new Hashtable<Integer, Double>();
+	public static Hashtable<Integer, DBType> movingAverageSmoother(Timeseries ts, String attribute, int timeStart, int timeEnd, int kSmoother) {
+		Hashtable<Integer, DBType> tsData = ts.getTimeseries().get(attribute);
+
+		Hashtable<Integer, DBType> resultTsData = new Hashtable<Integer, DBType>();
 		ArrayList<Integer> keys = new ArrayList<Integer>(tsData.keySet());
 		Collections.sort(keys);
 		int startIndex = binarySearch(keys,timeStart);
 		int endIndex = binarySearch(keys, timeEnd);
 		for(int i = startIndex; i <= endIndex; ++i) {
 			if (i-kSmoother >= startIndex && i+kSmoother <=endIndex) {
-				double tempAverage = mean(tsData, keys.get(i-kSmoother), keys.get(i+kSmoother));
+				double tempAverage = mean(ts, attribute, keys.get(i-kSmoother), keys.get(i+kSmoother));
 				resultTsData.put(i, tempAverage);
 			}
 			else if (i-kSmoother < startIndex && i+kSmoother <= endIndex) {
-				double tempAverage = mean(tsData, timeStart, keys.get(i+kSmoother));
+				double tempAverage = mean(ts, attribute, timeStart, keys.get(i+kSmoother));
 				resultTsData.put(i, tempAverage);
 			}
 			else if (i-kSmoother >= startIndex && i+kSmoother > endIndex) {
-				double tempAverage = mean(tsData, keys.get(i-kSmoother), timeEnd);
+				double tempAverage = mean(ts, attribute, keys.get(i-kSmoother), timeEnd);
 				resultTsData.put(i, tempAverage);
 			}
 			else {
-				double tempAverage = mean(tsData, timeStart, timeEnd);
+				double tempAverage = mean(ts, attribute, timeStart, timeEnd);
 				resultTsData.put(i, tempAverage);
 			}
 		}
@@ -357,14 +392,17 @@ public class Transformations {
 
 	/*
 	 * Piecewise aggregate approximation of time series
-	 * @param tsData time series
+	 * @param ts time series
+	 * @param attribute
 	 * @param timeStart start of the time frame (can be the first one)
 	 * @param timeEnd end of the time frame (can be the last one)
 	 * @param dimensions number of dimensions to be used in new time series
 	 * @return PAA PAA representation of time series
 	 */
-	public static Hashtable<Integer, Double> piecewiseAggregateApproximation(Hashtable<Integer, Double> tsData, int timeStart, int timeEnd, int dimensions) {
-		Hashtable<Integer, Double> PAA = new Hashtable<Integer, Double>();
+	public static Hashtable<Integer, DBType> piecewiseAggregateApproximation(Timeseries ts, String attribute, int timeStart, int timeEnd, int dimensions) {
+		Hashtable<Integer, DBType> tsData = ts.getTimeseries().get(attribute);
+
+		Hashtable<Integer, DBType> PAA = new Hashtable<Integer, DBType>();
 		ArrayList<Integer> keys = new ArrayList<Integer>(tsData.keySet());
 		Collections.sort(keys);
 		int startIndex = binarySearch(keys,timeStart);
@@ -388,18 +426,21 @@ public class Transformations {
 	/*
 	 * Symbolic Aggregate Approximation (SAX) of time series, using integers 0,1.. as 
 	 * symbols - could further be transformed to binary if required
-	 * @param tsData time series
+	 * @param ts time series
+	 * @param attribute
 	 * @param timeStart start of the time frame (can be the first one)
 	 * @param timeEnd end of the time frame (can be the last one)
 	 * @param dimensions number of dimensions to be used in new time series
 	 * @param cardinality number of breakpoints of the SAX transformation
 	 * @return SAX transformation of time series
 	 */
-	public static Hashtable<Integer, Integer> symbolicAggregateApproximation(Hashtable<Integer, Double> tsData, int timeStart, int timeEnd, int dimensions, int cardinality) {
+	public static Hashtable<Integer, Integer> symbolicAggregateApproximation(Timeseries ts, String attribute, int timeStart, int timeEnd, int dimensions, int cardinality) {
+		Hashtable<Integer, DBType> tsData = ts.getTimeseries().get(attribute);
+
 		// list with start times for each symbol;
 		// symbol is represented by index in list;
-		ArrayList<Double> mapSymbolTime = new ArrayList<Double>();
-		Hashtable<Integer, Double> PAA = piecewiseAggregateApproximation(tsData, timeStart, timeEnd, dimensions);
+		ArrayList<DBType> mapSymbolTime = new ArrayList<DBType>();
+		Hashtable<Integer, DBType> PAA = piecewiseAggregateApproximation(ts, attribute, timeStart, timeEnd, dimensions);
 		
 		ArrayList<Integer> keys = new ArrayList<Integer>(PAA.keySet());
 		Collections.sort(keys);
@@ -425,11 +466,15 @@ public class Transformations {
 	
 	/*
 	 * DFT of time series
+	 * @param ts time series
+	 * @param attribute
 	 * @param timeStart start of the time frame (can be the first one)
 	 * @param timeEnd end of the time frame (can be the last one)
 	 * @return DFTdata computed fourier transform
 	 */
-	public static Hashtable<Integer, Complex> DFT(Hashtable<Integer, Double> tsData, int timeStart, int timeEnd) {
+	public static Hashtable<Integer, Complex> DFT(Timeseries ts, String attribute, int timeStart, int timeEnd) {
+		Hashtable<Integer, DBType> tsData = ts.getTimeseries().get(attribute);
+
 		Hashtable<Integer, Complex> DFTdata = new Hashtable<Integer, Complex>();
 		ArrayList<Integer> keys = new ArrayList<Integer>(tsData.keySet());
 		Collections.sort(keys);
@@ -446,4 +491,42 @@ public class Transformations {
 		}
 		return DFTdata;
 	}
+	
+	
+	/*
+	 * Dynamic time warping - similarity between two time series
+	 * @param ts1 first time series to compare, with
+	 * @param attr1 its attribute column
+	 * @param ts2 second time series with
+	 * @param attr2 its attribute column
+	 * @return similarity value
+	 */
+	public static double DTWDistance(Timeseries ts1, String attr1, Timeseries ts2, String attr2) {
+		Hashtable<Integer, DBType> TS1 = ts1.getTimeseries().get(attr1);
+		Hashtable<Integer, DBType> TS2 = ts2.getTimeseries().get(attr2);
+
+		Hashtable <Point, Double> DTW = new Hashtable <Point, Double>();
+		
+		DTW.put(new Point(0,0), .0);
+		for (int i = 1; i <= TS1.size(); ++i) {
+			DTW.put(new Point(i,0), Double.MAX_VALUE);
+		}
+		for (int i = 1; i <= TS2.size(); ++i) {
+			DTW.put(new Point(0,i), Double.MAX_VALUE);
+		}
+		
+		// algorithm
+		for (int i = 1; i <= TS1.size(); ++i) {
+			for (int j = 1; j <= TS2.size(); ++j) {
+				// choose other cost?
+				double cost = Math.abs(TS1.get(i-1) - TS2.get(j-1));
+				double min1 = Math.min(DTW.get(new Point(i-1, j)), DTW.get(new Point(i, j-1)));
+				double min2 = Math.min(min1, DTW.get(new Point(i-1, j-1)));
+				double value = cost + min2;
+				DTW.put(new Point(i,j), value);
+			}
+		}
+		return DTW.get(new Point(TS1.size(), TS2.size()));
+	}
+	
 }

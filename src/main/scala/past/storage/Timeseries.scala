@@ -118,6 +118,18 @@ class Timeseries private (name: String, wantedSchema: Schema,
     case x => throw new IllegalStateException("Fatal error when acceding column " + column)
   }
 
+  /**
+   * Insert data in columns
+   * @param sc SparkContext
+   * @param columns tuple containing the column name and the data to insert at said column
+   */
+  def insert(sc: SparkContext,columns: List[(String, List[_])]): Unit = {
+    assert(columns.size == schema.fields.size)
+    columns.foreach(s => assert(columns.head._2.size == s._2.size))
+    columns.foreach {c =>
+      insertAtColum(sc,c._1,c._2)
+    }
+  }
 
 	/**
 	* Insert data at a certain column
@@ -126,7 +138,7 @@ class Timeseries private (name: String, wantedSchema: Schema,
 	* @param column column name where the data will be appended
 	* @param data raw data to insert
 	*/
-  def insertAtColum[T](sc: SparkContext,column:String, data: List[T])(implicit arg0: ClassTag[T]): Unit = insertAtColum(sc,column,sc.makeRDD(data))
+  private def insertAtColum[T](sc: SparkContext,column:String, data: List[T])(implicit arg0: ClassTag[T]): Unit = insertAtColum(sc,column,sc.makeRDD(data))
 
 	/**
 	* Insert data at a certain column
@@ -135,7 +147,7 @@ class Timeseries private (name: String, wantedSchema: Schema,
 	* @param column column name where the data will be appended
 	* @param data an RDD representing the data to be inserted
 	*/
-  def insertAtColum[T](sc: SparkContext,column:String, data: RDD[T])(implicit arg0: ClassTag[T]): Unit = schema.fields.get(column) match {
+  private def insertAtColum[T](sc: SparkContext,column:String, data: RDD[T])(implicit arg0: ClassTag[T]): Unit = schema.fields.get(column) match {
     case Some(typ:DBType[T]) =>
       val outputDir = new java.io.File(dataPath.toString, column).getAbsolutePath
       val onPlaceData = sc.sequenceFile(outputDir, classOf[NullWritable], classOf[BytesWritable], 0)
