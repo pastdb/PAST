@@ -25,6 +25,7 @@ public class ExecuteCommand {
 
 
 	private static Database db = null;
+	private static String nameDB = null;
 	/* ************************************
 	 * database function
 	 *************************************/ 
@@ -62,9 +63,9 @@ public class ExecuteCommand {
 				
 				System.out.println("  - opening DB -");
 				System.out.println("   Current dir using System:" + System.getProperty("user.dir"));
-				System.out.println(db);
 				/* create or open database */
 				db = new Database(name, hadoopFS, config);
+				nameDB = name;
 				System.out.println("   " + db);
 			} 
 			catch(Exception e) {
@@ -73,6 +74,71 @@ public class ExecuteCommand {
 		}
 	}
 
+	/*
+	 * CLOSE database
+	 */
+	public static void closeDB() {
+		if(db == null) {
+			System.out.println("  no database open");
+		}
+		else {
+			System.out.println("  database name " + nameDB + ": close");
+			db = null;
+			nameDB = null;
+		}
+	}
+	
+	/*
+	 * SHOW list of timeSeries 
+	 */
+	public static void showTS() {
+		if(db == null) {
+			System.out.println("  no database is open");
+		}
+		else {
+			String TSlist[] = db.getTimeseries();
+			System.out.println("  LIST of TIMESERIES :");
+			
+			if(TSlist.length == 0 ) {
+				System.out.println("   no TimeSeries in database"); 
+			}
+			else {
+				for(String s: TSlist) {
+					System.out.println("    - " + s);
+				}
+			}
+		}
+	}
+	
+	/*
+	 * DROP timeSerie
+	 */
+	public static void dropTS(String userInput[]) {
+		
+	}
+	
+	/*
+	 * EXIST timeSerie
+	 */
+	public static void existTS(String userInput[]) {
+		
+	}
+	
+	/*
+	 * GET timeSerie
+	 */
+	public static void getTS(String userInput[]) {
+		
+	}
+	
+	/*
+	 * CREATE timeSerie
+	 */
+	public static void createTS(String userInput[]) {
+		
+	}
+	
+	
 	/* ************************************
 	 * Time Series function
 	 *************************************/

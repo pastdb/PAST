@@ -24,7 +24,7 @@ public class Command {
 		/* standard commands */
 		"quit", "exit", "help", "var",
 		/* database */
-		"USE", "OPEN", "CLOSE DATABASE", "SHOW", "DROP", "EXIST", "GET", "CREATE",
+		"USE", "OPEN", "CLOSE", "SHOW", "DROP", "EXIST", "GET", "CREATE",
 		/* Time Serie */
 		"CREATE TS SCHEMA", "SHOW TS SCHEMA", "INSERT", "SELECT RANGE", "MAX VALUE", "MIN VALUE",
 		/* Transformations */
@@ -101,17 +101,17 @@ public class Command {
 		case "USE" : break;
 		case "OPEN" : ExecuteCommand.openDB(Arrays.copyOfRange(userCommandLine, 1, size)); break;
 		/* close database */
-		case "CLOSE DATABASE" : break;
+		case "CLOSE" : ExecuteCommand.closeDB(); break;
 		/* show list of TimeSeries */
-		case "SHOW" : break;
+		case "SHOW" : ExecuteCommand.showTS(); break;
 		/* drop a timeSeries */
-		case "DROP" : break;
+		case "DROP" : ExecuteCommand.dropTS(Arrays.copyOfRange(userCommandLine, 1, size)); break;
 		/* exist a timeSeries with name ... */
-		case "EXIST" : break;
+		case "EXIST" : ExecuteCommand.existTS(Arrays.copyOfRange(userCommandLine, 1, size)); break;
 		/* get a timeSeries */
-		case "GET" : break;
+		case "GET" : ExecuteCommand.getTS(Arrays.copyOfRange(userCommandLine, 1, size)); break;
 		/* create a timeSeries */
-		case "CREATE" : break;
+		case "CREATE" : ExecuteCommand.createTS(Arrays.copyOfRange(userCommandLine, 1, size)); break;
 		
 		
 		/* ************************************
@@ -206,7 +206,7 @@ public class Command {
 			System.out.println("database commands");
 			System.out.println("************************************");
 			System.out.println("OPEN");
-			System.out.println("CLOSE DATABASE");
+			System.out.println("CLOSE");
 			System.out.println("SHOW");
 			System.out.println("DROP");
 			System.out.println("EXIST");

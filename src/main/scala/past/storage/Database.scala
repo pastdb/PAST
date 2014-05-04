@@ -63,8 +63,8 @@ class Database(name: String, filesystem: FileSystem, conf: Config) {
     timeseries.get(name)
   }
 
-  def getTimeseries: List[String] = {
-     timeseries.keys.toList
+  def getTimeseries: Array[String] = {
+     timeseries.keys.toList.toArray
   }
 
   /** Creats a timeseries in this database */
