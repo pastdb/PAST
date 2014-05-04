@@ -26,7 +26,7 @@ public class Command {
 		/* database */
 		"USE", "OPEN", "CLOSE", "SHOW", "DROP", "EXIST", "GET", "CREATE",
 		/* Time Serie */
-		"CREATE TS SCHEMA", "SHOW TS SCHEMA", "INSERT", "SELECT RANGE", "MAX VALUE", "MIN VALUE",
+		"CREATE_SCHEMA", "SHOW_SCHEMA", "GET_SCHEMA", "INSERT", "SELECT RANGE", "MAX VALUE", "MIN VALUE",
 		/* Transformations */
 		"SQRT TRANSFORM", "LOG TRANSFORM", "MEAN", "SHIFT", 
 		"SCALE", "STD DEVIATION", "NORMALIZE", "SEARCH", "MOVING AVERAGE", "DFT",
@@ -41,9 +41,6 @@ public class Command {
 	/* help to use contain */
 	static private ArrayList<String> commandsList = new ArrayList<String>(Arrays.asList(commands));
 	
-	/* variable save by the user */
-	static Map<String, Object > map_variable = new HashMap<String, Object >();
-	
 	/**
 	 * 
 	 * @param userCommandLine
@@ -55,12 +52,8 @@ public class Command {
 		if(userInput[0].length() == 0) { // no input
 			//do nothing
 		}
-		else if(!(commandsList.contains(userInput[0]) || (size > 2 && commandsList.contains(userInput[2])))) {
+		else if(!commandsList.contains(userInput[0]) ) {
 			System.out.println("unknown command");
-		}
-		else if(size > 1 && userInput[1].compareTo("=") == 0) { // save in variable
-			
-			String saveVar = userInput[0];
 		}
 		else { // not save in variable
 			Object return_value = command(userInput);
@@ -85,13 +78,8 @@ public class Command {
 		
 		case "quit": return false;
 		case "exit": return false;
-		//case "ls" : break;
 		case "help": help( (size > 1) ? userCommandLine[1].trim() : ""); break;
-		case "var": {
-			for (String key: map_variable.keySet()) {
-			    System.out.println("key : " + key + " - value : " + map_variable.get(key));
-			}
-		} break;
+		case "var": ExecuteCommand.showVar(); break;
 		
 		/* ************************************
 		 * database
@@ -119,9 +107,11 @@ public class Command {
 		 *************************************/
 		
 		/* create the timeSerie schema */
-		case "CREATE TS SCHEMA" : break;
-		/* show the schema of this timeSerie */
-		case "SHOW TS SCHEMA" : break;
+		case "CREATE_SCHEMA" : break;
+		/* show the schema of the timeSerie */
+		case "SHOW_SCHEMA" : break;
+		/* get the schema of the timeSerie*/
+		case "GET_SCHEMA" : break;
 		/* insert data at a certain column */
 		case "INSERT" : break;
 		/* select timeSerie Range from timeStart to timeEnd */
@@ -215,8 +205,9 @@ public class Command {
 			System.out.println("************************************");
 			System.out.println("Time Series commands");
 			System.out.println("************************************");
-			System.out.println("CREATE TS SCHEMA");
-			System.out.println("SHOW TS SCHEMA");
+			System.out.println("CREATE_SCHEMA");
+			System.out.println("SHOW_SCHEMA");
+			System.out.println("GET_SCHEMA");
 			System.out.println("INSERT");
 			System.out.println("SELECT RANGE");
 			System.out.println("MAX VALUE");
