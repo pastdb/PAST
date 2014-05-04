@@ -80,6 +80,8 @@ public class Command {
 		case "exit": return false;
 		case "help": help( (size > 1) ? userCommandLine[1].trim() : ""); break;
 		case "var": ExecuteCommand.showVar(); break;
+		case "del" : break;
+		case "rename": break;
 		
 		/* ************************************
 		 * database
@@ -107,11 +109,11 @@ public class Command {
 		 *************************************/
 		
 		/* create the timeSerie schema */
-		case "CREATE_SCHEMA" : break;
+		case "CREATE_SCHEMA" : ExecuteCommand.createSchema(); break;
 		/* show the schema of the timeSerie */
-		case "SHOW_SCHEMA" : break;
+		case "SHOW_SCHEMA" : ExecuteCommand.showSchema(Arrays.copyOfRange(userCommandLine, 1, size)); break;
 		/* get the schema of the timeSerie*/
-		case "GET_SCHEMA" : break;
+		case "GET_SCHEMA" : ExecuteCommand.getSchema(Arrays.copyOfRange(userCommandLine, 1, size)); break;
 		/* insert data at a certain column */
 		case "INSERT" : break;
 		/* select timeSerie Range from timeStart to timeEnd */
