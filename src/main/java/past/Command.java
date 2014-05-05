@@ -117,11 +117,15 @@ public class Command {
 		/* insert data at a certain column */
 		case "INSERT" : break;
 		/* select timeSerie Range from timeStart to timeEnd */
-		case "SELECT RANGE": break;
+		case "SELECT_RANGE": break;
 		/* find max value of timeSerie */
-		case "MAX VALUE" : break;
+		case "MAX_VALUE" : break;
 		/* find min value of timeSerie */
-		case "MIN VALUE" : break;
+		case "MIN_VALUE" : break;
+		/* find min timestamp of timeSerie */
+		case "MAX_TIMESTAMP" : break;
+		/* find max timestamp of timeSerie */
+		case "MIN_TIMESTAMP" : break;
 		
 		
 		/* ************************************
@@ -129,9 +133,9 @@ public class Command {
 		 *************************************/
 		
 		/* power transformation of timeSerie: square root */
-		case "SQRT TRANSFORM" : break;
+		case "SQRT_TRANSFORM" : break;
 		/* power transformation of timeSerie: logarithm */
-		case "LOG TRANSFORM" : break;
+		case "LOG_TRANSFORM" : break;
 		/* average of timeSerie */
 		case "MEAN" : break;
 		/* shifting timeSerie with coefficient */
@@ -139,18 +143,20 @@ public class Command {
 		/* scaling timeSerie with coefficient */
 		case "SCALE" : break;
 		/* standard deviation of timeSeries */
-		case "STD DEVIATION" : break;
+		case "STD_DEVIATION" : break;
 		/* normalize the TimeSerie */
 		case "NORMALIZE" : break;
 		/* search the first time occurs */
 		case "SEARCH" : break;
 		/* moving average */
-		case "MOVING AVERAGE" : break;
+		case "MOVING_AVERAGE" : break;
 		//case "piecewiseAggregateApproximation" : break;
 		//case "symolicAggregateApproximation" : break;
 		
 		/* DFT of timeSerie */
 		case "DFT" : break;
+		/* DTW of 2 timeSerie (similarity between two timeseries) */
+		case "DTW" : break;
 		
 		/* ************************************
 		 * Compression 
