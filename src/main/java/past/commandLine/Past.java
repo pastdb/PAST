@@ -1,4 +1,4 @@
-package past;
+package past.commandLine;
 
 import java.io.Console;
 

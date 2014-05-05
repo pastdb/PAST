@@ -1,4 +1,4 @@
-package past;
+package past.commandLine;
 
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.FileSystem;
@@ -213,7 +213,7 @@ public class ExecuteCommand {
 		}
 		else {
 			String v_name = (size == 3) ? userInput[2] : generateNameVariable();  
-	
+
 			Option<Timeseries> tmp = db.getTimeseries(nameTS);
 			Timeseries ts = tmp.get();
 			variable.put(v_name, ts);
@@ -259,10 +259,10 @@ public class ExecuteCommand {
 			Schema schema = (Schema)variable.get(nameSchema);
 			db.createTimeseries(nameTS, schema);
 			System.out.println("  TimeSerie has been created in database name " + nameDB);
-			
+
 			// save in variable
 			String v_name = (size == 4) ? userInput[3] : generateNameVariable();  
-			
+
 			Option<Timeseries> tmp = db.getTimeseries(nameTS);
 			Timeseries ts = tmp.get();
 			variable.put(v_name, ts);
@@ -279,40 +279,46 @@ public class ExecuteCommand {
 	 */
 	public static void createSchema() {
 
-//		try {
-//			System.out.println("  CREATE schema:");
-//
-//			Scanner sc = new Scanner(System.in);
-//			System.out.println("    enter the number of field:");
-//			int n = sc.nextInt();
-//			
-//			Field schemaField[] = new Field[n];
-//			DBType type[] = {DBInt32, DBInt64, DBFloat32, DBFloat64};
-//			String nameField = null;
-//			
-//			
-//			for(int i=0; i<n; i++) {
-//				System.out.println("    enter the name of the " + n+1 + " field :");
-//				nameField = sc.nextLine().trim();
-//				
-//				System.out.println("    select the value type : [0]");
-//				System.out.println("     [0] int32");
-//				System.out.println("     [1] int64");
-//				System.out.println("     [2] float32");
-//				System.out.println("     [3] float64");
-//				//System.out.println("     [4] string");
-//				n = sc.nextInt();
-//				
-//			}
-//		
-//		}
-//		catch (Exception e) {
-//			System.out.println("    create schema fail: invalid input");
-//		}
-		ListBuffer<Tuple2<String, DBType.DBType<?>>> fields =  new ListBuffer<Tuple2<String, DBType.DBType<?>>>();
-		fields.add()
-		Schema s = new Schema(new Tuple2<String, DBType.DBType<?>>("temps", DBType.DBInt32$.MODULE$) , fields.toList());
-		//Schema s = new Schema(Field("temps", DBInt32));
+		try {
+			System.out.println("  CREATE schema:");
+
+			Scanner sc = new Scanner(System.in);
+			System.out.println("    enter the number of field:");
+			int n = sc.nextInt();
+
+			ListBuffer<Tuple2<String, DBType.DBType<?>>> fields =  new ListBuffer<Tuple2<String, DBType.DBType<?>>>();
+			DBType.DBType<?> type[] = {DBType.DBInt32$.MODULE$, 
+					DBType.DBInt64$.MODULE$, 
+					DBType.DBFloat32$.MODULE$, 
+					DBType.DBFloat64$.MODULE$};
+
+			String nameField = null;
+
+			for(int i=0; i<n; i++) {
+				System.out.println("    enter the name of the " + n+1 + " field :");
+				nameField = sc.nextLine().trim();
+
+				do {
+					System.out.println("    select the value type : [0]");
+					System.out.println("     [0] int32");
+					System.out.println("     [1] int64");
+					System.out.println("     [2] float32");
+					System.out.println("     [3] float64");
+					//System.out.println("     [4] string");
+					n = sc.nextInt();
+					
+				} while (n < 0 || n > 4);
+
+//				fields.add()
+			}
+			Schema s = new Schema(new Tuple2<String, DBType.DBType<?>>("temps", DBType.DBInt32$.MODULE$) , fields.toList());
+		}
+		catch (Exception e) {
+			System.out.println("    create schema fail: invalid input");
+		}
+		
+		
+		
 	}
 
 	/*
@@ -333,7 +339,7 @@ public class ExecuteCommand {
 			System.out.println("  Timeserie not found");
 		}
 		else {
-			
+
 			Object ob = variable.get(nameTS);
 			try {
 				Schema schema = ( (Timeseries)ob ).schema();
@@ -353,11 +359,11 @@ public class ExecuteCommand {
 	public static void getSchema(String userInput[]) {
 		int size = userInput.length;
 		String nameTS = null;
-		
+
 		if(size > 0) {
 			nameTS = userInput[0];
 		}
-		
+
 		if(size < 1 || size > 3 || size == 2) {
 			System.out.println("  input must be : GET_SCHEMA 'name of timeSerie' [: name]");
 		} 
