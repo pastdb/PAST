@@ -3,6 +3,7 @@ package past.storage
 import org.apache.hadoop.fs.{FileSystem, FSDataInputStream, FSDataOutputStream, Path}
 import past.storage.DBType._
 import scala.collection.mutable
+import scala.collection.mutable.ListBuffer
 
 /**
  * Represents the schema of a time series. On creation, it performs
@@ -13,6 +14,7 @@ import scala.collection.mutable
  * @param restFields the rest of the fields that compose the schema
  */
 class Schema(val id: Schema.Field, restFields: Schema.Field*) extends Equals {
+
   if (!restFields.isEmpty) {
     val duplicates = (id :: restFields.toList).groupBy(_._1).filter(_._2.size > 1).keys
     require(duplicates.isEmpty,
@@ -113,3 +115,22 @@ object Schema {
   }
 }
 
+/**
+ * Class used to make the creation of a Schema easier from java
+ * @param id The name of the timeserie index
+ * @param typ The type of the timeserie index (must be numeric)
+ */
+class SchemaConstructor(id: String, typ: DBType[_])  {
+  private val fields = new ListBuffer[Schema.Field]()
+
+  /**
+   * Add a field to the futur schema
+   * @param name name of the field
+   * @param typ type of the field
+   */
+  def addField(name: String, typ: DBType[_]) = fields.append((name, typ))
+  /*
+  * Return the constructed Schema
+  * */
+  def get = new Schema((id, typ), fields.toSeq: _*)
+}
