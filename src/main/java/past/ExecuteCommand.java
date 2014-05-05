@@ -14,6 +14,9 @@ import java.util.Map;
 import java.util.Scanner;
 
 import scala.*;
+import scala.collection.immutable.List;
+import scala.collection.immutable.List$;
+import scala.collection.mutable.ListBuffer;
 
 import past.storage.*;
 
@@ -197,7 +200,7 @@ public class ExecuteCommand {
 			System.out.println("  no database open");
 		}
 		else if(size < 1 || size > 3 || size == 2) {
-			System.out.println("  input must be : GET 'name of timeSerie' : [name] ");
+			System.out.println("  input must be : GET 'name of timeSerie' [: name] ");
 		} 
 		else if(size == 3 && userInput[1].compareTo(":") != 0) {
 			System.out.println("  you forget to put ':'");
@@ -306,7 +309,9 @@ public class ExecuteCommand {
 //		catch (Exception e) {
 //			System.out.println("    create schema fail: invalid input");
 //		}
-		//Schema s = new Schema(new Tuple2<String, DBType.DBType<?>>("temps", DBInt32));
+		ListBuffer<Tuple2<String, DBType.DBType<?>>> fields =  new ListBuffer<Tuple2<String, DBType.DBType<?>>>();
+		fields.add()
+		Schema s = new Schema(new Tuple2<String, DBType.DBType<?>>("temps", DBType.DBInt32$.MODULE$) , fields.toList());
 		//Schema s = new Schema(Field("temps", DBInt32));
 	}
 
@@ -354,7 +359,7 @@ public class ExecuteCommand {
 		}
 		
 		if(size < 1 || size > 3 || size == 2) {
-			System.out.println("  input must be : GET 'name of timeSerie' [: name]");
+			System.out.println("  input must be : GET_SCHEMA 'name of timeSerie' [: name]");
 		} 
 		else if(size == 3 && userInput[1].compareTo(":") != 0) {
 			System.out.println("  you forget to put ':'");
