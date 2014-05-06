@@ -512,9 +512,9 @@ public class Transformations {
 	/*
 	 * Dynamic time warping - similarity between two time series
 	 * @param ts1 first time series to compare, with
-	 * @param attr1 its attribute column
+	 * @param attr1 its attribute file
 	 * @param ts2 second time series with
-	 * @param attr2 its attribute column
+	 * @param attr2 its attribute file
 	 * @return similarity value
 	 */
 	public static double DTWDistance(Timeseries ts1, String attr1, Timeseries ts2, String attr2) {

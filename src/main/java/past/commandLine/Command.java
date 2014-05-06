@@ -114,7 +114,7 @@ public class Command {
 		case "SHOW_SCHEMA" : ExecuteCommand.showSchema(Arrays.copyOfRange(userCommandLine, 1, size)); break;
 		/* get the schema of the timeSerie*/
 		case "GET_SCHEMA" : ExecuteCommand.getSchema(Arrays.copyOfRange(userCommandLine, 1, size)); break;
-		/* insert data at a certain column */
+		/* insert data at a certain file */
 		case "INSERT" : break;
 		/* select timeSerie Range from timeStart to timeEnd */
 		case "SELECT_RANGE": break;
