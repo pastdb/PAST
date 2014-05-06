@@ -109,7 +109,7 @@ public class Command {
 		 *************************************/
 		
 		/* create the timeSerie schema */
-		case "CREATE_SCHEMA" : ExecuteCommand.createSchema(); break;
+		case "CREATE_SCHEMA" : ExecuteCommand.createSchema(Arrays.copyOfRange(userCommandLine, 1, size)); break;
 		/* show the schema of the timeSerie */
 		case "SHOW_SCHEMA" : ExecuteCommand.showSchema(Arrays.copyOfRange(userCommandLine, 1, size)); break;
 		/* get the schema of the timeSerie*/

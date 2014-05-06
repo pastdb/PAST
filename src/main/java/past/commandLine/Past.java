@@ -40,7 +40,7 @@ public class Past {
 		 * userInput: userInput string 
 		 * ex : [a-zA-Z0-9,=:()'\\s-]* 
 		 */
-		final String VALID_CHAR = "[a-zA-Z0-9:'\\s-]*";
+		final String VALID_CHAR = "[a-zA-Z0-9:_'\\s-]*";
 		boolean isContinue = true;
 		String userInput = null;
 		
