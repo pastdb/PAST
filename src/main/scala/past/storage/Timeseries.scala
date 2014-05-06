@@ -14,6 +14,7 @@ import org.apache.spark.util.Utils
 import org.apache.spark._
 import org.apache.spark.rdd._
 import org.apache.spark.SparkContext._
+import past.index.interval.IntervalIndex
 
 /**
  * Represents a time series.
@@ -21,6 +22,7 @@ import org.apache.spark.SparkContext._
  * @constructor
  * @param name The name of the time series
  * @param wantedSchema The schema to be used if the time series does not exist
+ * @param indexes The interval indexes TODO
  * @param containingPath The path to directory in which the time series will
  * be created
  * @param filesystem The filesystem to use for accessing files
@@ -28,8 +30,11 @@ import org.apache.spark.SparkContext._
  * timeseries alread exists, it will fail with IOException. If it's `false`,
  * an existing timeseries will be opened.
  */
-class Timeseries private (name: String, wantedSchema: Schema,
-  containingPath: Path, filesystem: FileSystem, createMode: Boolean) {
+class Timeseries private (name: String,
+                          wantedSchema: Schema,
+                          containingPath: Path,
+                          filesystem: FileSystem,
+                          createMode: Boolean) {
 
   require(Timeseries.isValidName(name), "Timeseries name is not valid")
 
@@ -45,6 +50,7 @@ class Timeseries private (name: String, wantedSchema: Schema,
   /** The path of the Timeseries */
   val path = new Path(containingPath, name)
   private val schemaPath = new Path(path, Timeseries.SchemaFilename)
+  private val indexPath =  new Path(path, Timeseries.IndexFilename)
   private val dataPath = new Path(path, Timeseries.DataDirName)
 
   if (!_exists && createMode) {
@@ -55,6 +61,7 @@ class Timeseries private (name: String, wantedSchema: Schema,
 
   /** The schema of the Timeseries */
   val schema = Schema.load(schemaPath, filesystem)
+  //val indexes:IntervalIndex
 
   /**
    * Opens an existing time series.
@@ -176,6 +183,7 @@ class Timeseries private (name: String, wantedSchema: Schema,
 object Timeseries {
   /** The filename of the schema */
   val SchemaFilename = "schema"
+  val IndexFilename = "index"
   /** The directory in which the data will be stored */
   val DataDirName = "data"
 
