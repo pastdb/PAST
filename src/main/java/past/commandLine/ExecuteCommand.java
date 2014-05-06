@@ -38,6 +38,9 @@ public class ExecuteCommand {
 	private static int varIndice = 0;
 	private static final String varName = "var";
 
+	/* spark context */
+ 	//private static JavaSparkContext sc = new JavaSparkContext("local", "PAST");
+
 
 	/* ************************************
 	 * standard commands
@@ -277,48 +280,65 @@ public class ExecuteCommand {
 	/*
 	 * CREATE_SCHEMA for the timeSerie
 	 */
-	public static void createSchema() {
+	public static void createSchema(String userInput[]) {
+		int size = userInput.length;
 
-		try {
-			System.out.println("  CREATE schema:");
+		if(size < 0 || size > 2 || size == 1) {
+			System.out.println("  input must be : CREATE_SCHEMA [: name]");
+		}
+		else if(size == 2 && userInput[0].compareTo(":") != 0) {
+			System.out.println("  you forget to put ':'");
+		}
+		else if(size == 2 && variable.keySet().contains(userInput[1])) {
+			System.out.println("  variable name already exist");
+		}
+		else {
+			try {
+				System.out.println("  CREATE schema:");
 
-			Scanner sc = new Scanner(System.in);
-			System.out.println("    enter the number of field:");
-			int n = sc.nextInt();
+				Scanner sc = new Scanner(System.in);
+				System.out.println("    enter the number of field:");
+				int n = sc.nextInt();
+				sc.nextLine();
 
-			ListBuffer<Tuple2<String, DBType.DBType<?>>> fields =  new ListBuffer<Tuple2<String, DBType.DBType<?>>>();
-			DBType.DBType<?> type[] = {DBType.DBInt32$.MODULE$, 
+				SchemaConstructor schemaCons = new SchemaConstructor("timestamps", DBType.DBInt32$.MODULE$);
+				DBType.DBType<?> type[] = {
+					DBType.DBInt32$.MODULE$, 
 					DBType.DBInt64$.MODULE$, 
 					DBType.DBFloat32$.MODULE$, 
-					DBType.DBFloat64$.MODULE$};
+					DBType.DBFloat64$.MODULE$
+				};
 
-			String nameField = null;
+				String nameField = null;
 
-			for(int i=0; i<n; i++) {
-				System.out.println("    enter the name of the " + n+1 + " field :");
-				nameField = sc.nextLine().trim();
+				for(int i=0; i<n; i++) {
+					System.out.println("    enter the name of the " + (i+1) + " field :");
+					nameField = sc.nextLine().trim();
 
-				do {
-					System.out.println("    select the value type : [0]");
-					System.out.println("     [0] int32");
-					System.out.println("     [1] int64");
-					System.out.println("     [2] float32");
-					System.out.println("     [3] float64");
-					//System.out.println("     [4] string");
-					n = sc.nextInt();
-					
-				} while (n < 0 || n > 4);
+					do {
+						System.out.println("    select the value type : [0]");
+						System.out.println("     [0] int32");
+						System.out.println("     [1] int64");
+						System.out.println("     [2] float32");
+						System.out.println("     [3] float64");
+						//System.out.println("     [4] string");
+						n = sc.nextInt();
+						sc.nextLine();
+						
+					} while (n < 0 || n > 4);
 
-//				fields.add()
+					schemaCons.addField(nameField, type[n]);
+				}
+				Schema s = schemaCons.get();
+
+				String v_name = (size == 2) ? userInput[1] : generateNameVariable(); 
+				variable.put(v_name, s);
+				System.out.println("  Schema has been created and saved in variable name " + v_name);
 			}
-			Schema s = new Schema(new Tuple2<String, DBType.DBType<?>>("temps", DBType.DBInt32$.MODULE$) , fields.toList());
-		}
-		catch (Exception e) {
-			System.out.println("    create schema fail: invalid input");
-		}
-		
-		
-		
+			catch (Exception e) {
+				System.out.println("    create schema fail: invalid input");
+			}
+		}	
 	}
 
 	/*
@@ -333,22 +353,38 @@ public class ExecuteCommand {
 		}
 
 		if(size != 1) {
-			System.out.println("  input must be : GET 'name of timeSerie'");
+			System.out.println("  input must be : GET 'name of timeSerie or schema'");
 		} 
 		else if(!variable.keySet().contains(nameTS)) {
-			System.out.println("  Timeserie not found");
+			//System.out.println("  Timeserie not found");
 		}
 		else {
 
 			Object ob = variable.get(nameTS);
-			try {
+			boolean error = true;
+			String msg_error = "   the variable is not: ";
+
+			try { // timeserie
 				Schema schema = ( (Timeseries)ob ).schema();
 				System.out.println("  Schema of the timeserie: ");
 				System.out.println(schema.toString());
+				error = false;
 			}
 			catch (Exception e) {
-				System.out.println("  the variable is not a Timeserie");
+				msg_error = msg_error + "a Timeserie ";
 			}
+
+			try { // schema
+				Schema schema = ( (Schema)ob );
+				System.out.println("  Schema of the schema: ");
+				System.out.println(schema.toString());
+				error = false;
+			}
+			catch (Exception e) {
+				msg_error = msg_error + "or a Schema";
+			}
+
+			if(error) System.out.println(msg_error);
 		}
 
 	}
