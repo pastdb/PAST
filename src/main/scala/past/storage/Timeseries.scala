@@ -14,7 +14,8 @@ import org.apache.spark.util.Utils
 import org.apache.spark._
 import org.apache.spark.rdd._
 import org.apache.spark.SparkContext._
-import past.index.interval.IntervalIndex
+import past.index.interval.{MemoryIntervalIndex, IntervalIndex}
+import past.index.interval.IntervalIndex.Interval
 
 /**
  * Represents a time series.
@@ -22,7 +23,6 @@ import past.index.interval.IntervalIndex
  * @constructor
  * @param name The name of the time series
  * @param wantedSchema The schema to be used if the time series does not exist
- * @param indexes The interval indexes TODO
  * @param containingPath The path to directory in which the time series will
  * be created
  * @param filesystem The filesystem to use for accessing files
@@ -57,11 +57,14 @@ class Timeseries private (name: String,
     filesystem.mkdirs(path)
     filesystem.mkdirs(dataPath)
     wantedSchema.save(schemaPath, filesystem)
+    //TODO not use only Int
+    MemoryIntervalIndex.store(new MemoryIntervalIndex[Int,String],indexPath)
   }
 
   /** The schema of the Timeseries */
   val schema = Schema.load(schemaPath, filesystem)
-  //val indexes:IntervalIndex
+  //TODO not use only Int
+  val indexes = MemoryIntervalIndex.load[Int,String](indexPath)
 
   /**
    * Opens an existing time series.
@@ -128,12 +131,21 @@ class Timeseries private (name: String,
   /**
    * Insert data in columns
    * @param sc SparkContext
-   * @param columns tuple containing the column name and the data to insert at said column
+   * @param times list of new times
+   * @param values tuple containing the column names and the data to insert at said column
    */
-  def insert(sc: SparkContext,columns: List[(String, List[_])]): Unit = {
-    assert(columns.size == schema.fields.size)
-    columns.foreach(s => assert(columns.head._2.size == s._2.size))
-    columns.foreach {c =>
+  def insert[T <% Ordered[T]](sc: SparkContext, times: List[T],values: List[(String, List[_])])(implicit arg0: ClassTag[T]): Unit = {
+    assert(values.size + 1 == schema.fields.size)
+    values.foreach(s => assert(values.head._2.size == times.size))
+
+    //TODO check all times are sorted ?
+    val begin = times.head
+    val end = times.last
+    assert(begin < end || (begin == end && times.size == 1))
+    //indexes.insert(Interval(begin, end))
+
+    insertAtColum(sc,schema.id._1,times)
+    values.foreach {c =>
       insertAtColum(sc,c._1,c._2)
     }
   }
@@ -170,13 +182,36 @@ class Timeseries private (name: String,
 	*
 	* @param sc SparkContext
 	* @param column column name where to retrieve data
+  * @param positions
 	*/
-  def getRDD[T](sc: SparkContext,column: String)(implicit arg0: ClassTag[T]): RDD[T] = schema.fields.get(column) match {
-    case Some(typ:DBType[T]) =>
+  def getRDD[T](sc: SparkContext,column: String, positions: Option[(Int, Int)] = None)(implicit arg0: ClassTag[T]): RDD[T] = schema.fields.get(column) match {
+    case Some(typ: DBType[T]) =>
       val outputDir = new java.io.File(dataPath.toString, column).getAbsolutePath
-      sc.sequenceFile(outputDir, classOf[NullWritable], classOf[BytesWritable], 0).map(x => typ.unserialize(x._2.getBytes))
+      val rdd = sc.sequenceFile(outputDir, classOf[NullWritable], classOf[BytesWritable], 0)
+      (positions match {
+        case Some((0, end)) => sc.makeRDD(rdd.take(end))
+        case Some((begin, end)) if end < 0 => sc.makeRDD(rdd.toArray.drop(begin))
+        case Some((begin, end)) => sc.makeRDD(rdd.take(end).drop(begin))
+        case _ => rdd
+      }).map(x => typ.unserialize(x._2.getBytes))
     case _ => throw new IllegalArgumentException("Column " + column + " does not exist")
   }
+
+  def getRDDatFiles[T](sc: SparkContext,files: List[String], begin: Int, end: Int)(implicit arg0: ClassTag[T]) = {
+    assert(files.size > 0)
+    if (files.size == 1) getRDD[T](sc, files.head, Some(begin, end))
+    else {
+      val start = getRDD[T](sc, files.head, Some(begin, - 1))
+      val rdd = files.slice(1, files.size - 1).foldLeft(start){(acc, c) => acc union getRDD[T](sc, c)}
+      rdd union getRDD[T](sc, files.last, Some(0, end))
+    }
+  }
+
+  //TODO
+  def getIdentifiersFromInterval(interval: Interval[Int]){
+    indexes.get(interval)
+  }
+
 
 }
 
