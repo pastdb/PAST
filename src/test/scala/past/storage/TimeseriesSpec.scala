@@ -12,6 +12,7 @@ import com.google.common.io.Files
 class TimeseriesSpec extends FlatSpec with TestDirectory {
 
   val filesystem = FileSystem.get(new URI("file:///tmp"), new Configuration())
+  val sc = new SparkContext("local", "Data test")
 
   trait NameGenerator {
     val name = "pastdb_timeseries_%s".format(System.nanoTime)
@@ -45,8 +46,7 @@ class TimeseriesSpec extends FlatSpec with TestDirectory {
   "Data" should "be able to be manipulated with spark" in new Builder {
     val db = new Timeseries(name, testDirectory, filesystem)
     val data = List(1,2,3,4,5,6,7,8,9)
-    val sc = new SparkContext("local", "Data test")
-    db.insert(sc,data,Nil)
+    db.insertOld(sc,List(("ts", data)))
     val output = db.getRDD[Int](sc,"ts")
     assert(output.collect().toList == data)
   }
