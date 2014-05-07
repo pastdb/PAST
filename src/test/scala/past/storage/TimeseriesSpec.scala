@@ -2,6 +2,7 @@ import java.net.URI
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.FileSystem
 import org.scalatest._
+import past.index.interval.IntervalIndex.Interval
 import past.storage.DBType._
 import past.storage.{DBType, Schema, Timeseries}
 import past.test.util.TestDirectory
@@ -49,6 +50,17 @@ class TimeseriesSpec extends FlatSpec with TestDirectory {
     db.insertOld(sc,List(("ts", data)))
     val output = db.getRDD[Int](sc,"ts")
     assert(output.collect().toList == data)
+  }
+
+  "Data" should "be manipulated with column part files" in new NameGenerator  {
+    val schema = new Schema(("ts", DBType.DBInt32), ("data", DBType.DBFloat32))
+    val db = new Timeseries(name, schema, testDirectory, filesystem)
+    val times = List(1,2,3,4,5,6,7,8,9)
+    val data = List(1.1f, 1.2f, 1.3f, 1.4f, 1.5f, 1.6f, 1.7f, 1.8f, 1.9f)
+    db.insert(sc, times, List(("data", data)))
+
+    val output = db.rangeQuery[Float](sc, Interval(2,6),"data")._2
+    assert(output.collect().toList == data.take(5).drop(1))
   }
 
   /*"Data" should "be able to be inserted at different times with spark" in new Builder {

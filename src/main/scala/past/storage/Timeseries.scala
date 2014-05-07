@@ -34,7 +34,8 @@ class Timeseries private (name: String,
                           wantedSchema: Schema,
                           containingPath: Path,
                           filesystem: FileSystem,
-                          createMode: Boolean) {
+                          createMode: Boolean,
+                          maxFileSize: Int = Timeseries.defaultMaxFileSize) {
 
   require(Timeseries.isValidName(name), "Timeseries name is not valid")
 
@@ -52,7 +53,7 @@ class Timeseries private (name: String,
   /** The path of the Timeseries */
   val path = new Path(containingPath, name)
   /** The maximum size the time column file can have (in bytes)*/
-  val maxFileSize = 1000
+
   private val schemaPath = new Path(path, Timeseries.SchemaFilename)
   private val indexPath =  new Path(path, Timeseries.IndexFilename)
   private val dataPath = new Path(path, Timeseries.DataDirName)
@@ -172,10 +173,11 @@ class Timeseries private (name: String,
           case (l, r) =>  (n, l) :: r.grouped(maxFileSize).toList.map((n,_))
         }
       }
-      (for (i <- 0 until tmp.size) yield (for (j <- 0 until intervals.size) yield tmp(i)(j)).toList).toList
+      (for (j <- 0 until intervals.size) yield (for (i <- 0 until tmp.size) yield tmp(i)(j)).toList).toList
     }
 
     val chunks = chunkData(data)
+
 
     var i = ident
     intervals.zip(chunks).foreach{
@@ -192,14 +194,14 @@ class Timeseries private (name: String,
     assert(values.size == schema.fields.size)
     values.foreach(s => assert(values.head._2.size == s._2.size))
     values.foreach {c =>
-      insertAtColum(sc,c._1,c._2)
+      insertAtColum(sc,c._1,c._2, None)
     }
   }
 
   @throws(classOf[IllegalArgumentException])
   private def insert(sc: SparkContext, values: List[(String, List[_])], ident: Int): Unit = {
     values.foreach {c =>
-      insertAtColum(sc,c._1 + ident,c._2)
+      insertAtColum(sc,c._1,c._2, Some(ident))
     }
   }
 
@@ -210,7 +212,7 @@ class Timeseries private (name: String,
 	* @param column file name where the data will be appended
 	* @param data raw data to insert
 	*/
-  private def insertAtColum[T](sc: SparkContext,column:String, data: List[T])(implicit arg0: ClassTag[T]): Unit = insertAtColum(sc,column,sc.makeRDD(data))
+  private def insertAtColum[T](sc: SparkContext,column:String, data: List[T], ident: Option[Int])(implicit arg0: ClassTag[T]): Unit = insertAtColum(sc,column,sc.makeRDD(data), ident)
 
 	/**
 	* Insert data at a certain file
@@ -219,15 +221,17 @@ class Timeseries private (name: String,
 	* @param column file name where the data will be appended
 	* @param data an RDD representing the data to be inserted
 	*/
-  private def insertAtColum[T](sc: SparkContext,column:String, data: RDD[T])(implicit arg0: ClassTag[T]): Unit = schema.fields.get(column) match {
+  private def insertAtColum[T](sc: SparkContext,column:String, data: RDD[T], ident: Option[Int])(implicit arg0: ClassTag[T]): Unit = schema.fields.get(column) match {
     case Some(typ:DBType[T]) =>
-      val outputDir = new java.io.File(dataPath.toString, column).getAbsolutePath
+      val outputDir = new java.io.File(dataPath.toString, column + ident.getOrElse("")).getAbsolutePath
       val onPlaceData = sc.sequenceFile(outputDir, classOf[NullWritable], classOf[BytesWritable], 0)
       onPlaceData.union(
        data.map(x => (NullWritable.get(), new BytesWritable(typ.serialize(x))))
       ).saveAsSequenceFile(outputDir)
     case _ => throw new IllegalArgumentException("Column " + column + " does not exist")
   }
+
+
 
   //TODO take range#
   /**
@@ -237,32 +241,37 @@ class Timeseries private (name: String,
 	* @param file file name where to retrieve data
   * @param positions
 	*/
-  def getRDD[T](sc: SparkContext,file: String, positions: Option[(Int, Int)] = None)(implicit arg0: ClassTag[T]): RDD[T] = schema.fields.get(file) match {
+  def getRDD[T](sc: SparkContext,file: String, positions: Option[(Int, Int)] = None, ident: Option[Int] = None)(implicit arg0: ClassTag[T]): RDD[T] = schema.fields.get(file) match {
     case Some(typ: DBType[T]) =>
-      val outputDir = new java.io.File(dataPath.toString, file).getAbsolutePath
+      val outputDir = new java.io.File(dataPath.toString, file + ident.getOrElse("")).getAbsolutePath
       val rdd = sc.sequenceFile(outputDir, classOf[NullWritable], classOf[BytesWritable], 0)
       (positions match {
-        case Some((0, end)) => sc.makeRDD(rdd.take(end))
-        case Some((begin, end)) if end < 0 => sc.makeRDD(rdd.toArray.drop(begin))
-        case Some((begin, end)) => sc.makeRDD(rdd.take(end).drop(begin))
-        case _ => rdd
-      }).map(x => typ.unserialize(x._2.getBytes))
+        case Some(interval) =>
+          val rdd2 = rdd.map(x => typ.unserialize(x._2.getBytes))
+          sc.makeRDD(interval match {
+            case (0, end) => rdd2.take(end)
+            case (begin, end) if end < 0 => rdd2.toArray.drop(begin)
+            case (begin, end) => rdd2.take(end).drop(begin)
+          })
+        case _ => rdd.map(x => typ.unserialize(x._2.getBytes))
+      })
     case _ => throw new IllegalArgumentException("Column " + file + " does not exist")
   }
 
-  def getRDDatFiles[T](sc: SparkContext,files: List[String], begin: Int, end: Int)(implicit arg0: ClassTag[T]): RDD[T] = {
-    assert(files.size > 0)
-    if (files.size == 1) getRDD[T](sc, files.head, Some(begin, end))
+  def getRDDatFiles[T](sc: SparkContext,column: String, idents: List[Option[Int]], begin: Int, end: Int)(implicit arg0: ClassTag[T]): RDD[T] = {
+    assert(idents.size > 0)
+    if (idents.size == 1)
+      getRDD[T](sc, column, Some(begin, end), idents.head)
     else {
-      val start = getRDD[T](sc, files.head, Some(begin, - 1))
-      val rdd = files.slice(1, files.size - 1).foldLeft(start){(acc, c) => acc union getRDD[T](sc, c)}
-      rdd union getRDD[T](sc, files.last, Some(0, end))
+      val start = getRDD[T](sc, column + idents.head, Some(begin, - 1))
+      val rdd = idents.slice(1, idents.size - 1).foldLeft(start){(acc, c) => acc union getRDD[T](sc, column, None, c)}
+      rdd union getRDD[T](sc, column + idents.last, Some(0, end))
     }
   }
 
   def getRDDatFiles[T](sc: SparkContext,column: String, identifiers: FilesIdentifiers)(implicit arg0: ClassTag[T]): RDD[T] = {
-    val files = identifiers._1.map(column + _)
-    getRDDatFiles[T](sc, files, identifiers._2, identifiers._3)
+    val idents = identifiers._1.map(Some(_))
+    getRDDatFiles[T](sc, column, idents, identifiers._2, identifiers._3)
   }
 
   def getIdentifiersFromInterval(interval: Interval[Int]): FilesIdentifiers = {
@@ -276,21 +285,22 @@ class Timeseries private (name: String,
     }
     else
       ids
-    (tmp.map(_._1),tmp.head._2._1, tmp.last._2._2)
+    (tmp.map(_._1),Math.max(tmp.head._2._1, interval.start), Math.min(tmp.last._2._2, interval.end))
   }
 
   def getIdentifiersFromTime(sc: SparkContext, interval: Interval[Int]): FilesIdentifiers = {
     val identifiers = getIdentifiersFromInterval(interval)
     val beginInterval = identifiers._2
     val endInterval = identifiers._3
-    val firstFile = schema.id + identifiers._1.head.toString
-    val lastFile = schema.id + identifiers._1.last.toString
+    val firstFile = schema.id._1
+    val lastFile = schema.id._1
     var beginPos = -1
     var endPos = -1
-    val rdd = if (firstFile == lastFile) getRDD[Int](sc,firstFile)
-              else getRDD[Int](sc,firstFile) union getRDD[Int](sc,lastFile)
+    val rdd = if (firstFile == lastFile) getRDD[Int](sc,firstFile, None, Some(identifiers._1.head))
+              else getRDD[Int](sc,firstFile) union getRDD[Int](sc,lastFile, None, Some(identifiers._1.last))
     var pos = 0
-    rdd.foreach{ i =>
+    //have to convert to array for now
+    rdd.toArray.foreach{ i =>
        if (beginPos < 0 && i >= beginInterval) beginPos = pos
        else if (endPos < 0 && i == endInterval) endPos = pos
        pos += 1
@@ -315,6 +325,8 @@ object Timeseries {
   val IndexFilename = "index"
   /** The directory in which the data will be stored */
   val DataDirName = "data"
+
+  val defaultMaxFileSize = 1000
 
   /**
    * Returns `true` if `name` is a valid identifier for a timeseries,
