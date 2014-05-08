@@ -1,0 +1,27 @@
+% Code retrieved from http://www.cs.ucr.edu/~eamonn/iSAX/iSAX.html
+% Property of Jin Shieh and Eamonn Keogh
+% Used in the academic project PAST (Big Data 2014)
+ 
+ function time_series = DNA2TimeSeries(filename)
+
+time_series = 0;
+
+DNA_STRING = importdata(filename);
+for j=1:length(DNA_STRING)
+    line=DNA_STRING{j};
+for i = 1 : length(line)
+
+        if     line(i)=='a' | line(i)=='A'
+            index = 2;
+        elseif line(i)=='g' | line(i)=='G'
+            index = 1;
+        elseif line(i)=='c' | line(i)=='C'
+            index = -1;
+        elseif line(i)=='t' | line(i)=='T'
+            index = -2;
+        end
+              
+        time_series(i+1) =  time_series(i) + index;
+        
+end 
+  
