@@ -109,7 +109,23 @@
     </li></ol>
             </div>
 
-        
+        <div id="types" class="types members">
+              <h3>Type Members</h3>
+              <ol><li name="past.storage.Timeseries.FilesIdentifiers" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="FilesIdentifiers=(List[Int],Int,Int)"></a>
+      <a id="FilesIdentifiers:(List[Int],Int,Int)"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">type</span>
+      </span>
+      <span class="symbol">
+        <span class="name">FilesIdentifiers</span><span class="result"> = (<span class="extype" name="scala.List">List</span>[<span class="extype" name="scala.Int">Int</span>], <span class="extype" name="scala.Int">Int</span>, <span class="extype" name="scala.Int">Int</span>)</span>
+      </span>
+      </h4>
+      
+    </li></ol>
+            </div>
 
         
 
@@ -257,19 +273,6 @@
     </span>)</span>
               
         </dd></dl></div>
-    </li><li name="past.storage.Timeseries#get" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="get[T](range:Range,column:String):Iterator[T]"></a>
-      <a id="get[T](Range,String):Iterator[T]"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">get</span><span class="tparams">[<span name="T">T</span>]</span><span class="params">(<span name="range">range: <span class="extype" name="scala.Range">Range</span></span>, <span name="column">column: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.Iterator">Iterator</span>[<span class="extype" name="past.storage.Timeseries.get.T">T</span>]</span>
-      </span>
-      </h4>
-      
     </li><li name="scala.AnyRef#getClass" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="getClass():Class[_]"></a>
       <a id="getClass():Class[_]"></a>
@@ -283,6 +286,74 @@
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="past.storage.Timeseries#getIdentifiersFromInterval" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="getIdentifiersFromInterval(interval:past.index.interval.IntervalIndex.Interval[Int]):(List[Int],Int,Int)"></a>
+      <a id="getIdentifiersFromInterval(Interval[Int]):(List[Int],Int,Int)"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">getIdentifiersFromInterval</span><span class="params">(<span name="interval">interval: <a href="../index/interval/IntervalIndex$$Interval.html" class="extype" name="past.index.interval.IntervalIndex.Interval">Interval</a>[<span class="extype" name="scala.Int">Int</span>]</span>)</span><span class="result">: (<span class="extype" name="scala.List">List</span>[<span class="extype" name="scala.Int">Int</span>], <span class="extype" name="scala.Int">Int</span>, <span class="extype" name="scala.Int">Int</span>)</span>
+      </span>
+      </h4>
+      
+    </li><li name="past.storage.Timeseries#getIdentifiersFromTime" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="getIdentifiersFromTime(sc:org.apache.spark.SparkContext,interval:past.index.interval.IntervalIndex.Interval[Int]):(List[Int],Int,Int)"></a>
+      <a id="getIdentifiersFromTime(SparkContext,Interval[Int]):(List[Int],Int,Int)"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">getIdentifiersFromTime</span><span class="params">(<span name="sc">sc: <span class="extype" name="org.apache.spark.SparkContext">SparkContext</span></span>, <span name="interval">interval: <a href="../index/interval/IntervalIndex$$Interval.html" class="extype" name="past.index.interval.IntervalIndex.Interval">Interval</a>[<span class="extype" name="scala.Int">Int</span>]</span>)</span><span class="result">: (<span class="extype" name="scala.List">List</span>[<span class="extype" name="scala.Int">Int</span>], <span class="extype" name="scala.Int">Int</span>, <span class="extype" name="scala.Int">Int</span>)</span>
+      </span>
+      </h4>
+      
+    </li><li name="past.storage.Timeseries#getRDD" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="getRDD[T](sc:org.apache.spark.SparkContext,file:String,positions:Option[(Int,Int)],ident:Option[Int])(implicitarg0:scala.reflect.ClassTag[T]):org.apache.spark.rdd.RDD[T]"></a>
+      <a id="getRDD[T](SparkContext,String,Option[(Int,Int)],Option[Int])(ClassTag[T]):RDD[T]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">getRDD</span><span class="tparams">[<span name="T">T</span>]</span><span class="params">(<span name="sc">sc: <span class="extype" name="org.apache.spark.SparkContext">SparkContext</span></span>, <span name="file">file: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="positions">positions: <span class="extype" name="scala.Option">Option</span>[(<span class="extype" name="scala.Int">Int</span>, <span class="extype" name="scala.Int">Int</span>)] = <span class="symbol">None</span></span>, <span name="ident">ident: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Int">Int</span>] = <span class="symbol">None</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="scala.reflect.ClassTag">ClassTag</span>[<span class="extype" name="past.storage.Timeseries.getRDD.T">T</span>]</span>)</span><span class="result">: <span class="extype" name="org.apache.spark.rdd.RDD">RDD</span>[<span class="extype" name="past.storage.Timeseries.getRDD.T">T</span>]</span>
+      </span>
+      </h4>
+      <p class="shortcomment cmt">Retrieve file data to a spark RDD
+</p><div class="fullcomment"><div class="comment cmt"><p>Retrieve file data to a spark RDD
+</p></div><dl class="paramcmts block"><dt class="param">sc</dt><dd class="cmt"><p>SparkContext</p></dd><dt class="param">file</dt><dd class="cmt"><p>file name where to retrieve data</p></dd><dt class="param">positions</dt><dd class="cmt"><p>
+</p></dd></dl></div>
+    </li><li name="past.storage.Timeseries#getRDDatFiles" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="getRDDatFiles[T](sc:org.apache.spark.SparkContext,column:String,identifiers:(List[Int],Int,Int))(implicitarg0:scala.reflect.ClassTag[T]):org.apache.spark.rdd.RDD[T]"></a>
+      <a id="getRDDatFiles[T](SparkContext,String,(List[Int],Int,Int))(ClassTag[T]):RDD[T]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">getRDDatFiles</span><span class="tparams">[<span name="T">T</span>]</span><span class="params">(<span name="sc">sc: <span class="extype" name="org.apache.spark.SparkContext">SparkContext</span></span>, <span name="column">column: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="identifiers">identifiers: (<span class="extype" name="scala.List">List</span>[<span class="extype" name="scala.Int">Int</span>], <span class="extype" name="scala.Int">Int</span>, <span class="extype" name="scala.Int">Int</span>)</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="scala.reflect.ClassTag">ClassTag</span>[<span class="extype" name="past.storage.Timeseries.getRDDatFiles.T">T</span>]</span>)</span><span class="result">: <span class="extype" name="org.apache.spark.rdd.RDD">RDD</span>[<span class="extype" name="past.storage.Timeseries.getRDDatFiles.T">T</span>]</span>
+      </span>
+      </h4>
+      
+    </li><li name="past.storage.Timeseries#getRDDatFiles" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="getRDDatFiles[T](sc:org.apache.spark.SparkContext,column:String,idents:List[Option[Int]],begin:Int,end:Int)(implicitarg0:scala.reflect.ClassTag[T]):org.apache.spark.rdd.RDD[T]"></a>
+      <a id="getRDDatFiles[T](SparkContext,String,List[Option[Int]],Int,Int)(ClassTag[T]):RDD[T]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">getRDDatFiles</span><span class="tparams">[<span name="T">T</span>]</span><span class="params">(<span name="sc">sc: <span class="extype" name="org.apache.spark.SparkContext">SparkContext</span></span>, <span name="column">column: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="idents">idents: <span class="extype" name="scala.List">List</span>[<span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Int">Int</span>]]</span>, <span name="begin">begin: <span class="extype" name="scala.Int">Int</span></span>, <span name="end">end: <span class="extype" name="scala.Int">Int</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="scala.reflect.ClassTag">ClassTag</span>[<span class="extype" name="past.storage.Timeseries.getRDDatFiles.T">T</span>]</span>)</span><span class="result">: <span class="extype" name="org.apache.spark.rdd.RDD">RDD</span>[<span class="extype" name="past.storage.Timeseries.getRDDatFiles.T">T</span>]</span>
+      </span>
+      </h4>
+      
     </li><li name="scala.AnyRef#hashCode" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="hashCode():Int"></a>
       <a id="hashCode():Int"></a>
@@ -296,19 +367,58 @@
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="past.storage.Timeseries#insert" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="insert(values:List[(String,List[_])]):Unit"></a>
-      <a id="insert(List[(String,List[_])]):Unit"></a>
+    </li><li name="past.storage.Timeseries#indexes" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="indexes:past.index.interval.MemoryIntervalIndex[Int,Int]"></a>
+      <a id="indexes:MemoryIntervalIndex[Int,Int]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">indexes</span><span class="result">: <a href="../index/interval/MemoryIntervalIndex.html" class="extype" name="past.index.interval.MemoryIntervalIndex">MemoryIntervalIndex</a>[<span class="extype" name="scala.Int">Int</span>, <span class="extype" name="scala.Int">Int</span>]</span>
+      </span>
+      </h4>
+      
+    </li><li name="past.storage.Timeseries#insert" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="insert(sc:org.apache.spark.SparkContext,times:List[Int],values:List[(String,List[_])]):Unit"></a>
+      <a id="insert(SparkContext,List[Int],List[(String,List[_])]):Unit"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">insert</span><span class="params">(<span name="values">values: <span class="extype" name="scala.List">List</span>[(<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.List">List</span>[_])]</span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+        <span class="name">insert</span><span class="params">(<span name="sc">sc: <span class="extype" name="org.apache.spark.SparkContext">SparkContext</span></span>, <span name="times">times: <span class="extype" name="scala.List">List</span>[<span class="extype" name="scala.Int">Int</span>]</span>, <span name="values">values: <span class="extype" name="scala.List">List</span>[(<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.List">List</span>[_])]</span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4>
+      <p class="shortcomment cmt">Insert data in columns</p><div class="fullcomment"><div class="comment cmt"><p>Insert data in columns</p></div><dl class="paramcmts block"><dt class="param">sc</dt><dd class="cmt"><p>SparkContext</p></dd><dt class="param">times</dt><dd class="cmt"><p>list of new times</p></dd><dt class="param">values</dt><dd class="cmt"><p>tuple containing the file names and the data to insert at said file
+</p></dd></dl><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@throws</span><span class="args">(<span>
       
+      <span class="symbol">classOf[IllegalArgumentException]</span>
+    </span>)</span>
+              
+        </dd></dl></div>
+    </li><li name="past.storage.Timeseries#insertOld" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="insertOld(sc:org.apache.spark.SparkContext,values:List[(String,List[_])]):Unit"></a>
+      <a id="insertOld(SparkContext,List[(String,List[_])]):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">insertOld</span><span class="params">(<span name="sc">sc: <span class="extype" name="org.apache.spark.SparkContext">SparkContext</span></span>, <span name="values">values: <span class="extype" name="scala.List">List</span>[(<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.List">List</span>[_])]</span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@throws</span><span class="args">(<span>
+      
+      <span class="symbol">classOf[IllegalArgumentException]</span>
+    </span>)</span>
+              
+        </dd></dl></div>
     </li><li name="scala.Any#isInstanceOf" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="isInstanceOf[T0]:Boolean"></a>
       <a id="isInstanceOf[T0]:Boolean"></a>
@@ -374,6 +484,32 @@
       </span>
       </h4>
       <p class="shortcomment cmt">The path of the Timeseries</p>
+    </li><li name="past.storage.Timeseries#rangeQuery" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="rangeQuery[T](sc:org.apache.spark.SparkContext,id:(List[Int],Int,Int),column:String)(implicitarg0:scala.reflect.ClassTag[T]):org.apache.spark.rdd.RDD[T]"></a>
+      <a id="rangeQuery[T](SparkContext,(List[Int],Int,Int),String)(ClassTag[T]):RDD[T]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">rangeQuery</span><span class="tparams">[<span name="T">T</span>]</span><span class="params">(<span name="sc">sc: <span class="extype" name="org.apache.spark.SparkContext">SparkContext</span></span>, <span name="id">id: (<span class="extype" name="scala.List">List</span>[<span class="extype" name="scala.Int">Int</span>], <span class="extype" name="scala.Int">Int</span>, <span class="extype" name="scala.Int">Int</span>)</span>, <span name="column">column: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="scala.reflect.ClassTag">ClassTag</span>[<span class="extype" name="past.storage.Timeseries.rangeQuery.T">T</span>]</span>)</span><span class="result">: <span class="extype" name="org.apache.spark.rdd.RDD">RDD</span>[<span class="extype" name="past.storage.Timeseries.rangeQuery.T">T</span>]</span>
+      </span>
+      </h4>
+      
+    </li><li name="past.storage.Timeseries#rangeQuery" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="rangeQuery[T](sc:org.apache.spark.SparkContext,interval:past.index.interval.IntervalIndex.Interval[Int],column:String)(implicitarg0:scala.reflect.ClassTag[T]):((List[Int],Int,Int),org.apache.spark.rdd.RDD[T])"></a>
+      <a id="rangeQuery[T](SparkContext,Interval[Int],String)(ClassTag[T]):((List[Int],Int,Int),RDD[T])"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">rangeQuery</span><span class="tparams">[<span name="T">T</span>]</span><span class="params">(<span name="sc">sc: <span class="extype" name="org.apache.spark.SparkContext">SparkContext</span></span>, <span name="interval">interval: <a href="../index/interval/IntervalIndex$$Interval.html" class="extype" name="past.index.interval.IntervalIndex.Interval">Interval</a>[<span class="extype" name="scala.Int">Int</span>]</span>, <span name="column">column: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="scala.reflect.ClassTag">ClassTag</span>[<span class="extype" name="past.storage.Timeseries.rangeQuery.T">T</span>]</span>)</span><span class="result">: ((<span class="extype" name="scala.List">List</span>[<span class="extype" name="scala.Int">Int</span>], <span class="extype" name="scala.Int">Int</span>, <span class="extype" name="scala.Int">Int</span>), <span class="extype" name="org.apache.spark.rdd.RDD">RDD</span>[<span class="extype" name="past.storage.Timeseries.rangeQuery.T">T</span>])</span>
+      </span>
+      </h4>
+      
     </li><li name="past.storage.Timeseries#schema" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="schema:past.storage.Schema"></a>
       <a id="schema:Schema"></a>
@@ -475,7 +611,42 @@
 
         
 
-        
+        <div id="values" class="values members">
+              <h3>Deprecated Value Members</h3>
+              <ol><li name="past.storage.Timeseries#get" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="get[T](range:Range,column:String):Iterator[T]"></a>
+      <a id="get[T](Range,String):Iterator[T]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: will probably be removed">get</span><span class="tparams">[<span name="T">T</span>]</span><span class="params">(<span name="range">range: <span class="extype" name="scala.Range">Range</span></span>, <span name="column">column: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.Iterator">Iterator</span>[<span class="extype" name="past.storage.Timeseries.get.T">T</span>]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p>will probably be removed</p></dd></dl></div>
+    </li><li name="past.storage.Timeseries#insert" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="insert(values:List[(String,List[_])]):Unit"></a>
+      <a id="insert(List[(String,List[_])]):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: will probably be removed">insert</span><span class="params">(<span name="values">values: <span class="extype" name="scala.List">List</span>[(<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.List">List</span>[_])]</span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p>will probably be removed</p></dd></dl></div>
+    </li></ol>
+            </div>
         </div>
 
         <div id="inheritedMembers">

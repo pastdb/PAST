@@ -2,17 +2,17 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html>
         <head>
-          <title>Command - past.Command</title>
-          <meta name="description" content="Command - past.Command" />
-          <meta name="keywords" content="Command past.Command" />
+          <title>IntervalIndex - past.index.interval.IntervalIndex</title>
+          <meta name="description" content="IntervalIndex - past.index.interval.IntervalIndex" />
+          <meta name="keywords" content="IntervalIndex past.index.interval.IntervalIndex" />
           <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
           
-      <link href="../lib/template.css" media="screen" type="text/css" rel="stylesheet" />
-      <link href="../lib/diagrams.css" media="screen" type="text/css" rel="stylesheet" id="diagrams-css" />
+      <link href="../../../lib/template.css" media="screen" type="text/css" rel="stylesheet" />
+      <link href="../../../lib/diagrams.css" media="screen" type="text/css" rel="stylesheet" id="diagrams-css" />
       <script type="text/javascript">
          if(top === self) {
-            var url = '../index.html';
-            var hash = 'past.Command';
+            var url = '../../../index.html';
+            var hash = 'past.index.interval.IntervalIndex';
             var anchor = window.location.hash;
             var anchor_opt = '';
             if (anchor.length >= 1)
@@ -24,24 +24,27 @@
         </head>
         <body class="type">
       <div id="definition">
-        <img src="../lib/class_big.png" />
-        <p id="owner"><a href="package.html" class="extype" name="past">past</a></p>
-        <h1>Command</h1>
+        <a href="IntervalIndex$.html" title="Go to companion"><img src="../../../lib/class_to_object_big.png" /></a>
+        <p id="owner"><a href="../../package.html" class="extype" name="past">past</a>.<a href="../package.html" class="extype" name="past.index">index</a>.<a href="package.html" class="extype" name="past.index.interval">interval</a></p>
+        <h1><a href="IntervalIndex$.html" title="Go to companion">IntervalIndex</a></h1>
       </div>
 
       <h4 id="signature" class="signature">
       <span class="modifier_kind">
-        <span class="modifier"></span>
+        <span class="modifier">abstract </span>
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <span class="name">Command</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+        <span class="name">IntervalIndex</span><span class="tparams">[<span name="T">T</span>, <span name="V">V</span>]</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
       </span>
       </h4>
       
           <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
           <div class="superTypes hiddenContent"><span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
+        </div><div class="toggleContainer block">
+          <span class="toggle">Known Subclasses</span>
+          <div class="subClasses hiddenContent"><a href="MemoryIntervalIndex.html" class="extype" name="past.index.interval.MemoryIntervalIndex">MemoryIntervalIndex</a></div>
         </div></div>
         
 
@@ -59,7 +62,7 @@
                 <span class="filtertype">Inherited<br />
                 </span>
                 <ol id="linearization">
-                  <li class="in" name="past.Command"><span>Command</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                  <li class="in" name="past.index.interval.IntervalIndex"><span>IntervalIndex</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                 </ol>
               </div><div id="ancestors">
             <span class="filtertype"></span>
@@ -79,28 +82,84 @@
         <div id="allMembers">
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
-              <ol><li name="past.Command#&lt;init&gt;" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="&lt;init&gt;():past.Command"></a>
-      <a id="&lt;init&gt;:Command"></a>
+              <ol><li name="past.index.interval.IntervalIndex#&lt;init&gt;" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="&lt;init&gt;()(implicitevidence$1:T=&gt;Ordered[T]):past.index.interval.IntervalIndex[T,V]"></a>
+      <a id="&lt;init&gt;:IntervalIndex[T,V]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">Command</span><span class="params">()</span>
+        <span class="name">IntervalIndex</span><span class="params">()</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: (<span class="extype" name="past.index.interval.IntervalIndex.T">T</span>) ⇒ <span class="extype" name="scala.Ordered">Ordered</span>[<span class="extype" name="past.index.interval.IntervalIndex.T">T</span>]</span>)</span>
       </span>
       </h4>
       
     </li></ol>
             </div>
 
-        
-
-        
+        <div id="types" class="types members">
+              <h3>Type Members</h3>
+              <ol><li name="past.index.interval.IntervalIndex.Interval" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Interval=past.index.interval.IntervalIndex.Interval[T]"></a>
+      <a id="Interval:Interval"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">type</span>
+      </span>
+      <span class="symbol">
+        <span class="name">Interval</span><span class="result"> = <a href="IntervalIndex$$Interval.html" class="extype" name="past.index.interval.IntervalIndex.Interval">IntervalIndex.Interval</a>[<span class="extype" name="past.index.interval.IntervalIndex.T">T</span>]</span>
+      </span>
+      </h4>
+      
+    </li></ol>
+            </div>
 
         <div id="values" class="values members">
-              <h3>Value Members</h3>
+              <h3>Abstract Value Members</h3>
+              <ol><li name="past.index.interval.IntervalIndex#get" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="get(interval:IntervalIndex.this.Interval):List[(V,IntervalIndex.this.Interval)]"></a>
+      <a id="get(Interval):List[(V,Interval)]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">get</span><span class="params">(<span name="interval">interval: <a href="#Interval=past.index.interval.IntervalIndex.Interval[T]" class="extmbr" name="past.index.interval.IntervalIndex.Interval">Interval</a></span>)</span><span class="result">: <span class="extype" name="scala.List">List</span>[(<span class="extype" name="past.index.interval.IntervalIndex.V">V</span>, <a href="#Interval=past.index.interval.IntervalIndex.Interval[T]" class="extmbr" name="past.index.interval.IntervalIndex.Interval">Interval</a>)]</span>
+      </span>
+      </h4>
+      <p class="shortcomment cmt">Returns a list of intervals that overlap with the specified
+interval along with their associated values.</p>
+    </li><li name="past.index.interval.IntervalIndex#insert" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="insert(interval:IntervalIndex.this.Interval,value:V):Unit"></a>
+      <a id="insert(Interval,V):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">insert</span><span class="params">(<span name="interval">interval: <a href="#Interval=past.index.interval.IntervalIndex.Interval[T]" class="extmbr" name="past.index.interval.IntervalIndex.Interval">Interval</a></span>, <span name="value">value: <span class="extype" name="past.index.interval.IntervalIndex.V">V</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4>
+      <p class="shortcomment cmt">Associates a value with an interval.</p><div class="fullcomment"><div class="comment cmt"><p>Associates a value with an interval. For now, overlapping intervals are
+not supported.
+</p></div><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@throws</span><span class="args">(<span>
+      
+      <span class="symbol">classOf[IllegalArgumentException]</span>
+    </span>)</span>
+              
+        </dd><dt>Exceptions thrown</dt><dd><span class="cmt">IllegalArgumentException<p>If the interval inserted overlaps with
+an existing one.
+</p></span></dd></dl></div>
+    </li></ol>
+            </div>
+
+        <div id="values" class="values members">
+              <h3>Concrete Value Members</h3>
               <ol><li name="scala.AnyRef#!=" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="!=(x$1:AnyRef):Boolean"></a>
       <a id="!=(AnyRef):Boolean"></a>
@@ -191,7 +250,7 @@
         <span class="name">clone</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.AnyRef">AnyRef</span></span>
       </span>
       </h4>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../java$lang.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../../java$lang.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
                 <span class="name">@throws</span><span class="args">(<span>
       
       <span class="defval" name="classOf[java.lang.CloneNotSupportedException]">...</span>
@@ -236,7 +295,7 @@
         <span class="name">finalize</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../java$lang.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../../java$lang.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
                 <span class="name">@throws</span><span class="args">(<span>
       
       <span class="symbol">classOf[java.lang.Throwable]</span>
@@ -433,6 +492,6 @@
       <div id="tooltip"></div>
 
       <div id="footer">  </div>
-      <script defer="defer" type="text/javascript" id="jquery-js" src="../lib/jquery.js"></script><script defer="defer" type="text/javascript" id="jquery-ui-js" src="../lib/jquery-ui.js"></script><script defer="defer" type="text/javascript" id="tools-tooltip-js" src="../lib/tools.tooltip.js"></script><script defer="defer" type="text/javascript" id="template-js" src="../lib/template.js"></script>
+      <script defer="defer" type="text/javascript" id="jquery-js" src="../../../lib/jquery.js"></script><script defer="defer" type="text/javascript" id="jquery-ui-js" src="../../../lib/jquery-ui.js"></script><script defer="defer" type="text/javascript" id="tools-tooltip-js" src="../../../lib/tools.tooltip.js"></script><script defer="defer" type="text/javascript" id="template-js" src="../../../lib/template.js"></script>
     </body>
       </html>

@@ -41,7 +41,7 @@
       
           <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
-          <div class="superTypes hiddenContent"><span class="extype" name="scala.Serializable">Serializable</span>, <span class="extype" name="java.io.Serializable">Serializable</span>, <span class="extype" name="scala.Product">Product</span>, <span class="extype" name="scala.Equals">Equals</span>, <a href="DBType$$DBType.html" class="extype" name="past.storage.DBType.DBType">DBType</a>[<span class="extype" name="scala.Predef.String">String</span>], <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
+          <div class="superTypes hiddenContent"><span class="extype" name="scala.Serializable">Serializable</span>, <span class="extype" name="scala.Product">Product</span>, <span class="extype" name="scala.Equals">Equals</span>, <a href="DBType$$DBType.html" class="extype" name="past.storage.DBType.DBType">DBType</a>[<span class="extype" name="scala.Predef.String">String</span>], <span class="extype" name="java.io.Serializable">Serializable</span>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
         </div></div>
         
 
@@ -59,7 +59,7 @@
                 <span class="filtertype">Inherited<br />
                 </span>
                 <ol id="linearization">
-                  <li class="in" name="past.storage.DBType.DBString"><span>DBString</span></li><li class="in" name="scala.Serializable"><span>Serializable</span></li><li class="in" name="java.io.Serializable"><span>Serializable</span></li><li class="in" name="scala.Product"><span>Product</span></li><li class="in" name="scala.Equals"><span>Equals</span></li><li class="in" name="past.storage.DBType.DBType"><span>DBType</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                  <li class="in" name="past.storage.DBType.DBString"><span>DBString</span></li><li class="in" name="scala.Serializable"><span>Serializable</span></li><li class="in" name="scala.Product"><span>Product</span></li><li class="in" name="scala.Equals"><span>Equals</span></li><li class="in" name="past.storage.DBType.DBType"><span>DBType</span></li><li class="in" name="java.io.Serializable"><span>Serializable</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                 </ol>
               </div><div id="ancestors">
             <span class="filtertype"></span>
@@ -309,6 +309,19 @@
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
     </li><li name="past.storage.DBType.DBString#serialize" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="serialize(value:String):Array[Byte]"></a>
+      <a id="serialize(String):Array[Byte]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">serialize</span><span class="params">(<span name="value">value: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.Array">Array</span>[<span class="extype" name="scala.Byte">Byte</span>]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="past.storage.DBType.DBString">DBString</a> → <a href="DBType$$DBType.html" class="extype" name="past.storage.DBType.DBType">DBType</a></dd></dl></div>
+    </li><li name="past.storage.DBType.DBString#serialize" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="serialize(value:Any,out:org.apache.hadoop.fs.FSDataOutputStream):Unit"></a>
       <a id="serialize(Any,FSDataOutputStream):Unit"></a>
       <h4 class="signature">
@@ -347,6 +360,19 @@
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="past.storage.DBType.DBString#unserialize" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="unserialize(in:Array[Byte]):String"></a>
+      <a id="unserialize(Array[Byte]):String"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">unserialize</span><span class="params">(<span name="in">in: <span class="extype" name="scala.Array">Array</span>[<span class="extype" name="scala.Byte">Byte</span>]</span>)</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="past.storage.DBType.DBString">DBString</a> → <a href="DBType$$DBType.html" class="extype" name="past.storage.DBType.DBType">DBType</a></dd></dl></div>
     </li><li name="past.storage.DBType.DBString#unserialize" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="unserialize(in:org.apache.hadoop.fs.FSDataInputStream):String"></a>
       <a id="unserialize(FSDataInputStream):String"></a>
@@ -428,14 +454,14 @@
         <div id="inheritedMembers">
         <div class="parent" name="scala.Serializable">
               <h3>Inherited from <span class="extype" name="scala.Serializable">Serializable</span></h3>
-            </div><div class="parent" name="java.io.Serializable">
-              <h3>Inherited from <span class="extype" name="java.io.Serializable">Serializable</span></h3>
             </div><div class="parent" name="scala.Product">
               <h3>Inherited from <span class="extype" name="scala.Product">Product</span></h3>
             </div><div class="parent" name="scala.Equals">
               <h3>Inherited from <span class="extype" name="scala.Equals">Equals</span></h3>
             </div><div class="parent" name="past.storage.DBType.DBType">
               <h3>Inherited from <a href="DBType$$DBType.html" class="extype" name="past.storage.DBType.DBType">DBType</a>[<span class="extype" name="scala.Predef.String">String</span>]</h3>
+            </div><div class="parent" name="java.io.Serializable">
+              <h3>Inherited from <span class="extype" name="java.io.Serializable">Serializable</span></h3>
             </div><div class="parent" name="scala.AnyRef">
               <h3>Inherited from <span class="extype" name="scala.AnyRef">AnyRef</span></h3>
             </div><div class="parent" name="scala.Any">

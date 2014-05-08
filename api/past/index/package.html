@@ -1,0 +1,212 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html>
+        <head>
+          <title>index - past.index</title>
+          <meta name="description" content="index - past.index" />
+          <meta name="keywords" content="index past.index" />
+          <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+          
+      <link href="../../lib/template.css" media="screen" type="text/css" rel="stylesheet" />
+      <link href="../../lib/diagrams.css" media="screen" type="text/css" rel="stylesheet" id="diagrams-css" />
+      <script type="text/javascript">
+         if(top === self) {
+            var url = '../../index.html';
+            var hash = 'past.index.package';
+            var anchor = window.location.hash;
+            var anchor_opt = '';
+            if (anchor.length >= 1)
+              anchor_opt = '@' + anchor.substring(1);
+            window.location.href = url + '#' + hash + anchor_opt;
+         }
+   	  </script>
+    
+        </head>
+        <body class="value">
+      <div id="definition">
+        <img src="../../lib/package_big.png" />
+        <p id="owner"><a href="../package.html" class="extype" name="past">past</a></p>
+        <h1>index</h1>
+      </div>
+
+      <h4 id="signature" class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">package</span>
+      </span>
+      <span class="symbol">
+        <span class="name">index</span>
+      </span>
+      </h4>
+      
+          <div id="comment" class="fullcommenttop"></div>
+        
+
+      <div id="mbrsel">
+        <div id="textfilter"><span class="pre"></span><span class="input"><input id="mbrsel-input" type="text" accesskey="/" /></span><span class="post"></span></div>
+        
+        
+        <div id="visbl">
+            <span class="filtertype">Visibility</span>
+            <ol><li class="public in"><span>Public</span></li><li class="all out"><span>All</span></li></ol>
+          </div>
+      </div>
+
+      <div id="template">
+        <div id="allMembers">
+        
+
+        <div id="types" class="types members">
+              <h3>Type Members</h3>
+              <ol><li name="past.index.DatabaseIndex" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="DatabaseIndex[T]extendsObject"></a>
+      <a id="DatabaseIndex[T]:DatabaseIndex[T]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="DatabaseIndex.html"><span class="name">DatabaseIndex</span></a><span class="tparams">[<span name="T">T</span>]</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="past.index.NearestNeighborsMapper" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="NearestNeighborsMapperextendsFlatMapFunction[(Integer,org.khelekore.prtree.PRTree[Integer]),org.khelekore.prtree.DistanceResult[Integer]]"></a>
+      <a id="NearestNeighborsMapper:NearestNeighborsMapper"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="NearestNeighborsMapper.html"><span class="name">NearestNeighborsMapper</span></a><span class="result"> extends <span class="extype" name="org.apache.spark.api.java.function.FlatMapFunction">FlatMapFunction</span>[(<span class="extype" name="java.lang.Integer">Integer</span>, <a href="../../org/khelekore/prtree/PRTree.html" class="extype" name="org.khelekore.prtree.PRTree">PRTree</a>[<span class="extype" name="java.lang.Integer">Integer</span>]), <a href="../../org/khelekore/prtree/DistanceResult.html" class="extype" name="org.khelekore.prtree.DistanceResult">DistanceResult</a>[<span class="extype" name="java.lang.Integer">Integer</span>]]</span>
+      </span>
+      </h4>
+      
+    </li><li name="past.index.RTreeIndex" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="RTreeIndexextendsDatabaseIndex[Array[Integer]]"></a>
+      <a id="RTreeIndex:RTreeIndex"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="RTreeIndex.html"><span class="name">RTreeIndex</span></a><span class="result"> extends <a href="DatabaseIndex.html" class="extype" name="past.index.DatabaseIndex">DatabaseIndex</a>[<span class="extype" name="scala.Array">Array</span>[<span class="extype" name="java.lang.Integer">Integer</span>]]</span>
+      </span>
+      </h4>
+      
+    </li><li name="past.index.RTreeIndexConf" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="RTreeIndexConfextendsObject"></a>
+      <a id="RTreeIndexConf:RTreeIndexConf"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="RTreeIndexConf.html"><span class="name">RTreeIndexConf</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="past.index.RTreesMapper" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="RTreesMapperextendsPairFunction[(Integer,java.util.List[Integer]),Integer,org.khelekore.prtree.PRTree[Integer]]"></a>
+      <a id="RTreesMapper:RTreesMapper"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="RTreesMapper.html"><span class="name">RTreesMapper</span></a><span class="result"> extends <span class="extype" name="org.apache.spark.api.java.function.PairFunction">PairFunction</span>[(<span class="extype" name="java.lang.Integer">Integer</span>, <span class="extype" name="java.util.List">List</span>[<span class="extype" name="java.lang.Integer">Integer</span>]), <span class="extype" name="java.lang.Integer">Integer</span>, <a href="../../org/khelekore/prtree/PRTree.html" class="extype" name="org.khelekore.prtree.PRTree">PRTree</a>[<span class="extype" name="java.lang.Integer">Integer</span>]]</span>
+      </span>
+      </h4>
+      
+    </li><li name="past.index.VectorMapper" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="VectorMapper[K,V]extendsPairFunction[(Integer,Array[Integer]),K,V]"></a>
+      <a id="VectorMapper[K,V]:VectorMapper[K,V]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="VectorMapper.html"><span class="name">VectorMapper</span></a><span class="tparams">[<span name="K">K</span>, <span name="V">V</span>]</span><span class="result"> extends <span class="extype" name="org.apache.spark.api.java.function.PairFunction">PairFunction</span>[(<span class="extype" name="java.lang.Integer">Integer</span>, <span class="extype" name="scala.Array">Array</span>[<span class="extype" name="java.lang.Integer">Integer</span>]), <span class="extype" name="past.index.VectorMapper.K">K</span>, <span class="extype" name="past.index.VectorMapper.V">V</span>]</span>
+      </span>
+      </h4>
+      
+    </li><li name="past.index.VectorToPartitionMapper" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="VectorToPartitionMapperextendsVectorMapper[Integer,Integer]"></a>
+      <a id="VectorToPartitionMapper:VectorToPartitionMapper"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="VectorToPartitionMapper.html"><span class="name">VectorToPartitionMapper</span></a><span class="result"> extends <a href="VectorMapper.html" class="extype" name="past.index.VectorMapper">VectorMapper</a>[<span class="extype" name="java.lang.Integer">Integer</span>, <span class="extype" name="java.lang.Integer">Integer</span>]</span>
+      </span>
+      </h4>
+      
+    </li><li name="past.index.ZCurveValuesMapper" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ZCurveValuesMapperextendsVectorMapper[java.math.BigInteger,Integer]"></a>
+      <a id="ZCurveValuesMapper:ZCurveValuesMapper"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="ZCurveValuesMapper.html"><span class="name">ZCurveValuesMapper</span></a><span class="result"> extends <a href="VectorMapper.html" class="extype" name="past.index.VectorMapper">VectorMapper</a>[<span class="extype" name="java.math.BigInteger">BigInteger</span>, <span class="extype" name="java.lang.Integer">Integer</span>]</span>
+      </span>
+      </h4>
+      
+    </li></ol>
+            </div>
+
+        
+
+        <div id="values" class="values members">
+              <h3>Value Members</h3>
+              <ol><li name="past.index.interval" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="interval"></a>
+      <a id="interval:interval"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">package</span>
+      </span>
+      <span class="symbol">
+        <a href="interval/package.html"><span class="name">interval</span></a>
+      </span>
+      </h4>
+      
+    </li></ol>
+            </div>
+
+        
+
+        
+        </div>
+
+        <div id="inheritedMembers">
+        
+        
+        </div>
+
+        <div id="groupedMembers">
+        <div class="group" name="Ungrouped">
+              <h3>Ungrouped</h3>
+              
+            </div>
+        </div>
+
+      </div>
+
+      <div id="tooltip"></div>
+
+      <div id="footer">  </div>
+      <script defer="defer" type="text/javascript" id="jquery-js" src="../../lib/jquery.js"></script><script defer="defer" type="text/javascript" id="jquery-ui-js" src="../../lib/jquery-ui.js"></script><script defer="defer" type="text/javascript" id="tools-tooltip-js" src="../../lib/tools.tooltip.js"></script><script defer="defer" type="text/javascript" id="template-js" src="../../lib/template.js"></script>
+    </body>
+      </html>
