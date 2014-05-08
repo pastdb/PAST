@@ -1,5 +1,7 @@
 package past.index;
 
+import org.apache.spark.api.java.JavaPairRDD;
+
 public class RTreeIndexConf {
 	
 	/**
@@ -7,6 +9,16 @@ public class RTreeIndexConf {
 	 */
 	public static final int SINGLE_VALUE = 1;
 	
+	/**
+	 * The dataset is timeseries. Example if the dimension is 4:
+	 * {28, 920, 983, 220}
+	 * {49, 853, 122, 7453}
+	 * 
+	 * The RDD is represented as a pair :
+	 * pointer -> vector
+	 */
+	private JavaPairRDD<Integer, Integer[]> dataset;
+
 	/**
 	 * 
 	 */
@@ -26,12 +38,15 @@ public class RTreeIndexConf {
 	 * The branch factor of the R-Tree (=number of childs of each node).
 	 */
 	private int rTreeBranchFactor;
+
 	
-	public RTreeIndexConf(int dataDimension, int nbPartitions, double sampleFraction, int rTreeBranchFactor) {
-		if (dataDimension < 1 || nbPartitions < 1 || sampleFraction < 0 || rTreeBranchFactor < 1) {
+	public RTreeIndexConf(JavaPairRDD<Integer, Integer[]> dataset, int dataDimension, int nbPartitions, double sampleFraction, int rTreeBranchFactor) {
+		if (dataset == null || dataDimension < 1 || nbPartitions < 1 || 
+				sampleFraction < 0 || rTreeBranchFactor < 1) {
 			throw new IllegalArgumentException();
 		}
 		
+		this.dataset = dataset;
 		this.dataDimension = dataDimension;
 		this.numberOfPartitions = nbPartitions;
 		this.sampleFraction = sampleFraction;
@@ -43,8 +58,8 @@ public class RTreeIndexConf {
 	 * 
 	 * @param dataDimension
 	 */
-	public RTreeIndexConf(int dataDimension) {
-		this(dataDimension, 5, 0.03, 30);
+	public RTreeIndexConf(JavaPairRDD<Integer, Integer[]> dataset, int dataDimension) {
+		this(dataset, dataDimension, 5, 0.03, 30);
 	}
 
 	public int getDataDimension() {
@@ -61,5 +76,9 @@ public class RTreeIndexConf {
 	
 	public int getRTreeBranchFactor() {
 		return rTreeBranchFactor;
+	}
+
+	public JavaPairRDD<Integer, Integer[]> getDataset() {
+		return this.dataset;
 	}
 }
