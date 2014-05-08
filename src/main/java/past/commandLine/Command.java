@@ -22,7 +22,7 @@ public class Command {
 	 */
 	static String commands[] = {
 		/* standard commands */
-		"quit", "exit", "help", "var",
+		"quit", "exit", "help", "var", "stopSpark", "startSpark",
 		/* database */
 		"USE", "OPEN", "CLOSE", "SHOW", "DROP", "EXIST", "GET", "CREATE",
 		/* Time Serie */
@@ -82,6 +82,8 @@ public class Command {
 		case "var": ExecuteCommand.showVar(); break;
 		case "del" : break;
 		case "rename": break;
+		case "startSpark": ExecuteCommand.startSpark(); break;
+		case "stopSpark": ExecuteCommand.stopSpark(); break;
 		
 		/* ************************************
 		 * database
@@ -200,6 +202,8 @@ public class Command {
 			System.out.println("quit");
 			System.out.println("help");
 			System.out.println("var");
+			System.out.println("startSpark");
+			System.out.println("stopSpark");
 			System.out.println("************************************");
 			System.out.println("database commands");
 			System.out.println("************************************");

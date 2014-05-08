@@ -3,6 +3,7 @@ package past.commandLine;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.spark.api.java.JavaSparkContext;
 
 import com.typesafe.config.Config; 
 import com.typesafe.config.ConfigFactory;
@@ -12,6 +13,12 @@ import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.ArrayList;
+
+import java.io.File;
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.InputStreamReader;
 
 import scala.*;
 import scala.collection.immutable.List;
@@ -39,23 +46,50 @@ public class ExecuteCommand {
 	private static final String varName = "var";
 
 	/* spark context */
- 	//private static JavaSparkContext sc = new JavaSparkContext("local", "PAST");
+ 	private static JavaSparkContext sc = null;
 
 
 	/* ************************************
 	 * standard commands
 	 *************************************/
+	/*
+	 * show every existing variable, the type and the location memory
+	 */
 	public static void showVar() {
 		if(variable.isEmpty()) {
 			System.out.println("  no variable save");
 		}
 		else {
 			for (String key: variable.keySet()) {
-				System.out.println("key : " + key + " - value : " + variable.get(key));
+				System.out.println("   key : " + key + " - value : " + variable.get(key));
 			}
 		}
 	}
 
+	/*
+	 *	start spark
+	 */
+	public static void startSpark() {
+		if(sc != null) {
+			System.out.println("  spark has already start");
+		}
+		else {
+			sc = new JavaSparkContext("local", "PAST");
+		}
+	}
+
+	/*
+	 * stop spark
+	 */
+	public static void stopSpark() {
+		if(sc == null) {
+			System.out.println("  spark has already stop");
+		}
+		else {
+			sc.stop();
+			sc = null;
+		}
+	}
 	/* ************************************
 	 * database function
 	 *************************************/ 
@@ -233,17 +267,21 @@ public class ExecuteCommand {
 		String nameTS = null;
 		String nameSchema = null; 
 
-		if(size > 1) {
-			nameTS = userInput[0];
-			nameSchema = userInput[1];
-		}
+		if(size > 1) nameTS = userInput[0];
+		if(size > 2) nameSchema = userInput[1];
 
 		if(db == null) {
 			System.out.println("  no database open");
 		}
-		else if(size < 2 || size > 4 || size == 3) {
-			System.out.println("  input must be : CREATE 'name of timeSerie' 'Schema' [: name]");
+		else if(size < 1 || size > 4) {
+			System.out.println("  input must be : CREATE 'name of timeSerie' [Schema] [: name]");
 		} 
+		else if(size == 3 && userInput[1].compareTo(":") != 0) {
+			System.out.println("  you forget to put ':'");
+		}
+		else if(size == 3 && variable.keySet().contains(userInput[2])) {
+			System.out.println("  variable name already exist");
+		}
 		else if(size == 4 && userInput[2].compareTo(":") != 0) {
 			System.out.println("  you forget to put ':'");
 		}
@@ -252,6 +290,23 @@ public class ExecuteCommand {
 		}
 		else if(db.hasTimeseries(nameTS)) {
 			System.out.println("  name of timeserie already exist");
+		}
+		else if(size == 1 || size == 3) {
+			SchemaConstructor schemaCons = new SchemaConstructor("time", DBType.DBInt32$.MODULE$);
+			schemaCons.addField("data", DBType.DBInt32$.MODULE$);
+			Schema schema = schemaCons.get();
+			db.createTimeseries(nameTS, schema);
+			System.out.println("  TimeSerie has been created in database name " + nameDB);
+
+			// save in variable
+			String v_name = (size == 3) ? userInput[2] : generateNameVariable();  
+
+			Option<Timeseries> tmp = db.getTimeseries(nameTS);
+			Timeseries ts = tmp.get();
+			variable.put(v_name, ts);
+			System.out.println("  TimeSerie has been save in variable name " + v_name);
+			System.out.println("  with Schema: [ <time, int32> ][ <data, int32 ]");
+
 		}
 		else if(!variable.containsKey(nameSchema)) {
 			System.out.println("  schema not found");
@@ -425,6 +480,134 @@ public class ExecuteCommand {
 			}
 		}
 	}
+
+	/*
+	 * INSERT data at a certain faile
+	 */
+	public static void insertDataFromFile(String userInput[]) {
+		int size = userInput.length;
+		String nameTS = null;
+		String nameFile = null;
+
+		if(size > 2) {
+			nameTS = userInput[0];
+			nameFile = userInput[1];
+		}
+
+		if(size < 2|| size > 4 || size == 3) {
+			System.out.println("  input must be : INSERT timeserie file [: name]");
+		}
+		else if(size == 4 && userInput[2].compareTo(":") != 0) {
+			System.out.println("  you forget to put ':'");
+		}
+		else if(size == 4 && variable.keySet().contains(userInput[3])) {
+			System.out.println("  variable name already exist");
+		}
+		else if(!variable.keySet().contains(nameTS)){
+			System.out.println("  Timeserie not found");
+		}
+		else if(sc == null) {
+			System.out.println("  Spark is not start. To start spark, enter: sparkStart");
+		}
+		else {
+
+			Object ob = variable.get(nameTS);
+			Timeseries ts = null;
+			try {
+				ts = (Timeseries)ob;
+			}
+			catch(Exception e) {
+				System.out.println("  the variable is not a Timeserie");
+			}
+
+			if(ts != null) {
+				File dir = new File(".");
+				File tsFile;
+				FileInputStream reader = null;
+				BufferedReader data = null;
+			try {
+				tsFile = new File(dir.getCanonicalPath() + File.separator + nameFile);
+				reader = new FileInputStream(tsFile);
+					data = new BufferedReader(new InputStreamReader(reader));
+					
+					int sizeSchema = 2;
+					
+					String line = null;
+					String tmp[] = null;
+					@SuppressWarnings("unchecked")
+					ArrayList<String> extractData[] = new ArrayList[sizeSchema]; 
+					// Length of tab is number of column of the schema. 
+					for(int i=0; i<sizeSchema; i++) extractData[i] = new ArrayList<String>();
+					
+					while ((line = data.readLine()) != null) {
+						line = line.replaceAll("\\s+"," ");
+						tmp = line.split(" ");
+							
+						if(line.compareTo("") == 0){}
+						else if(tmp.length != sizeSchema) {
+							System.out.println("   schema unfit for data: find " + tmp.length + " field and require " + sizeSchema + " field");
+							break;
+						}
+						else {
+							for(int i=0; i<sizeSchema; i++) {
+								extractData[i].add(tmp[i]);
+							}
+						}
+					}
+					//TODO
+					//demander eric pour extract nombre et name field schema
+					//faire list 
+					//ts.insert(sc, extractData[0], scala.List)
+					for(int i=0; i<sizeSchema; i++) {
+						System.out.println(extractData[i]);
+					}
+				}
+				catch (Exception e) {
+					System.out.println("   Reading data in file FAIL");
+				}
+				finally {
+					try {
+						if (reader != null) reader.close();
+						if (data != null) data.close();
+					}
+					catch(Exception e) {}
+				}
+
+			}
+		}
+	}
+
+
+	/*
+	 * SELECT_RANGE of timeserie from timeStart to timeEnd
+	 */
+
+
+
+	/*
+	 * MAX_VALUE of a timeserie
+	 */
+
+
+
+	/*
+	 * MIN_VALUE of timeserie
+	 */
+
+
+
+	/*
+	 * MAX_TIMESTAMP of timeserie
+	 */
+
+
+
+	/*
+	 * MIN_TIMESTAMP of timeserie
+	 */
+
+
+
 
 	/* ************************************
 	 * Transformations function
