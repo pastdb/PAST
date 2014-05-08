@@ -11,14 +11,14 @@ import past.storage.DBType;
 public class Timeseries {
 
 	private Hashtable<String, Hashtable<Integer, Object>> data;
-	private DBType type; 
+	private DBType.DBType<?> type;
 
 	/**
 	 * constructor with outside data
 	 * 
 	 * @param data
 	 */
-	public Timeseries(Hashtable<String, Hashtable<Integer, Object>> data, DBType type) {
+	public Timeseries(Hashtable<String, Hashtable<Integer, Object>> data, DBType.DBType<?> type) {
 
 		this.data = data;
 		this.type = type;
@@ -148,3 +148,4 @@ public class Timeseries {
 	}
 
 }
+
