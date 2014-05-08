@@ -267,8 +267,8 @@ public class ExecuteCommand {
 		String nameTS = null;
 		String nameSchema = null; 
 
-		if(size > 1) nameTS = userInput[0];
-		if(size > 2) nameSchema = userInput[1];
+		if(size > 0) nameTS = userInput[0];
+		if(size > 1) nameSchema = userInput[1];
 
 		if(db == null) {
 			System.out.println("  no database open");
@@ -295,6 +295,7 @@ public class ExecuteCommand {
 			SchemaConstructor schemaCons = new SchemaConstructor("time", DBType.DBInt32$.MODULE$);
 			schemaCons.addField("data", DBType.DBInt32$.MODULE$);
 			Schema schema = schemaCons.get();
+			System.out.println(" schema : " + schema);
 			db.createTimeseries(nameTS, schema);
 			System.out.println("  TimeSerie has been created in database name " + nameDB);
 
