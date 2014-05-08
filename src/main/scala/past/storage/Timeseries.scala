@@ -14,6 +14,8 @@ import org.apache.spark.util.Utils
 import org.apache.spark._
 import org.apache.spark.rdd._
 import org.apache.spark.SparkContext._
+import past.index.interval.{MemoryIntervalIndex, IntervalIndex}
+import past.index.interval.IntervalIndex.Interval
 
 /**
  * Represents a time series.
@@ -28,11 +30,17 @@ import org.apache.spark.SparkContext._
  * timeseries alread exists, it will fail with IOException. If it's `false`,
  * an existing timeseries will be opened.
  */
-class Timeseries private (name: String, wantedSchema: Schema,
-  containingPath: Path, filesystem: FileSystem, createMode: Boolean) {
+class Timeseries private (name: String,
+                          wantedSchema: Schema,
+                          containingPath: Path,
+                          filesystem: FileSystem,
+                          createMode: Boolean,
+                          maxFileSize: Int = Timeseries.defaultMaxFileSize) {
 
   require(Timeseries.isValidName(name), "Timeseries name is not valid")
 
+  type FilesIdentifiers = (List[Int], Int, Int)
+  
   private val _exists = Timeseries.exists(name, containingPath, filesystem)
 
   if (_exists && createMode) {
@@ -44,17 +52,24 @@ class Timeseries private (name: String, wantedSchema: Schema,
 
   /** The path of the Timeseries */
   val path = new Path(containingPath, name)
+  /** The maximum size the time column file can have (in bytes)*/
+
   private val schemaPath = new Path(path, Timeseries.SchemaFilename)
+  private val indexPath =  new Path(path, Timeseries.IndexFilename)
   private val dataPath = new Path(path, Timeseries.DataDirName)
 
   if (!_exists && createMode) {
     filesystem.mkdirs(path)
     filesystem.mkdirs(dataPath)
     wantedSchema.save(schemaPath, filesystem)
+    //TODO not use only Int
+    MemoryIntervalIndex.store(new MemoryIntervalIndex[Int,Int],indexPath)
   }
 
   /** The schema of the Timeseries */
   val schema = Schema.load(schemaPath, filesystem)
+  //TODO not use only Int but the time type
+  val indexes = MemoryIntervalIndex.load[Int,Int](indexPath)
 
   /**
    * Opens an existing time series.
@@ -115,41 +130,100 @@ class Timeseries private (name: String, wantedSchema: Schema,
         }
         def close = file.close
       }
-    case x => throw new IllegalStateException("Fatal error when acceding column " + column)
+    case x => throw new IllegalStateException("Fatal error when acceding file " + column)
   }
 
   /**
    * Insert data in columns
    * @param sc SparkContext
-   * @param columns tuple containing the column name and the data to insert at said column
+   * @param times list of new times
+   * @param values tuple containing the file names and the data to insert at said file
    */
-  def insert(sc: SparkContext,columns: List[(String, List[_])]): Unit = {
-    assert(columns.size == schema.fields.size)
-    columns.foreach(s => assert(columns.head._2.size == s._2.size))
-    columns.foreach {c =>
-      insertAtColum(sc,c._1,c._2)
+  @throws(classOf[IllegalArgumentException])
+  def insert(sc: SparkContext, times: List[Int],values: List[(String, List[_])])/*(implicit arg0: ClassTag[T])*/: Unit = {
+    assert(values.size + 1 == schema.fields.size)
+    values.foreach(s => assert(s._2.size == times.size))
+
+    //TODO check all times are sorted ?
+    val begin = times.head
+    val end = times.last
+    //get the current file identifier
+    val ident = if (indexes.intervals.size == 0) 0 else indexes.values(indexes.intervals.head)
+
+    val timeFilePath = new Path(dataPath,schema.id._1 + ident)
+    val currentFileSize = if (filesystem.exists(timeFilePath)) filesystem.getContentSummary(timeFilePath).getLength else 0
+
+    val fieldSize = schema.id._2.size
+    val insertSize = times.size * fieldSize
+
+    val maxCanAppendSize = maxFileSize - currentFileSize
+    val appendToFileSize = Math.min(maxCanAppendSize, insertSize)
+    val appendToFileNumber = (appendToFileSize / fieldSize).toInt
+    val data = (schema.id._1, times) :: values
+
+    def getChunkIntervals =  times.splitAt(appendToFileNumber) match {
+      case (l, r) => (l.head, l.last) :: r.grouped(maxFileSize).map(c => (c.head, c.last)).toList
+    }
+
+    val intervals = getChunkIntervals
+
+    def chunkData(data: List[(String, List[_])]): List[List[(String, List[_])]] = {
+      val tmp = data.map {
+        case (n, d) => d.splitAt(appendToFileNumber) match {
+          case (l, r) =>  (n, l) :: r.grouped(maxFileSize).toList.map((n,_))
+        }
+      }
+      (for (j <- 0 until intervals.size) yield (for (i <- 0 until tmp.size) yield tmp(i)(j)).toList).toList
+    }
+
+    val chunks = chunkData(data)
+
+
+    var i = ident
+    intervals.zip(chunks).foreach{
+      case (interval, dat) =>
+        indexes.insert(Interval(begin, end),ident)
+        insert(sc, dat, i)
+        i += 1
+    }
+    MemoryIntervalIndex.store(indexes, indexPath)
+  }
+
+  @throws(classOf[IllegalArgumentException])
+  def insertOld(sc: SparkContext, values: List[(String, List[_])]): Unit = {
+    assert(values.size == schema.fields.size)
+    values.foreach(s => assert(values.head._2.size == s._2.size))
+    values.foreach {c =>
+      insertAtColum(sc,c._1,c._2, None)
+    }
+  }
+
+  @throws(classOf[IllegalArgumentException])
+  private def insert(sc: SparkContext, values: List[(String, List[_])], ident: Int): Unit = {
+    values.foreach {c =>
+      insertAtColum(sc,c._1,c._2, Some(ident))
     }
   }
 
 	/**
-	* Insert data at a certain column
+	* Insert data at a certain file
 	*
 	* @param sc SparkContext
-	* @param column column name where the data will be appended
+	* @param column file name where the data will be appended
 	* @param data raw data to insert
 	*/
-  private def insertAtColum[T](sc: SparkContext,column:String, data: List[T])(implicit arg0: ClassTag[T]): Unit = insertAtColum(sc,column,sc.makeRDD(data))
+  private def insertAtColum[T](sc: SparkContext,column:String, data: List[T], ident: Option[Int])(implicit arg0: ClassTag[T]): Unit = insertAtColum(sc,column,sc.makeRDD(data), ident)
 
 	/**
-	* Insert data at a certain column
+	* Insert data at a certain file
 	*
 	* @param sc SparkContext
-	* @param column column name where the data will be appended
+	* @param column file name where the data will be appended
 	* @param data an RDD representing the data to be inserted
 	*/
-  private def insertAtColum[T](sc: SparkContext,column:String, data: RDD[T])(implicit arg0: ClassTag[T]): Unit = schema.fields.get(column) match {
+  private def insertAtColum[T](sc: SparkContext,column:String, data: RDD[T], ident: Option[Int])(implicit arg0: ClassTag[T]): Unit = schema.fields.get(column) match {
     case Some(typ:DBType[T]) =>
-      val outputDir = new java.io.File(dataPath.toString, column).getAbsolutePath
+      val outputDir = new java.io.File(dataPath.toString, column + ident.getOrElse("")).getAbsolutePath
       val onPlaceData = sc.sequenceFile(outputDir, classOf[NullWritable], classOf[BytesWritable], 0)
       onPlaceData.union(
        data.map(x => (NullWritable.get(), new BytesWritable(typ.serialize(x))))
@@ -157,27 +231,102 @@ class Timeseries private (name: String, wantedSchema: Schema,
     case _ => throw new IllegalArgumentException("Column " + column + " does not exist")
   }
 
+
+
   //TODO take range#
   /**
-	* Retrieve column data to a spark RDD
+	* Retrieve file data to a spark RDD
 	*
 	* @param sc SparkContext
-	* @param column column name where to retrieve data
+	* @param file file name where to retrieve data
+  * @param positions
 	*/
-  def getRDD[T](sc: SparkContext,column: String)(implicit arg0: ClassTag[T]): RDD[T] = schema.fields.get(column) match {
-    case Some(typ:DBType[T]) =>
-      val outputDir = new java.io.File(dataPath.toString, column).getAbsolutePath
-      sc.sequenceFile(outputDir, classOf[NullWritable], classOf[BytesWritable], 0).map(x => typ.unserialize(x._2.getBytes))
-    case _ => throw new IllegalArgumentException("Column " + column + " does not exist")
+  def getRDD[T](sc: SparkContext,file: String, positions: Option[(Int, Int)] = None, ident: Option[Int] = None)(implicit arg0: ClassTag[T]): RDD[T] = schema.fields.get(file) match {
+    case Some(typ: DBType[T]) =>
+      val outputDir = new java.io.File(dataPath.toString, file + ident.getOrElse("")).getAbsolutePath
+      val rdd = sc.sequenceFile(outputDir, classOf[NullWritable], classOf[BytesWritable], 0)
+      (positions match {
+        case Some(interval) =>
+          val rdd2 = rdd.map(x => typ.unserialize(x._2.getBytes))
+          sc.makeRDD(interval match {
+            case (0, end) => rdd2.take(end)
+            case (begin, end) if end < 0 => rdd2.toArray.drop(begin)
+            case (begin, end) => rdd2.take(end).drop(begin)
+          })
+        case _ => rdd.map(x => typ.unserialize(x._2.getBytes))
+      })
+    case _ => throw new IllegalArgumentException("Column " + file + " does not exist")
   }
+
+  def getRDDatFiles[T](sc: SparkContext,column: String, idents: List[Option[Int]], begin: Int, end: Int)(implicit arg0: ClassTag[T]): RDD[T] = {
+    assert(idents.size > 0)
+    if (idents.size == 1)
+      getRDD[T](sc, column, Some(begin, end), idents.head)
+    else {
+      val start = getRDD[T](sc, column + idents.head, Some(begin, - 1))
+      val rdd = idents.slice(1, idents.size - 1).foldLeft(start){(acc, c) => acc union getRDD[T](sc, column, None, c)}
+      rdd union getRDD[T](sc, column + idents.last, Some(0, end))
+    }
+  }
+
+  def getRDDatFiles[T](sc: SparkContext,column: String, identifiers: FilesIdentifiers)(implicit arg0: ClassTag[T]): RDD[T] = {
+    val idents = identifiers._1.map(Some(_))
+    getRDDatFiles[T](sc, column, idents, identifiers._2, identifiers._3)
+  }
+
+  def getIdentifiersFromInterval(interval: Interval[Int]): FilesIdentifiers = {
+    val ids = indexes.get(interval).groupBy(_._1).toList.sortBy(_._1).map {
+      case (id, intervals) => (id, (intervals.head._2.start, intervals.last._2.end))
+    }
+    val tmp = if (ids.size > 2){
+      val begin = ids.head
+      val middle = ids.slice(1, ids.size - 1).map(x => (x._1, x._2))
+      begin :: (middle ++ List(ids.last))
+    }
+    else
+      ids
+    (tmp.map(_._1),Math.max(tmp.head._2._1, interval.start), Math.min(tmp.last._2._2, interval.end))
+  }
+
+  def getIdentifiersFromTime(sc: SparkContext, interval: Interval[Int]): FilesIdentifiers = {
+    val identifiers = getIdentifiersFromInterval(interval)
+    val beginInterval = identifiers._2
+    val endInterval = identifiers._3
+    val firstFile = schema.id._1
+    val lastFile = schema.id._1
+    var beginPos = -1
+    var endPos = -1
+    val rdd = if (firstFile == lastFile) getRDD[Int](sc,firstFile, None, Some(identifiers._1.head))
+              else getRDD[Int](sc,firstFile) union getRDD[Int](sc,lastFile, None, Some(identifiers._1.last))
+    var pos = 0
+    //have to convert to array for now
+    rdd.toArray.foreach{ i =>
+       if (beginPos < 0 && i >= beginInterval) beginPos = pos
+       else if (endPos < 0 && i == endInterval) endPos = pos
+       pos += 1
+    }
+    (identifiers._1, beginPos, endPos)
+  }
+
+  def rangeQuery[T](sc: SparkContext, interval: Interval[Int], column: String)(implicit arg0: ClassTag[T]): (FilesIdentifiers, RDD[T]) = {
+    val id = getIdentifiersFromTime(sc, interval)
+    (id, getRDDatFiles[T](sc, column, id))
+  }
+
+  def rangeQuery[T](sc: SparkContext, id: FilesIdentifiers, column: String)(implicit arg0: ClassTag[T]): RDD[T] =
+    getRDDatFiles[T](sc, column, id)
+
 
 }
 
 object Timeseries {
   /** The filename of the schema */
   val SchemaFilename = "schema"
+  val IndexFilename = "index"
   /** The directory in which the data will be stored */
   val DataDirName = "data"
+
+  val defaultMaxFileSize = 1000
 
   /**
    * Returns `true` if `name` is a valid identifier for a timeseries,

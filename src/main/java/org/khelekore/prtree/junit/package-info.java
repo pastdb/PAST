@@ -1,4 +1,4 @@
-/** Tests of PRTree
- *
- */
-package org.khelekore.prtree.junit;
+///** Tests of PRTree
+// *
+// */
+//package org.khelekore.prtree.junit;

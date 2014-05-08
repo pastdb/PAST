@@ -1,7 +1,6 @@
 package past;
 
 import java.util.Hashtable;
-
 import past.storage.DBType;
 
 /**
@@ -11,23 +10,26 @@ import past.storage.DBType;
 
 public class Timeseries {
 
-	private Hashtable<String, Hashtable<Integer, DBType>> data;
+	private Hashtable<String, Hashtable<Integer, Object>> data;
+	private DBType type; 
 
 	/**
 	 * constructor with outside data
 	 * 
 	 * @param data
 	 */
-	public Timeseries(Hashtable<String, Hashtable<Integer, DBType>> data) {
+	public Timeseries(Hashtable<String, Hashtable<Integer, Object>> data, DBType type) {
 
 		this.data = data;
+		this.type = type;
+		
 	}
 
 	/**
 	 * constructor for a new Timeseries
 	 */
 	public Timeseries() {
-		this.data = new Hashtable<String, Hashtable<Integer, DBType>>();
+		this.data = new Hashtable<String, Hashtable<Integer, Object>>();
 	}
 
 	/**
@@ -36,7 +38,7 @@ public class Timeseries {
 	 * @return false if attribute already exists in Timeseries 0 if attribute
 	 *         added correctly true if added correctly
 	 */
-	public boolean addAttribute(String key, Hashtable<Integer, DBType> attribute) {
+	public boolean addAttribute(String key, Hashtable<Integer, Object> attribute) {
 		if (data.get(key) != null) {
 			return false;
 		} else {
@@ -50,7 +52,7 @@ public class Timeseries {
 	 * 
 	 * @return null if the attribute doesn't exist
 	 */
-	public Hashtable<Integer, DBType> getAttribute(String key) {
+	public Hashtable<Integer, Object> getAttribute(String key) {
 
 		return this.data.get(key);
 
@@ -79,12 +81,12 @@ public class Timeseries {
 	 * @param timestep
 	 * @param value
 	 */
-	public void addValue(String key, Integer timestep, DBType value) {
+	public void addValue(String key, Integer timestep, Object value) {
 
-		Hashtable<Integer, DBType> attribute = data.get(key);
+		Hashtable<Integer, Object> attribute = data.get(key);
 
 		if (attribute == null) {
-			attribute = new Hashtable<Integer, DBType>();
+			attribute = new Hashtable<Integer, Object>();
 		}
 
 		attribute.put(timestep, value);
@@ -99,15 +101,15 @@ public class Timeseries {
 	 * 
 	 * @return null if the attribute or the timestep doesn't exist
 	 */
-	public DBType getValue(String key, Integer timestep) {
+	public Object getValue(String key, Integer timestep) {
 
-		Hashtable<Integer, DBType> attribute = data.get(key);
+		Hashtable<Integer, Object> attribute = data.get(key);
 
 		if (attribute == null) {
 			return null;
 		}
 
-		DBType result = attribute.get(timestep);
+		Object result = attribute.get(timestep);
 
 		return result;
 	}
@@ -123,7 +125,7 @@ public class Timeseries {
 	 */
 	public boolean removeValue(String key, Integer timestep) {
 
-		Hashtable<Integer, DBType> attribute = data.get(key);
+		Hashtable<Integer, Object> attribute = data.get(key);
 
 		if (attribute == null) {
 			return false;
@@ -141,7 +143,7 @@ public class Timeseries {
 	/**
 	 * returns the Timeseries
 	 */
-	public Hashtable<String, Hashtable<Integer, DBType>> getTimeseries() {
+	public Hashtable<String, Hashtable<Integer, Object>> getTimeseries() {
 		return this.data;
 	}
 
