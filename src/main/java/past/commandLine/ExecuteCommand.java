@@ -20,6 +20,8 @@ import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
 
+import scala.collection.JavaConverters;
+
 import scala.*;
 import scala.collection.immutable.List;
 import scala.collection.immutable.List$;
@@ -521,6 +523,7 @@ public class ExecuteCommand {
 				System.out.println("  the variable is not a Timeserie");
 			}
 
+			// read file and load element and value of the timeserie
 			if(ts != null) {
 				File dir = new File(".");
 				File tsFile;
@@ -531,15 +534,28 @@ public class ExecuteCommand {
 				reader = new FileInputStream(tsFile);
 					data = new BufferedReader(new InputStreamReader(reader));
 					
-					int sizeSchema = 2;
+					//information a propos du schema
+					Schema schema = ts.schema();
+					int sizeSchema = schema.fields().size();
+					//scala.collection.Iterable<String> columName = schema.fields().keys();
+					//ArrayList<String> cName = new ArrayList<String>();
+
+					//for(String s: columName.toList().toArray()) {
+					//	cName.add(s);
+					//}
 					
 					String line = null;
 					String tmp[] = null;
-					@SuppressWarnings("unchecked")
-					ArrayList<String> extractData[] = new ArrayList[sizeSchema]; 
+					//@SuppressWarnings("unchecked")
+					//ArrayList<String> extractData[] = new ArrayList[sizeSchema]; 
 					// Length of tab is number of column of the schema. 
-					for(int i=0; i<sizeSchema; i++) extractData[i] = new ArrayList<String>();
+					//for(int i=0; i<sizeSchema; i++) extractData[i] = new ArrayList<String>();
 					
+					// element to allow insert from java to scala
+					ListBuffer<Integer> times =  new ListBuffer<Integer>();
+					ListBuffer<Integer> values =  new ListBuffer<Integer>();
+					//ListBuffer<Tuple2<String, ListBuffer<Integer>>> column =  new ListBuffer<Tuple2<String, ListBuffer<DBType.DBType<?>>>>();
+
 					while ((line = data.readLine()) != null) {
 						line = line.replaceAll("\\s+"," ");
 						tmp = line.split(" ");
@@ -551,17 +567,21 @@ public class ExecuteCommand {
 						}
 						else {
 							for(int i=0; i<sizeSchema; i++) {
-								extractData[i].add(tmp[i]);
+								if(i==0) times.$plus$eq(new Integer(Integer.parseInt(tmp[i])));
+								if(i==1) values.$plus$eq(new Integer(Integer.parseInt(tmp[i])));
+								//extractData[i].add(tmp[i]);
 							}
 						}
 					}
-					//TODO
-					//demander eric pour extract nombre et name field schema
-					//faire list 
-					//ts.insert(sc, extractData[0], scala.List)
-					for(int i=0; i<sizeSchema; i++) {
-						System.out.println(extractData[i]);
-					}
+
+					//column.$plus$eq(new Tuple2<String, List>('time', times));
+					
+					//ListBuffer<Tuple2<String, DBType.DBType<?>>> fields =  new ListBuffer<Tuple2<String, DBType.DBType<?>>>();
+					//ListBuffer<Tuple2<String, DBType.DBType<?>>> fields =  new ListBuffer<Tuple2<String, DBType.DBType<?>>>();
+					//ts.insert(sc, extractData[0], new tubple2<String, List>());
+					//for(int i=0; i<sizeSchema; i++) {
+					//	System.out.println(extractData[i]);
+					//}
 				}
 				catch (Exception e) {
 					System.out.println("   Reading data in file FAIL");
