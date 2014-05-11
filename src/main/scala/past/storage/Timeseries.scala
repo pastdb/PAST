@@ -30,7 +30,7 @@ import past.index.interval.IntervalIndex.Interval
  * timeseries alread exists, it will fail with IOException. If it's `false`,
  * an existing timeseries will be opened.
  */
-class Timeseries private (val name: String,
+class Timeseries private (name: String,
                           wantedSchema: Schema,
                           containingPath: Path,
                           filesystem: FileSystem,
@@ -288,29 +288,39 @@ class Timeseries private (val name: String,
     (tmp.map(_._1),Math.max(tmp.head._2._1, interval.start), Math.min(tmp.last._2._2, interval.end))
   }
 
-  def getIdentifiersFromTime(sc: SparkContext, interval: Interval[Int]): FilesIdentifiers = {
-    val identifiers = getIdentifiersFromInterval(interval)
-    val beginInterval = identifiers._2
-    val endInterval = identifiers._3
-    val firstFile = schema.id._1
-    val lastFile = schema.id._1
-    var beginPos = -1
-    var endPos = -1
-    val rdd = if (firstFile == lastFile) getRDD[Int](sc,firstFile, None, Some(identifiers._1.head))
-              else getRDD[Int](sc,firstFile) union getRDD[Int](sc,lastFile, None, Some(identifiers._1.last))
-    var pos = 0
-    //have to convert to array for now
-    rdd.toArray.foreach{ i =>
-       if (beginPos < 0 && i >= beginInterval) beginPos = pos
-       else if (endPos < 0 && i == endInterval) endPos = pos
-       pos += 1
-    }
-    (identifiers._1, beginPos, endPos)
+  def getIdentifiersFromTime(sc: SparkContext, interval: Option[Interval[Int]]): FilesIdentifiers = interval match {
+    case Some(ival) =>
+      val identifiers = getIdentifiersFromInterval(ival)
+      val beginInterval = identifiers._2
+      val endInterval = identifiers._3
+      val firstFile = schema.id._1
+      val lastFile = schema.id._1
+      var beginPos = -1
+      var endPos = -1
+      val rdd = if (firstFile == lastFile) getRDD[Int](sc,firstFile, None, Some(identifiers._1.head))
+                else getRDD[Int](sc,firstFile) union getRDD[Int](sc,lastFile, None, Some(identifiers._1.last))
+      var pos = 0
+      //have to convert to array for now
+      rdd.toArray.foreach{ i =>
+         if (beginPos < 0 && i >= beginInterval) beginPos = pos
+         else if (endPos < 0 && i == endInterval) endPos = pos
+         pos += 1
+      }
+      (identifiers._1, beginPos, endPos)
+    case None => //special case where we want the full column
+      val max = indexes.values(indexes.intervals.head)
+      ((0 to max).toList, 0, indexes.intervals.head.end)
+
   }
 
   def rangeQuery[T](sc: SparkContext, interval: Interval[Int], column: String)(implicit arg0: ClassTag[T]): (FilesIdentifiers, RDD[T]) = {
-    val id = getIdentifiersFromTime(sc, interval)
+    val id = getIdentifiersFromTime(sc, Some(interval))
     (id, getRDDatFiles[T](sc, column, id))
+  }
+
+  def getFullColumn[T](sc: SparkContext, column: String)(implicit arg0: ClassTag[T]): RDD[T] = {
+    val id = getIdentifiersFromTime(sc, None)
+    getRDDatFiles[T](sc, column, id)
   }
 
   def rangeQuery[T](sc: SparkContext, id: FilesIdentifiers, column: String)(implicit arg0: ClassTag[T]): RDD[T] =
