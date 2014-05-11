@@ -59,7 +59,7 @@ class TimeseriesSpec extends FlatSpec with TestDirectory {
     val data = List(1.1f, 1.2f, 1.3f, 1.4f, 1.5f, 1.6f, 1.7f, 1.8f, 1.9f)
     db.insert(sc, times, List(("data", data)))
 
-    val output = db.rangeQuery[Float](sc, Interval(2,6),"data")._2
+    val output = db.rangeQuery[Float](sc,"data", Interval(2,6))
     assert(output.collect().toList == data.take(5).drop(1))
   }
 

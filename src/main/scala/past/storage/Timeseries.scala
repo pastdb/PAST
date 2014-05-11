@@ -136,8 +136,9 @@ class Timeseries private (name: String,
   /**
    * Insert data in columns
    * @param sc SparkContext
-   * @param times list of new times
-   * @param values tuple containing the file names and the data to insert at said file
+   * @param times list of new values for the time (index) field
+   * @param values tuples containing the field name and the data to insert at said field
+   * @throws IllegalArgumentException if a time value is already contained in the database
    */
   @throws(classOf[IllegalArgumentException])
   def insert(sc: SparkContext, times: List[Int],values: List[(String, List[_])])/*(implicit arg0: ClassTag[T])*/: Unit = {
@@ -233,17 +234,20 @@ class Timeseries private (name: String,
 
 
 
-  //TODO take range#
   /**
-	* Retrieve file data to a spark RDD
-	*
+	* Retrieve a column file part to a Spark RDD
 	* @param sc SparkContext
-	* @param file file name where to retrieve data
-  * @param positions
+	* @param column column name where to retrieve data
+  * @param positions start and end rows (inclusives) inside the column file where to get the data
+  * @param ident column files are separated into several files, each of them have the form /columnNameX where X is
+   *              a natural number. ident is this number.
 	*/
-  def getRDD[T](sc: SparkContext,file: String, positions: Option[(Int, Int)] = None, ident: Option[Int] = None)(implicit arg0: ClassTag[T]): RDD[T] = schema.fields.get(file) match {
+  def getRDD[T](sc: SparkContext,column: String,
+                positions: Option[(Int, Int)] = None,
+                ident: Option[Int] = None)(implicit arg0: ClassTag[T]): RDD[T] =
+    schema.fields.get(column) match {
     case Some(typ: DBType[T]) =>
-      val outputDir = new java.io.File(dataPath.toString, file + ident.getOrElse("")).getAbsolutePath
+      val outputDir = new java.io.File(dataPath.toString, column + ident.getOrElse("")).getAbsolutePath
       val rdd = sc.sequenceFile(outputDir, classOf[NullWritable], classOf[BytesWritable], 0)
       (positions match {
         case Some(interval) =>
@@ -255,26 +259,41 @@ class Timeseries private (name: String,
           })
         case _ => rdd.map(x => typ.unserialize(x._2.getBytes))
       })
-    case _ => throw new IllegalArgumentException("Column " + file + " does not exist")
+    case _ => throw new IllegalArgumentException("Column " + column + " does not exist")
   }
 
-  def getRDDatFiles[T](sc: SparkContext,column: String, idents: List[Option[Int]], begin: Int, end: Int)(implicit arg0: ClassTag[T]): RDD[T] = {
+  /**
+   *
+   * @param sc SparkContext
+   * @param column column name
+   * @param idents file identifiers on which to read data
+   * @param begin begin position in the first column file where to read the data
+   * @param end end position in the last column file wher eto read the data
+   * @return a Spark RDD
+   */
+  private def getRDDatFiles[T](sc: SparkContext,column: String, idents: List[Int], begin: Int, end: Int)(implicit arg0: ClassTag[T]): RDD[T] = {
     assert(idents.size > 0)
     if (idents.size == 1)
-      getRDD[T](sc, column, Some(begin, end), idents.head)
+      getRDD[T](sc, column, Some(begin, end), Some(idents.head))
     else {
       val start = getRDD[T](sc, column + idents.head, Some(begin, - 1))
-      val rdd = idents.slice(1, idents.size - 1).foldLeft(start){(acc, c) => acc union getRDD[T](sc, column, None, c)}
+      val rdd = idents.slice(1, idents.size - 1).foldLeft(start){(acc, c) => acc union getRDD[T](sc, column, None, Some(c))}
       rdd union getRDD[T](sc, column + idents.last, Some(0, end))
     }
   }
 
   def getRDDatFiles[T](sc: SparkContext,column: String, identifiers: FilesIdentifiers)(implicit arg0: ClassTag[T]): RDD[T] = {
-    val idents = identifiers._1.map(Some(_))
-    getRDDatFiles[T](sc, column, idents, identifiers._2, identifiers._3)
+    getRDDatFiles[T](sc, column, identifiers._1, identifiers._2, identifiers._3)
   }
 
-  def getIdentifiersFromInterval(interval: Interval[Int]): FilesIdentifiers = {
+  /**
+   * Helper function
+   * Retrieve the file Identifiers for a given interval (corresponding to the 'time' field)
+   * @param interval The interval where to get the data
+   * @return a structure containing file identifier and where to start and where to end to read data
+   *         in the data files.
+   */
+  private def getIdentifiersFromInterval(interval: Interval[Int]): FilesIdentifiers = {
     val ids = indexes.get(interval).groupBy(_._1).toList.sortBy(_._1).map {
       case (id, intervals) => (id, (intervals.head._2.start, intervals.last._2.end))
     }
@@ -288,7 +307,14 @@ class Timeseries private (name: String,
     (tmp.map(_._1),Math.max(tmp.head._2._1, interval.start), Math.min(tmp.last._2._2, interval.end))
   }
 
-  def getIdentifiersFromTime(sc: SparkContext, interval: Option[Interval[Int]]): FilesIdentifiers = interval match {
+  /**
+   * Retrieve the file Identifiers for a given interval (corresponding to the 'time' field)
+   * @param sc The SparkContext
+   * @param interval The interval where to get the data if it is None then retrieve the entire column
+   * @return a structure containing file identifier and where to start and where to end to read data
+   *         in the data files.
+   */
+  def getIdentifiers(sc: SparkContext, interval: Option[Interval[Int]]): FilesIdentifiers = interval match {
     case Some(ival) =>
       val identifiers = getIdentifiersFromInterval(ival)
       val beginInterval = identifiers._2
@@ -310,20 +336,41 @@ class Timeseries private (name: String,
     case None => //special case where we want the full column
       val max = indexes.values(indexes.intervals.head)
       ((0 to max).toList, 0, indexes.intervals.head.end)
-
   }
 
-  def rangeQuery[T](sc: SparkContext, interval: Interval[Int], column: String)(implicit arg0: ClassTag[T]): (FilesIdentifiers, RDD[T]) = {
-    val id = getIdentifiersFromTime(sc, Some(interval))
-    (id, getRDDatFiles[T](sc, column, id))
-  }
-
-  def getFullColumn[T](sc: SparkContext, column: String)(implicit arg0: ClassTag[T]): RDD[T] = {
-    val id = getIdentifiersFromTime(sc, None)
+  /**
+   * Get all value of column 'column' in the range interval (from the index field)
+   * @param sc The Spark Context
+   * @param column column name
+   * @param interval interval in where to get the data
+   * @return A Spark RDD
+   */
+  def rangeQuery[T](sc: SparkContext, column: String, interval: Interval[Int])(implicit arg0: ClassTag[T]): RDD[T] = {
+    val id = getIdentifiers(sc, Some(interval))
     getRDDatFiles[T](sc, column, id)
   }
 
-  def rangeQuery[T](sc: SparkContext, id: FilesIdentifiers, column: String)(implicit arg0: ClassTag[T]): RDD[T] =
+  /**
+   * Retrieve the entire content of a column
+   * @param sc The Spark Context
+   * @param column column name
+   * @return A Spark RDD
+   */
+  def rangeQuery[T](sc: SparkContext, column: String)(implicit arg0: ClassTag[T]): RDD[T] = {
+    val id = getIdentifiers(sc, None)
+    getRDDatFiles[T](sc, column, id)
+  }
+
+  /**
+   * Retrieve data from a column using the range information from a FilesIdentifiers structure
+   * This is done for optimizing data access for different column value but for the same interval.
+   * To retrieve the said interval see getIdentifiers method.
+   * @param sc The Spark Context
+   * @param column column name
+   * @param id
+   * @return A Spark RDD
+   */
+  def rangeQuery[T](sc: SparkContext, column: String, id: FilesIdentifiers)(implicit arg0: ClassTag[T]): RDD[T] =
     getRDDatFiles[T](sc, column, id)
 
 
