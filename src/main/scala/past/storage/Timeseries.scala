@@ -30,7 +30,7 @@ import past.index.interval.IntervalIndex.Interval
  * timeseries alread exists, it will fail with IOException. If it's `false`,
  * an existing timeseries will be opened.
  */
-class Timeseries private (name: String,
+class Timeseries private (val name: String,
                           wantedSchema: Schema,
                           containingPath: Path,
                           filesystem: FileSystem,
