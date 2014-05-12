@@ -315,7 +315,7 @@ public class decompress {
 		String job_name = "decompression";
 		String spark_home = "SPARK_HOME";
 		
-		JavaSparkContext sc = new JavaSparkContext(master_url, job_name, System.getenv(spark_home), JavaSparkContext.jarOfClass(compression.class));
+		JavaSparkContext sc = new JavaSparkContext(master_url, job_name, System.getenv(spark_home), JavaSparkContext.jarOfClass(decompress.class));
 		
 		
 		// example for polynomial feature -- composite query
