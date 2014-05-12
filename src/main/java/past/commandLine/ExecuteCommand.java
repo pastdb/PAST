@@ -4,6 +4,8 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.spark.api.java.JavaSparkContext;
+import org.apache.spark.api.java.*;
+import org.apache.spark.api.java.function.*;
 
 import com.typesafe.config.Config; 
 import com.typesafe.config.ConfigFactory;
@@ -20,7 +22,7 @@ import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
 
-import scala.collection.JavaConverters;
+import scala.collection.convert.WrapAsJava$;
 
 import scala.*;
 import scala.collection.immutable.List;
@@ -54,8 +56,10 @@ public class ExecuteCommand {
 	/* ************************************
 	 * standard commands
 	 *************************************/
-	/*
+
+	/**
 	 * show every existing variable, the type and the location memory
+	 * user input example: SHOW 
 	 */
 	public static void showVar() {
 		if(variable.isEmpty()) {
@@ -68,8 +72,68 @@ public class ExecuteCommand {
 		}
 	}
 
-	/*
-	 *	start spark
+	/**
+	 * delect one variable in memory
+	 * user input example: DEL nameVariable
+	 * 
+	 * @param array of userinput parameter
+	 */
+	public static void delVar(String userInput[]) {
+		int size = userInput.length;
+
+		if(size < 1) {
+			System.out.println("  input must be : DEL varName [varName2] [varNameX]");
+		} 
+		else if(variable.isEmpty()) {
+			System.out.println("  no variable save");
+		}
+		else {
+			for(String s: userInput) {
+				if(variable.keySet().contains(s)) {
+					variable.remove(s);
+					System.out.println("   variable " + s + " is removed");
+				}
+				else {
+					System.out.println("   variable " + s + " not found");	
+				}
+			}
+		}
+	}
+
+	/**
+	 * rename one variable in memory
+	 * user input exxample: RENAME varName newVarName
+	 * 
+	 * @param array of userinput parameter
+	 */
+	public static void renameVar(String userInput[]) {
+		int size = userInput.length;
+
+		if(size != 2) {
+			System.out.println("  input must be : RENAME varName new_varName");
+		}
+		else if(variable.isEmpty()) {
+			System.out.println("  no variable save");
+		}
+		else if(!variable.keySet().contains(userInput[0])) {
+			System.out.println("   variable not found");
+		}
+		else if(variable.keySet().contains(userInput[1])) {
+			System.out.println("   new variable name already exist");
+		}
+		else {
+			String varName = userInput[0];
+			String newName = userInput[1];
+			Object tmp = variable.get(varName);
+			variable.remove(varName);
+			variable.put(newName, tmp);
+			System.out.println("   rename done");
+		}
+	}
+
+	/**
+	 * start spark
+	 * user input example: STARTSPARK
 	 */
 	public static void startSpark() {
 		if(sc != null) {
@@ -80,8 +144,9 @@ public class ExecuteCommand {
 		}
 	}
 
-	/*
+	/**
 	 * stop spark
+	 * user input example: STOPSPARK
 	 */
 	public static void stopSpark() {
 		if(sc == null) {
@@ -92,12 +157,16 @@ public class ExecuteCommand {
 			sc = null;
 		}
 	}
+
 	/* ************************************
 	 * database function
 	 *************************************/ 
 
-	/*
+	/**
 	 * OPEN or CREATE timeSerie using Timeseries.scala
+	 * user input example: OPEN nameDB
+	 *
+	 * @param array of userinput parameter
 	 */
 	public static void openDB(String userInput[]) {
 		int size = userInput.length;
@@ -140,8 +209,9 @@ public class ExecuteCommand {
 		}
 	}
 
-	/*
+	/**
 	 * CLOSE database
+	 * user input example: CLOSE
 	 */
 	public static void closeDB() {
 		if(db == null) {
@@ -154,8 +224,9 @@ public class ExecuteCommand {
 		}
 	}
 
-	/*
+	/**
 	 * SHOW list of timeSeries 
+	 * user input example: SHOW
 	 */
 	public static void showTS() {
 		if(db == null) {
@@ -176,8 +247,11 @@ public class ExecuteCommand {
 		}
 	}
 
-	/*
+	/**
 	 * DROP timeSerie
+	 * user input example: DROP nameTS
+	 *
+	 * @param array of userinput parameter
 	 */
 	public static void dropTS(String userInput[]) {
 		int size = userInput.length;
@@ -200,8 +274,11 @@ public class ExecuteCommand {
 		}
 	}
 
-	/*
+	/**
 	 * EXIST timeSerie
+	 * user input example: EXIST nameTS
+	 *
+	 * @param array of userinput parameter
 	 */
 	public static void existTS(String userInput[]) {
 		int size = userInput.length;
@@ -224,8 +301,11 @@ public class ExecuteCommand {
 		}
 	}
 
-	/*
+	/**
 	 * GET timeSerie
+	 * user input example: GET nameTS [: nameVariable] 
+	 *
+	 * @param array of userinput parameter
 	 */
 	public static void getTS(String userInput[]) {
 		int size = userInput.length;
@@ -239,7 +319,7 @@ public class ExecuteCommand {
 			System.out.println("  no database open");
 		}
 		else if(size < 1 || size > 3 || size == 2) {
-			System.out.println("  input must be : GET 'name of timeSerie' [: name] ");
+			System.out.println("  input must be : GET 'name of timeSerie' [: nameVariable] ");
 		} 
 		else if(size == 3 && userInput[1].compareTo(":") != 0) {
 			System.out.println("  you forget to put ':'");
@@ -261,8 +341,11 @@ public class ExecuteCommand {
 	}
 
 
-	/*
+	/**
 	 * CREATE timeSerie
+	 * user input example: CREATE nameTS [Schema] [: nameVariable] 
+	 *
+	 * @param array of userinput parameter
 	 */
 	public static void createTS(String userInput[]) {
 		int size = userInput.length;
@@ -276,7 +359,7 @@ public class ExecuteCommand {
 			System.out.println("  no database open");
 		}
 		else if(size < 1 || size > 4) {
-			System.out.println("  input must be : CREATE 'name of timeSerie' [Schema] [: name]");
+			System.out.println("  input must be : CREATE 'name of timeSerie' [Schema] [: nameVariable]");
 		} 
 		else if(size == 3 && userInput[1].compareTo(":") != 0) {
 			System.out.println("  you forget to put ':'");
@@ -335,14 +418,17 @@ public class ExecuteCommand {
 	 * Time Series function
 	 *************************************/
 
-	/*
+	/**
 	 * CREATE_SCHEMA for the timeSerie
+	 * user input example: CREATE_SCHEMA [: nameVariable] 
+	 *
+	 * @param array of userinput parameter
 	 */
 	public static void createSchema(String userInput[]) {
 		int size = userInput.length;
 
 		if(size < 0 || size > 2 || size == 1) {
-			System.out.println("  input must be : CREATE_SCHEMA [: name]");
+			System.out.println("  input must be : CREATE_SCHEMA [: nameVariable]");
 		}
 		else if(size == 2 && userInput[0].compareTo(":") != 0) {
 			System.out.println("  you forget to put ':'");
@@ -359,7 +445,7 @@ public class ExecuteCommand {
 				int n = sc.nextInt();
 				sc.nextLine();
 
-				SchemaConstructor schemaCons = new SchemaConstructor("timestamps", DBType.DBInt32$.MODULE$);
+				SchemaConstructor schemaCons = new SchemaConstructor("times", DBType.DBInt32$.MODULE$);
 				DBType.DBType<?> type[] = {
 					DBType.DBInt32$.MODULE$, 
 					DBType.DBInt64$.MODULE$, 
@@ -399,22 +485,25 @@ public class ExecuteCommand {
 		}	
 	}
 
-	/*
+	/**
 	 * SHOW_SCHEMA of the timeSerie
+	 * user input example: SHOW_SCHEMA nameVariable 
+	 *
+	 * @param array of userinput parameter
 	 */
 	public static void showSchema(String userInput[]) {
 		int size = userInput.length;
 		String nameTS = null;
 
-		if(size > 0) {
+		if(size == 1) {
 			nameTS = userInput[0];
 		}
 
 		if(size != 1) {
-			System.out.println("  input must be : GET 'name of timeSerie or schema'");
+			System.out.println("  input must be : GET_SCHEMA nameVariable");
 		} 
 		else if(!variable.keySet().contains(nameTS)) {
-			//System.out.println("  Timeserie not found");
+			System.out.println("  Timeserie or schema not found");
 		}
 		else {
 
@@ -447,24 +536,30 @@ public class ExecuteCommand {
 
 	}
 
-	/*
+	/**
 	 * GET_SCHEMA of the timeSerie
+	 * user input example: GET_SCHEMA FROM nameTS [: nameVariable] 
+	 *
+	 * @param array of userinput parameter
 	 */
 	public static void getSchema(String userInput[]) {
 		int size = userInput.length;
 		String nameTS = null;
 
-		if(size > 0) {
-			nameTS = userInput[0];
+		if(size > 1) {
+			nameTS = userInput[1];
 		}
 
-		if(size < 1 || size > 3 || size == 2) {
-			System.out.println("  input must be : GET_SCHEMA 'name of timeSerie' [: name]");
+		if(size < 2 || size > 4 || size == 3) {
+			System.out.println("  input must be : GET_SCHEMA FROM 'name of timeSerie' [: nameVariable]");
 		} 
-		else if(size == 3 && userInput[1].compareTo(":") != 0) {
+		else if(userInput[0].toUpperCase().compareTo("FROM") != 0) {
+			System.out.println("  you forget to put 'FROM'");
+		}
+		else if(size == 4 && userInput[2].compareTo(":") != 0) {
 			System.out.println("  you forget to put ':'");
 		}
-		else if(size == 3 && variable.keySet().contains(userInput[2])) {
+		else if(size == 4 && variable.keySet().contains(userInput[3])) {
 			System.out.println("  variable name already exist");
 		}
 		else if(!variable.keySet().contains(nameTS)) {
@@ -474,7 +569,7 @@ public class ExecuteCommand {
 			Object ob = variable.get(nameTS);
 			try {
 				Schema schema = ( (Timeseries)ob ).schema();
-				String v_name = (size == 3) ? userInput[2] : generateNameVariable();
+				String v_name = (size == 4) ? userInput[3] : generateNameVariable();
 				variable.put(v_name, schema);
 				System.out.println("  Schema of the timeserie: ");
 			}
@@ -484,27 +579,35 @@ public class ExecuteCommand {
 		}
 	}
 
-	/*
+	/**
 	 * INSERT data at a certain faile
+	 * user input example: INSERT file TO nameTS [: nameVariable] 
+	 *
+	 * file input struct [times values values ...]
+	 *
+	 * @param array of userinput parameter
 	 */
 	public static void insertDataFromFile(String userInput[]) {
 		int size = userInput.length;
 		String nameTS = null;
 		String nameFile = null;
 
-		if(size > 2) {
-			nameTS = userInput[0];
-			nameFile = userInput[1];
+		if(size > 3) {
+			nameTS = userInput[2];
+			nameFile = userInput[0];
 		}
 
-		if(size < 2|| size > 4 || size == 3) {
-			System.out.println("  input must be : INSERT timeserie file [: name]");
+		if(size < 3 || size > 5 || size == 4) {
+			System.out.println("  input must be : INSERT file TO timeserie [: nameVariable]");
 		}
-		else if(size == 4 && userInput[2].compareTo(":") != 0) {
+		else if(size == 5 && userInput[3].compareTo(":") != 0) {
 			System.out.println("  you forget to put ':'");
 		}
-		else if(size == 4 && variable.keySet().contains(userInput[3])) {
+		else if(size == 5 && variable.keySet().contains(userInput[4])) {
 			System.out.println("  variable name already exist");
+		}
+		else if(userInput[1].toUpperCase().compareTo("TO") != 0) {
+			System.out.println("  you forget to put 'TO'");	
 		}
 		else if(!variable.keySet().contains(nameTS)){
 			System.out.println("  Timeserie not found");
@@ -529,33 +632,27 @@ public class ExecuteCommand {
 				File tsFile;
 				FileInputStream reader = null;
 				BufferedReader data = null;
-			try {
-				tsFile = new File(dir.getCanonicalPath() + File.separator + nameFile);
-				reader = new FileInputStream(tsFile);
+				
+				try {
+					tsFile = new File(dir.getCanonicalPath() + File.separator + nameFile);
+					reader = new FileInputStream(tsFile);
 					data = new BufferedReader(new InputStreamReader(reader));
 					
 					//information a propos du schema
 					Schema schema = ts.schema();
 					int sizeSchema = schema.fields().size();
-					//scala.collection.Iterable<String> columName = schema.fields().keys();
-					//ArrayList<String> cName = new ArrayList<String>();
+					java.lang.Iterable<String> column_schema = scala2javaIterable(schema.fields().keys());
+					String column[] = iterable2array(column_schema);
 
-					//for(String s: columName.toList().toArray()) {
-					//	cName.add(s);
-					//}
-					
 					String line = null;
 					String tmp[] = null;
-					//@SuppressWarnings("unchecked")
-					//ArrayList<String> extractData[] = new ArrayList[sizeSchema]; 
-					// Length of tab is number of column of the schema. 
-					//for(int i=0; i<sizeSchema; i++) extractData[i] = new ArrayList<String>();
-					
-					// element to allow insert from java to scala
-					ListBuffer<Integer> times =  new ListBuffer<Integer>();
-					ListBuffer<Integer> values =  new ListBuffer<Integer>();
-					//ListBuffer<Tuple2<String, ListBuffer<Integer>>> column =  new ListBuffer<Tuple2<String, ListBuffer<DBType.DBType<?>>>>();
-
+					@SuppressWarnings("unchecked")
+					ListBuffer<Integer> extractData[] = new ListBuffer[sizeSchema]; 
+					// extractData[0] -> times
+					// extractData[1] -> values
+					for(int i=0; i<sizeSchema; i++) extractData[i] = new ListBuffer<Integer>();
+				
+			
 					while ((line = data.readLine()) != null) {
 						line = line.replaceAll("\\s+"," ");
 						tmp = line.split(" ");
@@ -567,21 +664,24 @@ public class ExecuteCommand {
 						}
 						else {
 							for(int i=0; i<sizeSchema; i++) {
-								if(i==0) times.$plus$eq(new Integer(Integer.parseInt(tmp[i])));
-								if(i==1) values.$plus$eq(new Integer(Integer.parseInt(tmp[i])));
-								//extractData[i].add(tmp[i]);
+								extractData[i].$plus$eq(new Integer(Integer.parseInt(tmp[i])));
 							}
 						}
 					}
 
-					//column.$plus$eq(new Tuple2<String, List>('time', times));
+					ListBuffer<Tuple2<String, ListBuffer<Integer>>> values = new ListBuffer<Tuple2<String, ListBuffer<Integer>>> ();
+					for(int i=1; i<sizeSchema; i++) {
+						values.$plus$eq(new Tuple2<String, ListBuffer<Integer>>(column[i], extractData[i]));
+					}
+
+					//insert the content in the database
+					// TODO
+					//ts.insert(sc.sc(), extractData[0].toList(), values.toList());
 					
-					//ListBuffer<Tuple2<String, DBType.DBType<?>>> fields =  new ListBuffer<Tuple2<String, DBType.DBType<?>>>();
-					//ListBuffer<Tuple2<String, DBType.DBType<?>>> fields =  new ListBuffer<Tuple2<String, DBType.DBType<?>>>();
-					//ts.insert(sc, extractData[0], new tubple2<String, List>());
-					//for(int i=0; i<sizeSchema; i++) {
-					//	System.out.println(extractData[i]);
-					//}
+					//save in the variable name
+					String v_name = (size == 5) ? userInput[4] : generateNameVariable(); 
+					variable.put(v_name, ts);
+					System.out.println("  data to the timeserie has been implemented and saved in variable name " + v_name);
 				}
 				catch (Exception e) {
 					System.out.println("   Reading data in file FAIL");
@@ -604,16 +704,250 @@ public class ExecuteCommand {
 	 */
 
 
+	/**
+	 * SELECT a colum from timeserie
+	 * user input example: SELECT colum FROM nameTS [: nameVariable] 
+	 *
+	 * @param array of userinput parameter
+	 */
+	public static void selectColumn(String userInput[]) {
+		int size = userInput.length;
+		String nameTS = null;
+		String columnName = null;
 
-	/*
+		if(size >= 3) {
+			nameTS = userInput[2];
+			columnName = userInput[0];
+		}
+
+		if(size < 3 || size > 5 || size == 4) {
+			System.out.println("  input must be : SELECT colum FROM timeserie [: nameVariable]");
+		}
+		else if(size == 5 && userInput[3].compareTo(":") != 0) {
+			System.out.println("  you forget to put ':'");
+		}
+		else if(size == 5 && variable.keySet().contains(userInput[4])) {
+			System.out.println("  variable name already exist");
+		}
+		else if(userInput[1].toUpperCase().compareTo("FROM") != 0) {
+			System.out.println("  you forget to put 'FROM'");	
+		}
+		else if(!variable.keySet().contains(nameTS)){
+			System.out.println("  Timeserie not found");
+		}
+		else if(sc == null) {
+			System.out.println("  Spark is not start. To start spark, enter: sparkStart");
+		}
+		else {
+			Object ob = variable.get(nameTS);
+			Timeseries ts = null;
+			try {
+				ts = (Timeseries)ob;
+			}
+			catch(Exception e) {
+				System.out.println("  the variable is not a Timeserie");
+			}
+
+			if(ts != null) {
+				try {
+
+					// TODO
+					JavaRDD<Integer> colum = null;//new JavaRDD(ts.rangeQuery(sc.sc(), columnName));
+
+					//save in the variable name
+					String v_name = (size == 5) ? userInput[4] : generateNameVariable(); 
+					variable.put(v_name, colum);
+					System.out.println("  data to the timeserie has been implemented and saved in variable name " + v_name);	
+				}
+				catch (Exception e) {
+					System.out.println("   retrieve content of a colum fail");
+				}
+				
+			}
+		}
+	}
+
+	/**
 	 * MAX_VALUE of a timeserie
+	 * user input example: MAX_VALUE colum FROM nameTS 
+	 * user input example: MAX_VALUE varName(type RDD) 
+	 *
+	 * @param array of userinput parameter
 	 */
+	public static void maxValue(String userInput[]) {
+		int size = userInput.length;
+		String nameTS = null;
+		String columnName = null;
+
+		// if size=1 --> check only in variable for a RDD
+		// if size=3 --> take colum of a TS to have a RDD
+		if(size == 1) {
+			nameTS = userInput[0];
+		}
+		else if(size == 3) {
+			nameTS = userInput[2];
+			columnName = userInput[0];
+		}
+
+		if(size < 1 || size > 3 || size == 2) {
+			System.out.println("  input must be : MAX_VALUE colum FROM timeserie or MAX_VALUE variable");
+		}
+		else if(size == 3 && userInput[1].toUpperCase().compareTo("FROM") != 0) {
+			System.out.println("  you forget to put 'FROM'");	
+		}
+		else if(size == 3 && !variable.keySet().contains(nameTS)){
+			System.out.println("  Timeserie not found");
+		}
+		else if(size == 1 && !variable.keySet().contains(nameTS)) {
+			System.out.println("  Timeserie not found");
+		}
+		else if(sc == null) {
+			System.out.println("  Spark is not start. To start spark, enter: sparkStart");
+		}
+		else if(size == 1) {
+			Object ob = variable.get(nameTS);
+			JavaRDD<Integer> rdd = null;
+
+			try{
+				rdd = (JavaRDD<Integer>)ob;
+			}
+			catch (Exception e) {
+				System.out.println("  the variable is not a RDD");
+			}
+
+			if(rdd != null) {
+				// TODO
+				//rdd.reduceByKey(new org.apache.spark.api.java.function.Function2<Integer, Integer>() {
+  				//	public Integer call(Integer a, Integer b) { return (a > b) ? a : b; }
+  				//});
+			}
+
+		}
+		else {
+			Object ob = variable.get(nameTS);
+			Timeseries ts = null;
+			try {
+				ts = (Timeseries)ob;
+			}
+			catch(Exception e) {
+				System.out.println("  the variable is not a Timeserie");
+			}
+
+			if(ts != null) {
+				JavaRDD<Integer> rdd = null;
+				try {
+
+					// TODO
+					rdd = null;//new JavaRDD(ts.rangeQuery(sc.sc(), columnName));
+					
+				}
+				catch (Exception e) {
+					System.out.println("   retrieve content of a colum fail");
+				}
+				
+				if(rdd != null) {
+
+				// TODO
+				//rdd.reduceByKey(new org.apache.spark.api.java.function.Function2<Integer, Integer>() {
+  				//	public Integer call(Integer a, Integer b) { return (a > b) ? a : b; }
+  				//});
+				}
+				
+			}
+		}
+	}
 
 
 
-	/*
-	 * MIN_VALUE of timeserie
+	/**
+	 * MIN_VALUE of a timeserie
+	 * user input example: MIN_VALUE colum FROM nameTS 
+	 * user input example: MIN_VALUE varName(type RDD) 
+	 *
+	 * @param array of userinput parameter
 	 */
+	public static void minValue(String userInput[]) {
+		int size = userInput.length;
+		String nameTS = null;
+		String columnName = null;
+
+		// if size=1 --> check only in variable for a RDD
+		// if size=3 --> take colum of a TS to have a RDD
+		if(size == 1) {
+			nameTS = userInput[0];
+		}
+		else if(size == 3) {
+			nameTS = userInput[2];
+			columnName = userInput[0];
+		}
+
+		if(size < 1 || size > 3 || size == 2) {
+			System.out.println("  input must be : MAX_VALUE colum FROM timeserie or MAX_VALUE variable");
+		}
+		else if(size == 3 && userInput[1].toUpperCase().compareTo("FROM") != 0) {
+			System.out.println("  you forget to put 'FROM'");	
+		}
+		else if(size == 3 && !variable.keySet().contains(nameTS)){
+			System.out.println("  Timeserie not found");
+		}
+		else if(size == 1 && !variable.keySet().contains(nameTS)) {
+			System.out.println("  Timeserie not found");
+		}
+		else if(sc == null) {
+			System.out.println("  Spark is not start. To start spark, enter: sparkStart");
+		}
+		else if(size == 1) {
+			Object ob = variable.get(nameTS);
+			JavaRDD<Integer> rdd = null;
+
+			try{
+				rdd = (JavaRDD<Integer>)ob;
+			}
+			catch (Exception e) {
+				System.out.println("  the variable is not a RDD");
+			}
+
+			if(rdd != null) {
+				// TODO
+				//rdd.reduceByKey(new org.apache.spark.api.java.function.Function2<Integer, Integer>() {
+  				//	public Integer call(Integer a, Integer b) { return (a > b) ? a : b; }
+  				//});
+			}
+
+		}
+		else {
+			Object ob = variable.get(nameTS);
+			Timeseries ts = null;
+			try {
+				ts = (Timeseries)ob;
+			}
+			catch(Exception e) {
+				System.out.println("  the variable is not a Timeserie");
+			}
+
+			if(ts != null) {
+				JavaRDD<Integer> rdd = null;
+				try {
+
+					// TODO
+					rdd = null;//new JavaRDD(ts.rangeQuery(sc.sc(), columnName));
+					
+				}
+				catch (Exception e) {
+					System.out.println("   retrieve content of a colum fail");
+				}
+				
+				if(rdd != null) {
+
+				// TODO
+				//rdd.reduceByKey(new org.apache.spark.api.java.function.Function2<Integer, Integer>() {
+  				//	public Integer call(Integer a, Integer b) { return (a > b) ? a : b; }
+  				//});
+				}
+				
+			}
+		}
+	}
 
 
 
@@ -642,6 +976,8 @@ public class ExecuteCommand {
 	 * indexing 
 	 *************************************/
 
+
+
 	/* ************************************
 	 * clustering 
 	 *************************************/
@@ -658,5 +994,30 @@ public class ExecuteCommand {
 		return varName + varIndice;
 	}
 
+	/*
+	 * convert java.lang.Iterable<String> to String[]
+	 */
+	private static String[] iterable2array(java.lang.Iterable<String> iterable) {
+		ArrayList<String> array = new ArrayList<String>();
+		for(String s: iterable) {
+			array.add(s);
+		}
+		return array.toArray(new String[array.size()]);
+	}
+
+	/*
+	 * convert scala.collection.Seq<String> to java.util.List<String> 
+	 */
+	private static java.util.List<String> seq2list(scala.collection.Seq<String> seq) {
+        return WrapAsJava$.MODULE$.seqAsJavaList(seq);
+    }
+
+    /*
+     * convert scala.collection.Iterable<String> to java.lang.Iterable<String> 
+     */
+    private static java.lang.Iterable<String> scala2javaIterable(scala.collection.Iterable<String> scala_iterable) {
+		return WrapAsJava$.MODULE$.asJavaIterable(scala_iterable);
+					
+    }
 
 }
