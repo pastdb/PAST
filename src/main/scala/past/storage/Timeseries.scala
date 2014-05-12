@@ -1,7 +1,7 @@
 package past.storage
 
 import org.apache.hadoop.fs.{FSDataInputStream, FSInputStream, FileSystem, Path}
-import past.storage.DBType.DBType
+import past.storage.DBType.{DBInt32, DBType}
 import javax.security.auth.login.Configuration
 import java.net.URI
 import org.apache.hadoop.conf.Configuration
@@ -372,6 +372,17 @@ class Timeseries private (name: String,
    */
   def rangeQuery[T](sc: SparkContext, column: String, id: FilesIdentifiers)(implicit arg0: ClassTag[T]): RDD[T] =
     getRDDatFiles[T](sc, column, id)
+
+
+  def rangeQueryI32(sc: SparkContext, column: String, id: FilesIdentifiers): RDD[Int] =  getRDDatFiles[Int](sc, column, id)(ClassTag.Int)
+  def rangeQueryI64(sc: SparkContext, column: String, id: FilesIdentifiers): RDD[Long] =  getRDDatFiles[Long](sc, column, id)(ClassTag.Long)
+  def rangeQueryF32(sc: SparkContext, column: String, id: FilesIdentifiers): RDD[Float] =  getRDDatFiles[Float](sc, column, id)(ClassTag.Float)
+  def rangeQueryF64(sc: SparkContext, column: String, id: FilesIdentifiers): RDD[Double] =  getRDDatFiles[Double](sc, column, id)(ClassTag.Double)
+
+  def rangeQueryI32(sc: SparkContext, column: String): RDD[Int] =  rangeQuery[Int](sc, column)(ClassTag.Int)
+  def rangeQueryI64(sc: SparkContext, column: String): RDD[Long] =  rangeQuery[Long](sc, column)(ClassTag.Long)
+  def rangeQueryF32(sc: SparkContext, column: String): RDD[Float] =  rangeQuery[Float](sc, column)(ClassTag.Float)
+  def rangeQueryF64(sc: SparkContext, column: String): RDD[Double] =  rangeQuery[Double](sc, column)(ClassTag.Double)
 
 
 }
