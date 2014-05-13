@@ -68,6 +68,7 @@ class Timeseries private (val name: String,
 
   /** The schema of the Timeseries */
   val schema = Schema.load(schemaPath, filesystem)
+  require(maxFileSize > schema.id._2.size)
   //TODO not use only Int but the time type
   val indexes = MemoryIntervalIndex.load[Int,Int](indexPath)
 
@@ -83,6 +84,10 @@ class Timeseries private (val name: String,
    */
   def this(name: String, schema: Schema, containingPath: Path, filesystem: FileSystem) = {
     this(name, schema, containingPath, filesystem, true)
+  }
+
+  def this(name: String, schema: Schema, containingPath: Path, filesystem: FileSystem, maxFileSize: Int) = {
+    this(name, schema, containingPath, filesystem, true, maxFileSize)
   }
 
   /*
@@ -160,18 +165,21 @@ class Timeseries private (val name: String,
     val maxCanAppendSize = maxFileSize - currentFileSize
     val appendToFileSize = Math.min(maxCanAppendSize, insertSize)
     val appendToFileNumber = (appendToFileSize / fieldSize).toInt
+    val nbElemsPerFile = (maxFileSize / fieldSize).toInt
     val data = (schema.id._1, times) :: values
 
     def getChunkIntervals =  times.splitAt(appendToFileNumber) match {
-      case (l, r) => (l.head, l.last) :: r.grouped(maxFileSize).map(c => (c.head, c.last)).toList
+      case (Nil, r) => r.grouped(nbElemsPerFile).map(c => (c.head, c.last)).toList
+      case (l, r) => (l.head, l.last) :: r.grouped(nbElemsPerFile).map(c => (c.head, c.last)).toList
     }
 
     val intervals = getChunkIntervals
 
     def chunkData(data: List[(String, List[_])]): List[List[(String, List[_])]] = {
       val tmp = data.map {
-        case (n, d) => d.splitAt(appendToFileNumber) match {
-          case (l, r) =>  (n, l) :: r.grouped(maxFileSize).toList.map((n,_))
+         case (n, d) => d.splitAt(appendToFileNumber) match {
+          case (Nil, r) => r.grouped(nbElemsPerFile).toList.map((n,_))
+          case (l, r) => (n, l) :: r.grouped(nbElemsPerFile).toList.map((n,_))
         }
       }
       (for (j <- 0 until intervals.size) yield (for (i <- 0 until tmp.size) yield tmp(i)(j)).toList).toList
@@ -179,13 +187,10 @@ class Timeseries private (val name: String,
 
     val chunks = chunkData(data)
 
-
-    var i = ident
-    intervals.zip(chunks).foreach{
-      case (interval, dat) =>
-        indexes.insert(Interval(begin, end),ident)
-        insert(sc, dat, i)
-        i += 1
+    intervals.zip(chunks).zipWithIndex.foreach{
+      case ((interval, dat), i ) =>
+        indexes.insert(Interval(interval._1, interval._2),i + ident)
+        insert(sc, dat, i + ident)
     }
     MemoryIntervalIndex.store(indexes, indexPath)
   }
@@ -276,9 +281,10 @@ class Timeseries private (val name: String,
     if (idents.size == 1)
       getRDD[T](sc, column, Some(begin, end), Some(idents.head))
     else {
-      val start = getRDD[T](sc, column + idents.head, Some(begin, - 1))
+      val realEndPart = end - (idents.size - 1) * (maxFileSize / schema.id._2.size).toInt
+      val start = getRDD[T](sc, column, Some(begin, - 1), Some(idents.head))
       val rdd = idents.slice(1, idents.size - 1).foldLeft(start){(acc, c) => acc union getRDD[T](sc, column, None, Some(c))}
-      rdd union getRDD[T](sc, column + idents.last, Some(0, end))
+      rdd union getRDD[T](sc, column, Some(0, realEndPart), Some(idents.last))
     }
   }
 
@@ -304,7 +310,10 @@ class Timeseries private (val name: String,
     }
     else
       ids
-    (tmp.map(_._1),Math.max(tmp.head._2._1, interval.start), Math.min(tmp.last._2._2, interval.end))
+    val x = (tmp.map(_._1),Math.max(tmp.head._2._1, interval.start), Math.min(tmp.last._2._2, interval.end))
+    /*println(":" + x)
+    assert(false)  */
+    x
   }
 
   /**
@@ -323,8 +332,10 @@ class Timeseries private (val name: String,
       val lastFile = schema.id._1
       var beginPos = -1
       var endPos = -1
-      val rdd = if (firstFile == lastFile) getRDD[Int](sc,firstFile, None, Some(identifiers._1.head))
-                else getRDD[Int](sc,firstFile) union getRDD[Int](sc,lastFile, None, Some(identifiers._1.last))
+
+      val rdd = if (identifiers._1.size == 1) getRDD[Int](sc,firstFile, None, Some(identifiers._1.head))
+                else getRDD[Int](sc,firstFile, None, Some(identifiers._1.head)).union(
+                      getRDD[Int](sc,lastFile, None, Some(identifiers._1.last)))
       var pos = 0
       //have to convert to array for now
       rdd.toArray.foreach{ i =>
@@ -332,6 +343,8 @@ class Timeseries private (val name: String,
          else if (endPos < 0 && i == endInterval) endPos = pos
          pos += 1
       }
+      /*println(identifiers + " : (" + beginPos + ", " + endPos + ")")
+      assert(false)     */
       (identifiers._1, beginPos, endPos)
     case None => //special case where we want the full column
       val max = indexes.values(indexes.intervals.head)

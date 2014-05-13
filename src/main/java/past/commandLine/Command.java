@@ -125,7 +125,7 @@ public class Command {
 		/* select a column of a timeserie */
 		case "SELECT": ExecuteCommand.selectColumn(Arrays.copyOfRange(userCommandLine, 1, size)); break;
 		/* find max value of timeSerie */
-		case "MAX_VALUE" ExecuteCommand.maxValue(Arrays.copyOfRange(userCommandLine, 1, size)); break;
+        case "MAX_VALUE": ExecuteCommand.maxValue(Arrays.copyOfRange(userCommandLine, 1, size)); break;
 		/* find min value of timeSerie */
 		case "MIN_VALUE" : ExecuteCommand.minValue(Arrays.copyOfRange(userCommandLine, 1, size)); break;
 		/* find min timestamp of timeSerie */
