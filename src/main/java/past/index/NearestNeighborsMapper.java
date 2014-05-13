@@ -1,7 +1,5 @@
 package past.index;
 
-import java.util.List;
-
 import org.apache.spark.api.java.function.FlatMapFunction;
 import org.khelekore.prtree.DistanceCalculator;
 import org.khelekore.prtree.DistanceResult;
@@ -14,7 +12,6 @@ import scala.Tuple2;
 
 public class NearestNeighborsMapper extends FlatMapFunction<Tuple2<Integer, PRTree<NamedVector>>, DistanceResult<NamedVector>> {
 
-	private static final long serialVersionUID = 8371370813617201740L;
 	private int numberOfNeighbors;
 	private double[] point;
 	
@@ -39,14 +36,12 @@ public class NearestNeighborsMapper extends FlatMapFunction<Tuple2<Integer, PRTr
 				return true;
 			}
 		};
-		
-		List<DistanceResult<NamedVector>> distResults = tree.nearestNeighbour(
-				new PointDistanceCalculator(), 
-				filter, 
-				this.numberOfNeighbors, 
-				new SimplePointND(this.point));
 
-		return distResults;
+        return tree.nearestNeighbour(
+                new PointDistanceCalculator(),
+                filter,
+                this.numberOfNeighbors,
+                new SimplePointND(this.point));
 	}
 }
 

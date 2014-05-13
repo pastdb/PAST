@@ -4,7 +4,6 @@ import java.math.BigInteger;
 import java.util.*;
 
 import org.apache.spark.api.java.JavaPairRDD;
-import org.apache.spark.api.java.JavaRDD;
 import org.khelekore.prtree.DistanceResult;
 import org.khelekore.prtree.PRTree;
 

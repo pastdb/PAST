@@ -121,8 +121,8 @@ public class IndexTests {
 				for (NamedVector i : iterable) {
 					list.add(i);
 				}
-				
-				assertTrue(list.contains(new NamedVector("8", new int[]{0, 1, 2, 3, 4})));
+
+                assertTrue(list.contains(new NamedVector("8", new int[]{0, 1, 2, 3, 4})));
 				assertTrue(list.contains(new NamedVector("7", new int[]{0, 0, 0, 0, 0})));
 				assertTrue(list.contains(new NamedVector("2", new int[]{1, 1, 1, 1, 1})));
 				assertEquals(3, list.size());

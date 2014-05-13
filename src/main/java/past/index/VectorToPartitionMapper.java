@@ -16,7 +16,7 @@ public class VectorToPartitionMapper extends VectorMapper<Integer, NamedVector> 
 
 	@Override
 	public Tuple2<Integer, NamedVector> call(Tuple2<String, int[]> vector) throws Exception {
-		return new Tuple2<Integer, NamedVector>(
+		return new Tuple2<>(
 				this.computePartitionNumber(this.computeZCurveValue(vector._2())),
 				new NamedVector(vector));
 	}

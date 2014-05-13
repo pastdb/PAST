@@ -5,7 +5,8 @@ import org.khelekore.prtree.MBRConverter;
 import java.io.Serializable;
 
 class NamedVectorConverter implements MBRConverter<NamedVector>, Serializable {
-	private RTreeIndexConf conf;
+    private static final long serialVersionUID = 9116008266621740388L;
+    private RTreeIndexConf conf;
 	
 	public NamedVectorConverter(RTreeIndexConf conf) {
 		this.conf = conf;

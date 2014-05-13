@@ -20,8 +20,8 @@ public abstract class VectorMapper<K, V> extends PairFunction<Tuple2<String, int
 	/**
 	 * Computes the z-curve value of a given vector.
 	 * 
-	 * @param values 
-	 * @return
+	 * @param vector the vector to which compute the z-curve value
+	 * @return the z-curve values
 	 */
 	protected BigInteger computeZCurveValue(int[] vector) {
 		// 4 = number of bytes (8 bits) in a java integer (32 bits)
