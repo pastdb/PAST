@@ -21,3 +21,6 @@ project/plugins/project/
 .classpath
 .project
 
+# macOS
+.DS_Store
+
