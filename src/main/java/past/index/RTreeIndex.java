@@ -1,26 +1,16 @@
 package past.index;
 
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
-import org.khelekore.prtree.DistanceCalculator;
 import org.khelekore.prtree.DistanceResult;
-import org.khelekore.prtree.NodeFilter;
 import org.khelekore.prtree.PRTree;
-import org.khelekore.prtree.PointND;
-import org.khelekore.prtree.SimplePointND;
 
 import scala.Tuple2;
-//TODO : add method to get vector from a pointer (new object to contain rdd)
-public class RTreeIndex implements DatabaseIndex<Integer[]> {
+
+public class RTreeIndex implements DatabaseIndex<NamedVector> {
 
 	/**
 	 * If the index is built or not.
@@ -41,8 +31,9 @@ public class RTreeIndex implements DatabaseIndex<Integer[]> {
 	/**
 	 * RTrees containing the index. 
 	 * The pair is : (partitionNumber, RTree of pointers on vectors)
+	 * partitionNumber is 1-based.
 	 */
-	private JavaPairRDD<Integer, PRTree<Integer>> trees;
+	private JavaPairRDD<Integer, PRTree<NamedVector>> trees;
 	
 	/**
 	 * Default constructor.
@@ -64,12 +55,12 @@ public class RTreeIndex implements DatabaseIndex<Integer[]> {
 	 * Query all RTrees for neirest neighbors, aggregate and filter the results.
 	 * 
 	 * @param numberOfNeighbors number of neighbors to compute.
-	 * @param vector coordinates of point to which compute neighbors.
+	 * @param vector vector of point to which compute neighbors.
 	 * 
 	 * @return the numberOfNeighbors nearest neighbors.
 	 */
 	@Override
-	public List<Integer[]> nearestNeighbors(int numberOfNeighbors, Integer[] vector) {
+	public List<NamedVector> nearestNeighbors(int numberOfNeighbors, NamedVector vector) {
 		
 		if (numberOfNeighbors < 1 || vector == null) {
 			throw new IllegalArgumentException();
@@ -78,24 +69,48 @@ public class RTreeIndex implements DatabaseIndex<Integer[]> {
 		if (!this.isBuilt) {
 			throw new IllegalStateException("The index has not been initialized.");
 		}
-				
-		JavaRDD<Iterable<DistanceResult<Integer>>> nearestNeighborsRDD = 
-				this.trees.map(new NearestNeighborsMapper(numberOfNeighbors, vector, this.conf));
-		
-		Iterable<DistanceResult<Integer>> nearestNeighborsPointers =  nearestNeighborsRDD.collect().get(0);
-		
-		// creates hashmap containing distance -> pointer
-		Map<Double, Integer> distanceToPointers = new HashMap<>();
-		for (DistanceResult<Integer> nearestNeighborsPointer : nearestNeighborsPointers) {
-			distanceToPointers.put(nearestNeighborsPointer.getDistance(), nearestNeighborsPointer.get());
-		}
-		
-		//Collections.sort();
-		//Double[] list = Arrays.asList(distanceToPointers.keySet().toArray());
-		//to be finished
-		return null;
+
+        List<List<DistanceResult<NamedVector>>> nearestNeighborsVectors = this.trees.
+                flatMap(new NearestNeighborsMapper(numberOfNeighbors, vector.getOrds())). // retrieve NN for each trees
+                glom(). // put everything in a list
+                collect(); // get back the result
+
+		return this.sortAndSelectNeighbors(nearestNeighborsVectors.get(0), numberOfNeighbors);
 	}
 	
+	/**
+	 * Based on the return value of a PRTree nearestNeighbors, this method sorts the
+	 * neighbors according to the distance and returns a sorted list of the neighboring vectors.
+	 * 
+	 * @param nearestNeighborsVectors the neighboring vector
+	 * 
+	 * @return the sorted list of neighboring vectors.
+	 */
+	private List<NamedVector> sortAndSelectNeighbors(List<DistanceResult<NamedVector>> nearestNeighborsVectors,
+			int numberOfNeighbors) {
+
+        Comparator<DistanceResult<NamedVector>> comparator = new Comparator<DistanceResult<NamedVector>>() {
+            @Override
+            public int compare(DistanceResult<NamedVector> o1, DistanceResult<NamedVector> o2) {
+                return Double.compare(o1.getDistance(), o2.getDistance());
+            }
+        };
+
+        List<NamedVector> sortedVectors = new ArrayList<>();
+        Collections.sort(nearestNeighborsVectors, comparator);
+
+        for (DistanceResult<NamedVector> dr : nearestNeighborsVectors) {
+            sortedVectors.add(dr.get());
+        }
+
+        // filters the unwanted neighbors
+        if (numberOfNeighbors < sortedVectors.size()) {
+            sortedVectors.subList(numberOfNeighbors, sortedVectors.size()).clear();
+        }
+
+        return sortedVectors;
+	}
+
 	/**
 	 * Builds the R-Tree index.
 	 */
@@ -119,31 +134,21 @@ public class RTreeIndex implements DatabaseIndex<Integer[]> {
 	 */
 	private void estimateSplittingPoints() {
 		
-		// first taking samples of vectors of the dataset
-		JavaPairRDD<Integer, Integer[]> sample = 
-				conf.getDataset().sample(false, this.conf.getSampleFraction(), new Random().nextInt());
-		
-		// mapping the z-order curve to each sampled vector
-		JavaPairRDD<BigInteger, Integer> spaceFillingValues = 
-				sample.map(new ZCurveValuesMapper(this.conf));
-		
-		// sorting the z-curve values
-		JavaPairRDD<BigInteger, Integer> sortedValues = spaceFillingValues.sortByKey(true);
-		
-		// computing the splitting points
-		Long numberOfValues = sortedValues.count();
-		
-		if (numberOfValues > Integer.MAX_VALUE) {
-			// limitation due to the list.get(int) method used later
-			throw new RuntimeException("The number of sample exceed the authorized quantity, please reduce the sampleFranction.");
-		}
-		
-		int partitionStep = numberOfValues.intValue() / this.conf.getNumberOfPartitions() + 1;
-		List<Tuple2<BigInteger, Integer>> localValues = sortedValues.collect(); // should be small enough
-		
+		List<Tuple2<BigInteger, Integer>> localSortedValues = 
+				conf.getDataset().
+				sample(false, this.conf.getSampleFraction(), new Random().nextInt()). // taking samples
+				map(new ZCurveValuesMapper(this.conf)). // mapping z-order curve to sampled vector
+				sortByKey(true). // sorting values
+				collect(); // sampled vectors should be small enough
+
+		int partitionStep = localSortedValues.size() / this.conf.getNumberOfPartitions();
+        if (localSortedValues.size() % this.conf.getNumberOfPartitions() != 0) {
+            partitionStep++;
+        }
+
 		for (int i = 0 ; i < this.splittingPoints.length ; i++) {
-			this.splittingPoints[i] = localValues.get((i+1) * partitionStep - 1)._1();
-		}
+			this.splittingPoints[i] = localSortedValues.get((i+1) * partitionStep - 1)._1();
+        }
 	}
 	
 	/**
@@ -151,12 +156,13 @@ public class RTreeIndex implements DatabaseIndex<Integer[]> {
 	 * The reference to the RTrees are then stored.
 	 */
 	private void buildRTrees() {
+		
 		// maps each partition to its pointer
-		JavaPairRDD<Integer, Integer> vectorsByPartitions = 
+		JavaPairRDD<Integer, NamedVector> vectorsByPartitions = 
 				conf.getDataset().map(new VectorToPartitionMapper(conf, this.splittingPoints));
 		
 		// groups all pointers by key
-		JavaPairRDD<Integer, List<Integer>> vectorsLists = vectorsByPartitions.groupByKey();
+		JavaPairRDD<Integer, List<NamedVector>> vectorsLists = vectorsByPartitions.groupByKey();
 		
 		// create and store RTrees
 		this.trees = vectorsLists.map(new RTreesMapper(conf));
@@ -164,5 +170,19 @@ public class RTreeIndex implements DatabaseIndex<Integer[]> {
 	
 	public boolean isBuilt() {
 		return this.isBuilt;
+	}
+	
+	//-----------TESTING METHODS --- TO REMOVE
+	public void estimateSplittingPointsTest() {
+		this.estimateSplittingPoints();
+	}
+	public void builRTreesTest() {
+		this.buildRTrees();
+	}
+	public BigInteger[] getSplittingPoints() {
+		return this.splittingPoints;
+	}
+	public JavaPairRDD<Integer, PRTree<NamedVector>> getTrees() {
+		return this.trees;
 	}
 }

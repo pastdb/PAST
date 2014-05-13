@@ -13,14 +13,15 @@ import scala.Tuple2;
  */
 public class ZCurveValuesMapper extends VectorMapper<BigInteger, Integer> {
 	
-	private static final long serialVersionUID = -1581628164469445470L;
-	
 	public ZCurveValuesMapper(RTreeIndexConf conf) {
 		super(conf);
 	}
 
+	private static final long serialVersionUID = -1581628164469445470L;
+	
+
 	@Override
-	public Tuple2<BigInteger, Integer> call(Tuple2<Integer, Integer[]> sampledVector) throws Exception {
+	public Tuple2<BigInteger, Integer> call(Tuple2<String, int[]> sampledVector) throws Exception {
 		return new Tuple2<BigInteger, Integer>(this.computeZCurveValue(sampledVector._2()), RTreeIndexConf.SINGLE_VALUE);
 	}
 }

@@ -8,9 +8,9 @@ import org.khelekore.prtree.PRTree;
 import scala.Tuple2;
 
 public class RTreesMapper extends PairFunction<
-											Tuple2<Integer, List<Integer>>, 
+											Tuple2<Integer, List<NamedVector>>, 
 											Integer, 
-											PRTree<Integer>> {
+											PRTree<NamedVector>> {
 
 	private static final long serialVersionUID = -5584814519663194688L;
 	private RTreeIndexConf conf;
@@ -22,20 +22,19 @@ public class RTreesMapper extends PairFunction<
 	/**
 	 * Generates RTrees for each partition.
 	 * 
-	 * @param partitionNmbrAndPointer tuple : (partitionNumber, list of pointers to vectors)
+	 * @param partitionNmbrAndVector tuple : (partitionNumber, list of named vectors)
 	 * 
-	 * @return tuple : (partitionNumber, RTree of pointers to vector 
+	 * @return tuple : (partitionNumber, RTree of named vectors)
 	 */
 	@Override
-	public Tuple2<Integer, PRTree<Integer>> call(
-			Tuple2<Integer, List<Integer>> partitionNmbrAndPointer) throws Exception {
+	public Tuple2<Integer, PRTree<NamedVector>> call(
+			Tuple2<Integer, List<NamedVector>> partitionNmbrAndVector) throws Exception {
+
+		PRTree<NamedVector> tree = new PRTree<NamedVector>(
+				new NamedVectorConverter(conf), conf.getRTreeBranchFactor());
 		
-		PRTree<Integer> tree = new PRTree<Integer>(
-				new PointerToPointConverter(
-						conf.getDataDimension(), conf.getDataset()), conf.getRTreeBranchFactor());
-		
-		tree.load(partitionNmbrAndPointer._2());
-		return new Tuple2<Integer, PRTree<Integer>>(partitionNmbrAndPointer._1(), tree);
+		tree.load(partitionNmbrAndVector._2());
+		return new Tuple2<Integer, PRTree<NamedVector>>(partitionNmbrAndVector._1(), tree);
 	}
 
 }

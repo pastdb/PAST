@@ -15,6 +15,13 @@ public interface DatabaseIndex<T> {
 	 * @return if the index has been built correctly.
 	 */
 	public boolean buildIndex();
+	
+	/**
+	 * Checks if the index is built correctly.
+	 * 
+	 * @return true if the index is built.
+	 */
+	public boolean isBuilt();
 
 	/**
 	 * Computes the nearest neighbors of a given point.
@@ -24,5 +31,5 @@ public interface DatabaseIndex<T> {
 	 * 
 	 * @return the nearest neighbors.
 	 */
-	public List<T> nearestNeighbors(int numberOfNeighbors, Integer[] point);
+	public List<T> nearestNeighbors(int numberOfNeighbors, T point);
 }

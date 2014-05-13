@@ -7,7 +7,7 @@ import org.apache.spark.api.java.function.PairFunction;
 
 import scala.Tuple2;
 
-public abstract class VectorMapper<K, V> extends PairFunction<Tuple2<Integer, Integer[]>, K, V> {
+public abstract class VectorMapper<K, V> extends PairFunction<Tuple2<String, int[]>, K, V> {
 
 	private static final long serialVersionUID = -2716903251106840411L;
 	
@@ -23,7 +23,7 @@ public abstract class VectorMapper<K, V> extends PairFunction<Tuple2<Integer, In
 	 * @param values 
 	 * @return
 	 */
-	protected BigInteger computeZCurveValue(Integer[] vector) {
+	protected BigInteger computeZCurveValue(int[] vector) {
 		// 4 = number of bytes (8 bits) in a java integer (32 bits)
 		ByteBuffer buffer = ByteBuffer.allocate(this.conf.getDataDimension() * 4);
 		
