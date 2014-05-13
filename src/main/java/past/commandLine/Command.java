@@ -32,7 +32,7 @@ public class Command {
 		"SQRT TRANSFORM", "LOG TRANSFORM", "MEAN", "SHIFT", 
 		"SCALE", "STD DEVIATION", "NORMALIZE", "SEARCH", "MOVING AVERAGE", "DFT",
 		/* Compression */
-		
+		"COMPRESSION", "DECOMPRESSION",
 		/* indexing */
 		"GET_INDEXING",
 		/* clustering */
@@ -125,7 +125,7 @@ public class Command {
 		/* select a column of a timeserie */
 		case "SELECT": ExecuteCommand.selectColumn(Arrays.copyOfRange(userCommandLine, 1, size)); break;
 		/* find max value of timeSerie */
-		case "MAX_VALUE" ExecuteCommand.maxValue(Arrays.copyOfRange(userCommandLine, 1, size)); break;
+		case "MAX_VALUE" : ExecuteCommand.maxValue(Arrays.copyOfRange(userCommandLine, 1, size)); break;
 		/* find min value of timeSerie */
 		case "MIN_VALUE" : ExecuteCommand.minValue(Arrays.copyOfRange(userCommandLine, 1, size)); break;
 		/* find min timestamp of timeSerie */
@@ -167,18 +167,25 @@ public class Command {
 		/* ************************************
 		 * Compression 
 		 *************************************/
-		
+
+		/* compress a timeserie */
+		case "COMPRESSION" : ExecuteCommand.compression(Arrays.copyOfRange(userCommandLine, 1, size)); break;
+		/* decompress a timeserie */
+		case "DECOMPRESSION" : break;
+
 		/* ************************************
 		 * indexing 
 		 *************************************/
+		case "SET_INDEXING" : break;
 		case "GET_INDEXING" : break;
 		/* ************************************
 		 * clustering 
 		 *************************************/
 		
 		/* ************************************
-		 * Forecasting 
+		 * Application 
 		 *************************************/
+
 		
 				
 		default: System.out.println("oups it may have a code error");

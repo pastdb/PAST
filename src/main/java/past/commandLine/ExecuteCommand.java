@@ -3,8 +3,8 @@ package past.commandLine;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.*;
+import org.apache.spark.api.java.JavaRDD.*;
 import org.apache.spark.api.java.function.*;
 
 import com.typesafe.config.Config; 
@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.ArrayList;
+import java.util.Comparator;
 
 import java.io.File;
 import java.io.BufferedReader;
@@ -23,6 +24,8 @@ import java.io.FileInputStream;
 import java.io.InputStreamReader;
 
 import scala.collection.convert.WrapAsJava$;
+import scala.reflect.ClassTag$;
+import scala.reflect.ClassManifestFactory$;
 
 import scala.*;
 import scala.collection.immutable.List;
@@ -582,31 +585,66 @@ public class ExecuteCommand {
 	/**
 	 * INSERT data at a certain faile
 	 * user input example: INSERT file TO nameTS [: nameVariable] 
-	 *
 	 * file input struct [times values values ...]
+	 *
+	 * user input example: INSERT file1 file2 ... TO nameTS [: nameVariable] 
+	 * file1 = timestamp of timeserie (integer)
+	 * file2... = values of one colum of timeserie (integer)
 	 *
 	 * @param array of userinput parameter
 	 */
 	public static void insertDataFromFile(String userInput[]) {
 		int size = userInput.length;
 		String nameTS = null;
-		String nameFile = null;
+		String nameFile[] = null;
+		int numberFiles = -1;
+		java.lang.Boolean stop = false;
+		java.lang.Boolean oneFile = true;
 
-		if(size > 3) {
+		// have only one file 
+		if(size > 2 && userInput[1].toUpperCase().compareTo("TO") == 0) {
 			nameTS = userInput[2];
-			nameFile = userInput[0];
+			nameFile = new String[1];
+			nameFile[0] = userInput[0];
+			numberFiles = 1;
+		}
+		// find number of file use
+		else if(size > 2) {
+			for(int i=0; i<size; i++) {
+				if(userInput[i].toUpperCase().compareTo("TO") == 0) {
+					numberFiles = i;
+					oneFile = false;
+					break;
+				}
+			}
+			if(size >= numberFiles + 2) {
+				nameTS = userInput[numberFiles + 1];
+				nameFile = new String[numberFiles];
+				for(int i=0; i<numberFiles; i++) {
+					nameFile[i] = userInput[i];
+				}
+			}
+		}
+		else {
+			stop = true;
 		}
 
-		if(size < 3 || size > 5 || size == 4) {
+		//helper to not change code more
+		int m = numberFiles - 1;
+
+		if(stop || numberFiles < 0) {
+			System.out.println("  input must be : INSERT files TO timeserie [: nameVariable]");
+		}
+		else if(size < 3+m || size > 5+m || size == 4+m) {
 			System.out.println("  input must be : INSERT file TO timeserie [: nameVariable]");
 		}
-		else if(size == 5 && userInput[3].compareTo(":") != 0) {
+		else if(size == 5+m && userInput[3+m].compareTo(":") != 0) {
 			System.out.println("  you forget to put ':'");
 		}
-		else if(size == 5 && variable.keySet().contains(userInput[4])) {
+		else if(size == 5+m && variable.keySet().contains(userInput[4+m])) {
 			System.out.println("  variable name already exist");
 		}
-		else if(userInput[1].toUpperCase().compareTo("TO") != 0) {
+		else if(userInput[1+m].toUpperCase().compareTo("TO") != 0)  {
 			System.out.println("  you forget to put 'TO'");	
 		}
 		else if(!variable.keySet().contains(nameTS)){
@@ -615,7 +653,9 @@ public class ExecuteCommand {
 		else if(sc == null) {
 			System.out.println("  Spark is not start. To start spark, enter: sparkStart");
 		}
-		else {
+		else { 
+
+			
 
 			Object ob = variable.get(nameTS);
 			Timeseries ts = null;
@@ -626,15 +666,21 @@ public class ExecuteCommand {
 				System.out.println("  the variable is not a Timeserie");
 			}
 
+			/***************************
+			 *
+			 * upload with one files
+			 *
+			 ***************************/
+
 			// read file and load element and value of the timeserie
-			if(ts != null) {
+			if(ts != null && oneFile) {
 				File dir = new File(".");
 				File tsFile;
 				FileInputStream reader = null;
 				BufferedReader data = null;
 				
 				try {
-					tsFile = new File(dir.getCanonicalPath() + File.separator + nameFile);
+					tsFile = new File(dir.getCanonicalPath() + File.separator + nameFile[0]);
 					reader = new FileInputStream(tsFile);
 					data = new BufferedReader(new InputStreamReader(reader));
 					
@@ -693,8 +739,24 @@ public class ExecuteCommand {
 					}
 					catch(Exception e) {}
 				}
-
 			}
+
+			/***************************
+			 *
+			 * upload with many files
+			 *
+			 ***************************/
+			
+			// read file and load element and value of the timeserie
+			if(ts != null && !oneFile) {
+				File dir = new File(".");
+				File tsFile;
+				FileInputStream reader = null;
+				BufferedReader data = null;
+				
+				// TODO
+			}
+
 		}
 	}
 
@@ -752,7 +814,8 @@ public class ExecuteCommand {
 				try {
 
 					// TODO
-					JavaRDD<Integer> colum = null;//new JavaRDD(ts.rangeQuery(sc.sc(), columnName));
+					//JavaRDD<Integer> colum = new JavaRDD(ts.rangeQuery<Integer>(sc.sc(), columnName, ClassTag$.MODULE$.Int()));
+					JavaRDD<Integer> colum =  null;//new JavaRDD(ts.rangeQueryI32(sc.sc(), columnName, ClassTag$.MODULE$.Int()), ClassManifest$.MODULE$.Int());
 
 					//save in the variable name
 					String v_name = (size == 5) ? userInput[4] : generateNameVariable(); 
@@ -815,11 +878,15 @@ public class ExecuteCommand {
 				System.out.println("  the variable is not a RDD");
 			}
 
+
 			if(rdd != null) {
-				// TODO
-				//rdd.reduceByKey(new org.apache.spark.api.java.function.Function2<Integer, Integer>() {
-  				//	public Integer call(Integer a, Integer b) { return (a > b) ? a : b; }
-  				//});
+				//int max = Integer.MIN_VALUE;
+				int max = rdd.reduce(new org.apache.spark.api.java.function.Function2<Integer, Integer, Integer>() {
+					public Integer call(Integer a, Integer b) {
+						return (a>b) ? a : b;
+					}
+				});
+				System.out.println("  max Value = " + max);
 			}
 
 		}
@@ -838,6 +905,13 @@ public class ExecuteCommand {
 				try {
 
 					// TODO
+
+
+
+
+
+
+					// TODO
 					rdd = null;//new JavaRDD(ts.rangeQuery(sc.sc(), columnName));
 					
 				}
@@ -847,10 +921,12 @@ public class ExecuteCommand {
 				
 				if(rdd != null) {
 
-				// TODO
-				//rdd.reduceByKey(new org.apache.spark.api.java.function.Function2<Integer, Integer>() {
-  				//	public Integer call(Integer a, Integer b) { return (a > b) ? a : b; }
-  				//});
+					int max = rdd.reduce(new org.apache.spark.api.java.function.Function2<Integer, Integer, Integer>() {
+						public Integer call(Integer a, Integer b) {
+							return (a>b) ? a : b;
+						}
+					});
+					System.out.println("  max Value = " + max);
 				}
 				
 			}
@@ -908,10 +984,12 @@ public class ExecuteCommand {
 			}
 
 			if(rdd != null) {
-				// TODO
-				//rdd.reduceByKey(new org.apache.spark.api.java.function.Function2<Integer, Integer>() {
-  				//	public Integer call(Integer a, Integer b) { return (a > b) ? a : b; }
-  				//});
+				int max = rdd.reduce(new org.apache.spark.api.java.function.Function2<Integer, Integer, Integer>() {
+					public Integer call(Integer a, Integer b) {
+						return (a<b) ? a : b;
+					}
+				});
+				System.out.println("  min Value = " + max);
 			}
 
 		}
@@ -930,6 +1008,12 @@ public class ExecuteCommand {
 				try {
 
 					// TODO
+
+
+
+
+
+					// TODO
 					rdd = null;//new JavaRDD(ts.rangeQuery(sc.sc(), columnName));
 					
 				}
@@ -938,11 +1022,12 @@ public class ExecuteCommand {
 				}
 				
 				if(rdd != null) {
-
-				// TODO
-				//rdd.reduceByKey(new org.apache.spark.api.java.function.Function2<Integer, Integer>() {
-  				//	public Integer call(Integer a, Integer b) { return (a > b) ? a : b; }
-  				//});
+					int max = rdd.reduce(new org.apache.spark.api.java.function.Function2<Integer, Integer, Integer>() {
+						public Integer call(Integer a, Integer b) {
+							return (a<b) ? a : b;
+						}
+					});
+					System.out.println("  max Value = " + max);
 				}
 				
 			}
@@ -972,6 +1057,50 @@ public class ExecuteCommand {
 	 * Compression 
 	 *************************************/
 
+	/**
+	 * COMPRESSION of a timeserie
+	 * user input example: COMPRESSION nameTS WITH [regression, APCA , demon]
+	 * user input example: COMPRESSION nameTS (default parameter)
+	 *
+	 * @param array of userinput parameter
+	 */
+	public static void compression(String userInput[]) {
+		int size = userInput.length;
+		String nameTS = null;
+		String parameter = null;
+
+		
+		if(size > 1) {
+			nameTS = userInput[0];
+		}
+		else if(size == 3) {
+			nameTS = userInput[0];
+			parameter = userInput[2];
+		}
+
+		if(size < 1 || size > 3 || size == 2) {
+			System.out.println("  input must be : COMPRESSION nameTS [WITH regression, APCA] ");
+		}
+		else if(size == 3 && userInput[1].toUpperCase().compareTo("WITH") != 0) {
+			System.out.println("  you forget to put 'WITH'");	
+		}
+		else if(size == 3 && !variable.keySet().contains(nameTS)){
+			System.out.println("  Timeserie not found");
+		}
+		else if(size == 1 && !variable.keySet().contains(nameTS)) {
+			System.out.println("  Timeserie not found");
+		}
+		else if(sc == null) {
+			System.out.println("  Spark is not start. To start spark, enter: sparkStart");
+		}
+		else if(size == 3) {
+			// do compression with default parameter
+		}
+		else {
+			// do a demon to choose parameter
+		}
+	}
+
 	/* ************************************
 	 * indexing 
 	 *************************************/
@@ -983,15 +1112,25 @@ public class ExecuteCommand {
 	 *************************************/
 
 	/* ************************************
-	 * Forecasting 
+	 * Application 
 	 *************************************/
 
 	/* ************************************
 	 * helper function
 	 *************************************/
+
+	/*
+	 * generate name variable
+	 */
 	private static String generateNameVariable() {
-		varIndice += 1;
-		return varName + varIndice;
+		String newname = null;
+		do {
+			varIndice += 1;	
+			newname = varName + varIndice;
+		}
+		while(variable.keySet().contains(newname));
+		
+		return newname;
 	}
 
 	/*
@@ -1020,4 +1159,21 @@ public class ExecuteCommand {
 					
     }
 
+    static class NormalIntComparator implements Comparator<Integer>, Serializable {
+    	@Override
+    	public int compare(Integer a, Integer b) {
+      		if (a > b) return 1;
+      		else if (a < b) return -1;
+      		else return 0;
+    	}
+  	};
+
+    static class ReverseIntComparator implements Comparator<Integer>, Serializable {
+    	@Override
+    	public int compare(Integer a, Integer b) {
+      		if (a > b) return -1;
+      		else if (a < b) return 1;
+      		else return 0;
+    	}
+  	};
 }
