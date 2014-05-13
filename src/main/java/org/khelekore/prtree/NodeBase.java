@@ -1,10 +1,13 @@
 package org.khelekore.prtree;
 
+import java.io.Serializable;
+
 /**
  * @param <N> the type of the child entries
  * @param <T> the type of the data entries
  */
-abstract class NodeBase<N, T> implements Node<T> {
+abstract class NodeBase<N, T> implements Node<T>, Serializable {
+    private static final long serialVersionUID = 7296375927793391704L;
     private MBR mbr;
     private Object[] data;
 

@@ -1,5 +1,6 @@
 package org.khelekore.prtree;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -12,8 +13,9 @@ import java.util.List;
  *  leaf nodes (and then repeating until you have just one root node).
  *  This class creates the leaf nodes without building the full pseudo tree.
  */
-class LeafBuilder {
+class LeafBuilder implements Serializable {
 
+    private static final long serialVersionUID = -3463394628817358354L;
     private final int dimensions;
     private final int branchFactor;
 

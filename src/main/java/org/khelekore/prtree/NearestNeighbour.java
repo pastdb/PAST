@@ -1,13 +1,15 @@
 package org.khelekore.prtree;
 
+import java.io.Serializable;
 import java.util.PriorityQueue;
 import java.util.ArrayList;
 import java.util.List;
 import org.khelekore.prtree.DistanceResult;
 import org.khelekore.prtree.NodeFilter;
 
-class NearestNeighbour<T> {
+class NearestNeighbour<T> implements Serializable {
 
+    private static final long serialVersionUID = -3765806454262865818L;
     private final MBRConverter<T> converter;
     private final NodeFilter<T> filter;
     private final int maxHits;

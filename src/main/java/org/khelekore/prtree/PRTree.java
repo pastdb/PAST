@@ -1,5 +1,6 @@
 package org.khelekore.prtree;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -11,8 +12,9 @@ import java.util.List;
  *
  * @param <T> the data type stored in the PRTree
  */
-public class PRTree<T> {
+public class PRTree<T> implements Serializable {
 
+    private static final long serialVersionUID = 6161753635085951174L;
     private MBRConverter<T> converter;
     private int branchFactor;
 

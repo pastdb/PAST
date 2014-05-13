@@ -1,9 +1,12 @@
 package org.khelekore.prtree;
 
+import java.io.Serializable;
+
 /** Class to hold object and distance to it
  * @param <T> The node type
  */
-public class DistanceResult<T> {
+public class DistanceResult<T> implements Serializable {
+    private static final long serialVersionUID = -1091118033341428046L;
     private final T t;
     private final double dist;
     

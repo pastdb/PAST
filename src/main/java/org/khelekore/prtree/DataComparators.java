@@ -1,8 +1,10 @@
 package org.khelekore.prtree;
 
+import java.io.Serializable;
 import java.util.Comparator;
 
-class DataComparators<T> implements NodeComparators<T> {
+class DataComparators<T> implements NodeComparators<T>, Serializable {
+    private static final long serialVersionUID = -2924452219631410890L;
     private final MBRConverter<T> converter;
 
     public DataComparators (MBRConverter<T> converter) {

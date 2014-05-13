@@ -1,12 +1,15 @@
 package org.khelekore.prtree;
 
+import java.io.Serializable;
+
 /** An implementation of MBR that keeps 4 double values for the actual min and
  *  max values needed.
  *
  * <p>Please note that you should not normally use this class when PRTree 
  * wants a MBR since this will actually use a lot of extra memory.
  */
-public class SimpleMBR2D implements MBR2D {
+public class SimpleMBR2D implements MBR2D, Serializable {
+    private static final long serialVersionUID = 1006591048107095097L;
     private final double xmin;
     private final double ymin;
     private final double xmax;
