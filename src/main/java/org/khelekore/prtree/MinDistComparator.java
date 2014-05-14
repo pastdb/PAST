@@ -1,12 +1,14 @@
 package org.khelekore.prtree;
 
+import java.io.Serializable;
 import java.util.Comparator;
 
 /** A comparator that uses the MINDIST metrics to sort Nodes
  * @param <T> the data stored in the nodes
  * @param <S> the actual node
  */
-class MinDistComparator<T, S extends Node<T>> implements Comparator<S> {
+class MinDistComparator<T, S extends Node<T>> implements Comparator<S>, Serializable {
+    private static final long serialVersionUID = 6084372940507327152L;
     public final MBRConverter<T> converter;
     public final PointND p;
 

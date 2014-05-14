@@ -1,12 +1,15 @@
 package org.khelekore.prtree;
 
+import java.io.Serializable;
+
 /** An implementation of MBRND that keeps a double array with the max
  *  and min values
  *
  * <p>Please note that you should not normally use this class when PRTree
  * wants a MBR since this will actually use a lot of extra memory.
  */
-public class SimpleMBR implements MBR {
+public class SimpleMBR implements MBR, Serializable {
+    private static final long serialVersionUID = -999234978531765990L;
     private final double values[];
 
     private SimpleMBR (int dimensions) {

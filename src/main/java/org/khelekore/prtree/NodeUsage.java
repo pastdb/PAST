@@ -1,11 +1,14 @@
 package org.khelekore.prtree;
 
+import java.io.Serializable;
+
 /** A node used while building the leaf sets, holds the actual data
  *  and an identifier for the partition this node belongs to.
  *
  * @param <T> the data type of the stored item
  */
-class NodeUsage<T> {
+class NodeUsage<T> implements Serializable {
+    private static final long serialVersionUID = -8679596529417078643L;
     private final T data;
     private int id;
 

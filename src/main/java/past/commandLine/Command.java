@@ -22,22 +22,27 @@ public class Command {
 	 */
 	static String commands[] = {
 		/* standard commands */
-		"quit", "exit", "help", "var", "stopSpark", "startSpark",
+		"QUIT", "EXIT", "HELP", "VAR", "DEL", "RENAME", "STOPSPARK", "STARTSPARK",
 		/* database */
 		"USE", "OPEN", "CLOSE", "SHOW", "DROP", "EXIST", "GET", "CREATE",
 		/* Time Serie */
-		"CREATE_SCHEMA", "SHOW_SCHEMA", "GET_SCHEMA", "INSERT", "SELECT RANGE", "MAX VALUE", "MIN VALUE",
+		"CREATE_SCHEMA", "SHOW_SCHEMA", "GET_SCHEMA", /*"INSERT",*/ "SELECT_RANGE", "MAX_VALUE", "MIN_VALUE",
+		"SELECT", 
 		/* Transformations */
 		"SQRT TRANSFORM", "LOG TRANSFORM", "MEAN", "SHIFT", 
 		"SCALE", "STD DEVIATION", "NORMALIZE", "SEARCH", "MOVING AVERAGE", "DFT",
 		/* Compression */
-		
+		"COMPRESSION", "DECOMPRESSION",
 		/* indexing */
-		
+		"GET_INDEXING",
 		/* clustering */
 		
 		/* Forecasting */
+
+		/* Application */
+		"SIM",
 	};
+
 	/* help to use contain */
 	static private ArrayList<String> commandsList = new ArrayList<String>(Arrays.asList(commands));
 	
@@ -52,7 +57,7 @@ public class Command {
 		if(userInput[0].length() == 0) { // no input
 			//do nothing
 		}
-		else if(!commandsList.contains(userInput[0]) ) {
+		else if(!commandsList.contains(userInput[0].toUpperCase()) ) {
 			System.out.println("unknown command");
 		}
 		else { // not save in variable
@@ -70,20 +75,20 @@ public class Command {
 	private static Object command(String userCommandLine[]) {
 		int size = userCommandLine.length;
 
-		switch(userCommandLine[0].trim()) {
+		switch(userCommandLine[0].trim().toUpperCase()) {
 		
 		/* ************************************
 		 * standard commands
 		 *************************************/
 		
-		case "quit": return false;
-		case "exit": return false;
-		case "help": help( (size > 1) ? userCommandLine[1].trim() : ""); break;
-		case "var": ExecuteCommand.showVar(); break;
-		case "del" : break;
-		case "rename": break;
-		case "startSpark": ExecuteCommand.startSpark(); break;
-		case "stopSpark": ExecuteCommand.stopSpark(); break;
+		case "QUIT": return false;
+		case "EXIT": return false;
+		case "HELP": help( (size > 1) ? userCommandLine[1].trim() : ""); break;
+		case "VAR": ExecuteCommand.showVar(); break;
+		case "DEL" : ExecuteCommand.delVar(Arrays.copyOfRange(userCommandLine, 1, size)); break;
+		case "RENAME": ExecuteCommand.renameVar(Arrays.copyOfRange(userCommandLine, 1, size)); break;
+		case "STARTSPARK": ExecuteCommand.startSpark(); break;
+		case "STOPSPARK": ExecuteCommand.stopSpark(); break;
 		
 		/* ************************************
 		 * database
@@ -103,7 +108,7 @@ public class Command {
 		/* get a timeSeries */
 		case "GET" : ExecuteCommand.getTS(Arrays.copyOfRange(userCommandLine, 1, size)); break;
 		/* create a timeSeries */
-		case "CREATE" : ExecuteCommand.createTS(Arrays.copyOfRange(userCommandLine, 1, size)); break;
+		case "CREATE" : ExecuteCommand.createTS2DB(Arrays.copyOfRange(userCommandLine, 1, size)); break;
 		
 		
 		/* ************************************
@@ -117,13 +122,15 @@ public class Command {
 		/* get the schema of the timeSerie*/
 		case "GET_SCHEMA" : ExecuteCommand.getSchema(Arrays.copyOfRange(userCommandLine, 1, size)); break;
 		/* insert data at a certain file */
-		case "INSERT" : break;
+		// case "INSERT" : ExecuteCommand.insertDataFromFile(Arrays.copyOfRange(userCommandLine, 1, size)); break;
 		/* select timeSerie Range from timeStart to timeEnd */
 		case "SELECT_RANGE": break;
+		/* select a column of a timeserie */
+		case "SELECT": ExecuteCommand.selectColumn(Arrays.copyOfRange(userCommandLine, 1, size)); break;
 		/* find max value of timeSerie */
-		case "MAX_VALUE" : break;
+		case "MAX_VALUE" : ExecuteCommand.maxValue(Arrays.copyOfRange(userCommandLine, 1, size)); break;
 		/* find min value of timeSerie */
-		case "MIN_VALUE" : break;
+		case "MIN_VALUE" : ExecuteCommand.minValue(Arrays.copyOfRange(userCommandLine, 1, size)); break;
 		/* find min timestamp of timeSerie */
 		case "MAX_TIMESTAMP" : break;
 		/* find max timestamp of timeSerie */
@@ -163,18 +170,25 @@ public class Command {
 		/* ************************************
 		 * Compression 
 		 *************************************/
-		
+
+		/* compress a timeserie */
+		case "COMPRESSION" : ExecuteCommand.compression(Arrays.copyOfRange(userCommandLine, 1, size)); break;
+		/* decompress a timeserie */
+		case "DECOMPRESSION" : break;
+
 		/* ************************************
 		 * indexing 
 		 *************************************/
-		
+		case "SET_INDEXING" : break;
+		case "GET_INDEXING" : break;
 		/* ************************************
 		 * clustering 
 		 *************************************/
 		
 		/* ************************************
-		 * Forecasting 
+		 * Application 
 		 *************************************/
+		case "SIM" : ExecuteCommand.testApplication(); break;
 		
 				
 		default: System.out.println("oups it may have a code error");

@@ -2,7 +2,7 @@ import org.apache.spark.api.java.*;
 import org.apache.spark.api.java.function.*;
 import weka.classifiers.functions.LinearRegression;
 import weka.core.Instances;
-import weka.core.Instance;
+import java.text.*;
 import java.io.*;
 import java.util.*;
 
@@ -11,29 +11,32 @@ import java.util.*;
 //arg 2 - output path - string
 
 
-/* For below arguments there will be default value which user can change if required.
- * 
- * arg 3 - degree - int - polynomial degree u want to provide for regression models for segments
- * arg 4 - min_seg_length - minimum segment size u want to start with - has to be 2 at least
- * arg 5 - max_MAE - max mean absolute error percentage for a segment relative to the real mean value in that segment 
-*/
-
 public class compression {
 	
 	static JavaSparkContext ctx;
 	
-	static double max_MAE = 5;
-	static int min_seg_length = 10;
-	static int degree = 2;
+	/*set of default parameters which can be tuned*/
 	
-	//need to be set by using compress.partitions = x if want to change the no of partitions from default (done by spark)
-	static int partitions = 1;
+	static double max_MAE = 20;
+	static int min_seg_length = 2;
 	
-	static int APCA_seg_count = 15;
+	static String compression_type = "regression"; 			// alernative "APCA" 
+	static String feature_type = "polynomial"; 				// alternative is "time"
+	static int degree = 2; 									// set this if feature_type is polynomial
 	
-	//thought of it after meeting on Tuesday - will need to change in the same fashion as of partitions 
-	static boolean time_features = false;
+	static String time_format = "yyyy/MM/dd:HH:mm:ss";
+	static boolean timestamps = false;
 	
+	//no of partitions for data -- change it if need to change the default partitioning by 
+	static int partitions = 0;
+	
+	//APCA specific
+	static int APCA_seg_count = 10000;
+	
+	static int column_no;
+	static String delimiter = ",";
+	
+	/* ---------------------------------------------------------------------------------------------------------------*/
 	
 	public compression(JavaSparkContext ctx){
 		
@@ -50,7 +53,7 @@ public class compression {
 		public class segment {
 			
 			int left; int right;
-			double t_left; double t_right;
+			String t_left; String t_right;
 			double v_min; double v_max;
 			double merge_v_min; double merge_v_max;
 			double coefficients[]; double merge_coefficients[];
@@ -187,17 +190,53 @@ public class compression {
 		
 		public Iterable<String> call(Iterator<String> p)throws Exception{
 					
-			Vector<Double> time_stamps = new Vector<Double>();
+			Vector<String> time_stamps = new Vector<String>();
 			String p_name = "partition_" + Math.random() * 10000 + ".arff";
 			
-			if(time_features){
+			FileWriter fw = new FileWriter(p_name);
+			fw.write("@RELATION partition \n\n");
+			
+			if(feature_type.equals("time")){
 				
-			}else{
+				fw.write("@ATTRIBUTE year NUMERIC\n");
+				fw.write("@ATTRIBUTE month NUMERIC\n");
+				fw.write("@ATTRIBUTE week_of_month NUMERIC\n");
+				fw.write("@ATTRIBUTE day_of_week NUMERIC\n");
+				fw.write("@ATTRIBUTE hour_of_day NUMERIC\n");
+				fw.write("@ATTRIBUTE minute NUMERIC\n");
+				fw.write("@ATTRIBUTE second NUMERIC\n");
+				fw.write("@ATTRIBUTE value NUMERIC\n");
+				
+				fw.write("\n\n@DATA\n");
+				
+				while(p.hasNext()){
+					
+					String pair[] = p.next().split(delimiter);
+					Date d;
+					
+					if(timestamps == true){
+						
+						d = new Date(Long.parseLong(pair[0]));
+						time_stamps.add(pair[0]);
+					
+					}else{
+						
+						SimpleDateFormat fmt = new SimpleDateFormat(compression.time_format);
+						d = fmt.parse(pair[0]);
+						Long ts = d.getTime();
+						time_stamps.add(String.valueOf(ts));
+					}
+					
+					Calendar c = Calendar.getInstance();
+					c.setTime(d);
+					
+					fw.write(c.get(c.YEAR) + "," + c.get(c.MONTH) + "," + c.get(c.WEEK_OF_MONTH) + "," + c.get(c.DAY_OF_WEEK) + ",");
+					fw.write(c.get(c.HOUR_OF_DAY) + "," + c.get(c.MINUTE) + "," + c.get(c.SECOND) + "," + pair[1] + "\n");					
+				
+				}
+				
+			}else if (feature_type.equals("polynomial")){
 				 
-				FileWriter fw = new FileWriter(p_name);
-				
-				fw.write("@RELATION partition \n\n");
-				
 				for(int i = degree; i >= 0; i--){
 					fw.write("@ATTRIBUTE feature_" + i + " NUMERIC\n");
 				}
@@ -206,11 +245,11 @@ public class compression {
 				
 				while(p.hasNext()){
 					
-					String pair[] = p.next().split(",");
+					String pair[] = p.next().split(delimiter);
 					double time = Double.parseDouble(pair[0]);
 					double value = Double.parseDouble(pair[1]);
 					
-					time_stamps.add(time);
+					time_stamps.add(pair[0]);
 					
 					for(int i = degree; i >= 1; i--){
 						
@@ -219,10 +258,10 @@ public class compression {
 					
 					fw.write(value + "\n");
 				}
-				
-				fw.flush();
-				fw.close();
 			}
+			
+			fw.flush();
+			fw.close();
 			
 			FileReader fr = new FileReader(p_name);
 			BufferedReader br = new BufferedReader(fr);
@@ -269,17 +308,21 @@ public class compression {
 		
 			List<String> return_output = new ArrayList<String>();
 			
+			DecimalFormat fmt = new DecimalFormat("#0.###");
+			
 			for(int i = 0; i < seg_list.size(); i++){
 				
 				segment seg = seg_list.get(i);
 				
-				String out = seg.t_left + "," + seg.t_right + "$" + seg.v_min + "," + seg.v_max + "$" + seg.coefficients[0];
+				String out = seg.t_left + "," + seg.t_right + "$" + fmt.format(seg.v_min) + "," + fmt.format(seg.v_max) + "$" + fmt.format(seg.coefficients[0]);
 				
-				for(int j = 1; j < seg.coefficients.length; j++){
-					out = out + "," + seg.coefficients[j]; 
+				for(int j = 1; j < seg.coefficients.length - 2; j++){
+					out = out + "," + fmt.format(seg.coefficients[j]); 
 				}
-					
-				out = out + "$" + seg.v_mean + "," + (seg.right - seg.left);
+				
+				out = out + "," + fmt.format(seg.coefficients[seg.coefficients.length - 1]);
+				
+				out = out + "$" + fmt.format(seg.v_mean) + "," + (seg.right - seg.left);
 					
 				return_output.add(out);
 				
@@ -302,7 +345,7 @@ public class compression {
 		public class segment_APCA {
 			
 			int left; int right;
-			double t_left; double t_right;
+			String t_left; String t_right;
 			double v_mean; double merge_v_mean;
 			double mae; double merge_mae;
 		}
@@ -397,12 +440,24 @@ public class compression {
 		
 		public Iterable<String> call(Iterator<String> p)throws Exception{
 			
-			List<Double> time_stamps = new ArrayList<Double>();
+			List<String> time_stamps = new ArrayList<String>();
 			List <Double> data = new ArrayList<Double>();
 			
 			while(p.hasNext()){
-				String pair[] = p.next().split(",");
-				time_stamps.add(Double.parseDouble(pair[0]));
+				String pair[] = p.next().split(delimiter);
+				if(feature_type.equals("polynomial")){
+					time_stamps.add(pair[0]);
+				}else{
+					if(timestamps == true){
+						time_stamps.add(pair[0]);
+					}else{
+						SimpleDateFormat fmt = new SimpleDateFormat(compression.time_format);
+						Date d = fmt.parse(pair[0]);
+						Long ts = d.getTime();
+						time_stamps.add(String.valueOf(ts));
+					}
+				}
+				
 				data.add(Double.parseDouble(pair[1]));
 			}
 			
@@ -461,93 +516,93 @@ public class compression {
 		}
 	}
 	
+	public static class take_column extends Function <String, String> {
+		
+		private static final long serialVersionUID = -7630223385777784923L;
+		
+		public String call(String s){
+				
+			String cols[] = s.split(delimiter);
+			
+			return cols[0] + delimiter + cols[column_no];
+		}
+	
+	}
+	
+	
 	
 	// function to call for the compression - minimum arguments 2
 	
-	void do_compress(String args[]) throws Exception{
+	List<JavaRDD<String>> do_compress(String args[]) throws Exception{
 		
-		if(args.length > 2){
-			compression.degree = Integer.parseInt(args[2]);
+		if(args.length < 1){
+			System.out.println("wrong no of arguments");
+			throw new Exception();
+		}
+		
+		List<JavaRDD<String>> result = new ArrayList<JavaRDD<String>>();
+		
+		JavaRDD<String> input;
+		
+		if(partitions != 0){
+			input = ctx.textFile(args[0], partitions);
+		
+		}else{
+			input = ctx.textFile(args[0]);
+			compression.partitions = input.splits().size();
+		}
+		
+		String first_row = input.first();
+		int column_count = first_row.split(delimiter).length;
+		
+		for(int i = 1; i < column_count; i++){
 			
-			if(compression.degree < 1){
-				System.out.println("please use APCA for zero degree");
-				throw new Exception();
+			compression.column_no = i;
+			
+			if(compression_type.equals("regression")){
+				
+				JavaRDD<String> data = input.map(new take_column());
+				JavaRDD<String> output = data.mapPartitions(new get_compress());
+				if(args.length > 1){
+					output.saveAsTextFile(args[1] + "/column_" + i);
+				}
+				result.add(output);
+		
+			} else if(compression_type.equals("APCA")){
+				
+				JavaRDD<String> data = input.map(new take_column());
+				JavaRDD<String> output = data.mapPartitions(new get_APCA());
+				
+				if(args.length > 1){
+					output.saveAsTextFile(args[1] + "/column_" + i);
+				}
+				result.add(output);
 			}
 		}
 		
-		if(args.length > 3){
-			compression.min_seg_length = Integer.parseInt(args[3]);
-		}
-		
-		if(args.length > 4){
-			compression.max_MAE = Double.parseDouble(args[4]);
-		}
-		
-		
-		JavaRDD<String> input;
-		
-		if(partitions != 1){
-			input = ctx.textFile(args[0], partitions);
-		
-		}else{
-			input = ctx.textFile(args[0]);
-			compression.partitions = input.splits().size();
-		}
-		
-		JavaRDD<String> output = input.mapPartitions(new get_compress());
-		
-		output.saveAsTextFile(args[1]);	
+		return result;
 		
 	}
-	
-	
-	void do_APCA(String args[]) throws Exception{
-		
-		if(args.length > 2){
-			compression.APCA_seg_count = Integer.parseInt(args[2]);
-		}
-		
-		if(args.length > 3){
-			compression.min_seg_length = Integer.parseInt(args[3]);
-		}
-		
-		if(args.length > 4){
-			compression.max_MAE = Double.parseDouble(args[4]);
-		}
-		
-		
-		JavaRDD<String> input;
-		
-		if(partitions != 1){
-			input = ctx.textFile(args[0], partitions);
-		
-		}else{
-			input = ctx.textFile(args[0]);
-			compression.partitions = input.splits().size();
-		}
-		
-		JavaRDD<String> output = input.mapPartitions(new get_APCA());
-		
-		output.saveAsTextFile(args[1]);	
-		
-	}
-	
-	
 	
 	public static void main(String args[]) throws Exception{
 		
-		String input_path = "/home/puneet/test.txt";
+		String input_path = "/home/puneet/data.txt";
 		String output_path = "/home/puneet/compress_output";
-		String master_url = "local[3]";
+		String master_url = "local[8]";
 		String job_name = "compression";
 		String spark_home = "SPARK_HOME";
 		
 		JavaSparkContext sc = new JavaSparkContext(master_url, job_name, System.getenv(spark_home), JavaSparkContext.jarOfClass(compression.class));
 		
-		//compression
+		//set static compression parameters below
+		
+		//compression.compression_type = "APCA";
+		compression.partitions = 8;
+		compression.feature_type = "time";
+		compression.time_format = "dd/MM/yyyy:HH:mm:ss";
+		
 		compression c = new compression(sc);
-		//c.do_compress(new String[]{input_path, output_path});
-		c.do_APCA(new String[]{input_path, output_path});
+		c.do_compress(new String[]{input_path, output_path});
 		
 	}
 

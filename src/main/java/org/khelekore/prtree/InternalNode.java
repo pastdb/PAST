@@ -1,9 +1,12 @@
 package org.khelekore.prtree;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.PriorityQueue;
 
-class InternalNode<T> extends NodeBase<Node<T>, T> {
+class InternalNode<T> extends NodeBase<Node<T>, T> implements Serializable {
+    private static final long serialVersionUID = -1930630748274263316L;
+
     public InternalNode (Object[] data) {
 	super (data);
     }

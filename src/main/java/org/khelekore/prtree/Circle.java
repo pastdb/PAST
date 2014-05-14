@@ -1,5 +1,6 @@
 package org.khelekore.prtree;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -7,7 +8,8 @@ import java.util.List;
  *
  * @param <T> the element type
  */
-class Circle<T> {
+class Circle<T> implements Serializable {
+    private static final long serialVersionUID = 5285247650751751780L;
     private final List<T> data;
     private int currentPos;
 

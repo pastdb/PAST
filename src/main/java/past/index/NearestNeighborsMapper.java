@@ -1,7 +1,5 @@
 package past.index;
 
-import java.util.List;
-
 import org.apache.spark.api.java.function.FlatMapFunction;
 import org.khelekore.prtree.DistanceCalculator;
 import org.khelekore.prtree.DistanceResult;
@@ -12,72 +10,53 @@ import org.khelekore.prtree.SimplePointND;
 
 import scala.Tuple2;
 
-public class NearestNeighborsMapper extends FlatMapFunction<Tuple2<Integer, PRTree<Integer>>, DistanceResult<Integer>> {
+public class NearestNeighborsMapper extends FlatMapFunction<Tuple2<Integer, PRTree<NamedVector>>, DistanceResult<NamedVector>> {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 8371370813617201740L;
-	private RTreeIndexConf conf;
 	private int numberOfNeighbors;
 	private double[] point;
 	
-	
-
-	public NearestNeighborsMapper(int numberOfNeighbors, Integer[] point, RTreeIndexConf conf) {
+	public NearestNeighborsMapper(int numberOfNeighbors, int[] point) {
 		this.numberOfNeighbors = numberOfNeighbors;
-		this.conf = conf;
 		
 		this.point = new double[point.length];
 		for (int i = 0 ; i < point.length ; i++) {
-			this.point[i] = point[i].doubleValue();
+			this.point[i] = (double) point[i];
 		}
 	}
 
 	@Override
-	public Iterable<DistanceResult<Integer>> call(Tuple2<Integer, PRTree<Integer>> partitionAndTree) throws Exception {
-		PRTree<Integer> tree = partitionAndTree._2();
+	public Iterable<DistanceResult<NamedVector>> call(Tuple2<Integer, PRTree<NamedVector>> partitionAndTree) 
+			throws Exception {
+		
+		PRTree<NamedVector> tree = partitionAndTree._2();
 		
 		// no filtering
-		NodeFilter<Integer> filter = new NodeFilter<Integer>() {
-			public boolean accept(Integer node) {
+		NodeFilter<NamedVector> filter = new NodeFilter<NamedVector>() {
+			public boolean accept(NamedVector node) {
 				return true;
 			}
 		};
-		
-		List<DistanceResult<Integer>> distResults = tree.nearestNeighbour(
-				new PointDistanceCalculator(this.conf), 
-				filter, 
-				this.numberOfNeighbors, 
-				new SimplePointND(this.point));
-		
-		return distResults;
-	}
 
+        return tree.nearestNeighbour(
+                new PointDistanceCalculator(),
+                filter,
+                this.numberOfNeighbors,
+                new SimplePointND(this.point));
+	}
 }
 
-class PointDistanceCalculator implements DistanceCalculator<Integer> {
-	
-	private RTreeIndexConf conf;
-	
-	PointDistanceCalculator(RTreeIndexConf conf) {
-		this.conf = conf;
-	}
+class PointDistanceCalculator implements DistanceCalculator<NamedVector> {
 	
 	/**
 	 * Computes the distance between 2 points.
 	 * 
-	 * @param p pointer to the point
-	 * @param t pointer to the vector 
+	 * @param pointer first point
+	 * @param point2 second point
 	 */
 	@Override
-	public double distanceTo(Integer pointer, PointND point2) {
-		List<Integer[]> valuesOfKey = this.conf.getDataset().lookup(pointer);
-		if (valuesOfKey.size() != 1) {
-			throw new AssertionError("There can be only one value associated to a key in the dataset.");
-		}
-		
-		Integer[] point1 = valuesOfKey.get(0);
+	public double distanceTo(NamedVector pointer, PointND point2) {
+
+		int[] point1 = pointer.getOrds();
 		
 		if (point2.getDimensions() != point1.length) {
 			throw new AssertionError("Dimensions of the 2 points are not the same.");

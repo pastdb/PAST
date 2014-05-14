@@ -1,8 +1,12 @@
 package org.khelekore.prtree;
 
+import java.io.Serializable;
+
 /** Class that can calculate the MINDIST between a point and a rectangle
  */
-public class MinDist2D {
+public class MinDist2D implements Serializable {
+    private static final long serialVersionUID = 7420866523588447094L;
+
     /** Do not instantiate
      */
     private MinDist2D () {

@@ -4,7 +4,7 @@ import java.math.BigInteger;
 
 import scala.Tuple2;
 
-public class VectorToPartitionMapper extends VectorMapper<Integer, Integer> {
+public class VectorToPartitionMapper extends VectorMapper<Integer, NamedVector> {
 	
 	private static final long serialVersionUID = 7567437116211474877L;
 	private BigInteger[] splittingPoints;
@@ -15,10 +15,10 @@ public class VectorToPartitionMapper extends VectorMapper<Integer, Integer> {
 	}
 
 	@Override
-	public Tuple2<Integer, Integer> call(Tuple2<Integer, Integer[]> vector) throws Exception {
-		return new Tuple2<Integer, Integer>(
+	public Tuple2<Integer, NamedVector> call(Tuple2<String, int[]> vector) throws Exception {
+		return new Tuple2<>(
 				this.computePartitionNumber(this.computeZCurveValue(vector._2())),
-				vector._1());
+				new NamedVector(vector));
 	}
 	
 	/**

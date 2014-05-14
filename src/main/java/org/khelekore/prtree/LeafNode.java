@@ -1,11 +1,14 @@
 package org.khelekore.prtree;
 
+import java.io.Serializable;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.PriorityQueue;
 
-class LeafNode<T> extends NodeBase<T, T> {
+class LeafNode<T> extends NodeBase<T, T> implements Serializable {
+
+    private static final long serialVersionUID = 8249529771841946054L;
 
     public LeafNode (Object[] data) {
 	super (data);
