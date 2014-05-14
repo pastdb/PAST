@@ -2,7 +2,10 @@ package past;
 
 import java.util.Hashtable;
 import past.storage.DBType;
-
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.*;
+import com.typesafe.config.Config; 
+import com.typesafe.config.ConfigFactory;
 /**
  * represents a multi-dimension time series
  * 
@@ -12,7 +15,10 @@ public class Timeseries {
 
 	private Hashtable<String, Hashtable<Integer, Object>> data;
 	private DBType.DBType<?> type;
-
+	private Path path;
+	private String name;
+	
+	String containingPath = "pastdb_timeseries_"+java.lang.System.nanoTime();
 	/**
 	 * constructor with outside data
 	 * 
@@ -24,6 +30,26 @@ public class Timeseries {
 		this.type = type;
 		
 	}
+	
+	public Timeseries(String name,  Hashtable<String, Hashtable<Integer, Object>> data, DBType.DBType<?> type) {
+		this(data,type);
+		this.name=name;
+
+	}
+	public String getName(){
+		return name;
+	}
+	public void setName(String name ){
+		this.name = name;
+	}
+	public void setPath(Path containingPath){
+	
+		this.path = new Path(containingPath, name);
+	}
+	public Path getPath(){
+		return this.path;
+	}
+	
 
 	/**
 	 * constructor for a new Timeseries
