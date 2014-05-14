@@ -1,0 +1,13 @@
+package past.index.iSAX;
+
+import java.util.*;
+import past.Timeseries;
+public class TreeIndex{
+
+
+	public boolean insert(Hashtable<Integer,Point> SAX, Timeseries ts){
+	
+		
+		return true;
+	}
+}
