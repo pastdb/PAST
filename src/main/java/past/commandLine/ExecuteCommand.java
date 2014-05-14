@@ -55,7 +55,6 @@ public class ExecuteCommand {
 	/* spark context */
  	private static JavaSparkContext sc = null;
 
-
 	/* ************************************
 	 * standard commands
 	 *************************************/
@@ -350,7 +349,7 @@ public class ExecuteCommand {
 	 *
 	 * @param array of userinput parameter
 	 */
-	public static void createTS(String userInput[]) {
+	private static int createTS(String userInput[]) {
 		int size = userInput.length;
 		String nameTS = null;
 		String nameSchema = null; 
@@ -385,16 +384,18 @@ public class ExecuteCommand {
 			Schema schema = schemaCons.get();
 			System.out.println(" schema : " + schema);
 			db.createTimeseries(nameTS, schema);
-			System.out.println("  TimeSerie has been created in database name " + nameDB);
+			//System.out.println("  TimeSerie has been created in database name " + nameDB);
 
 			// save in variable
 			String v_name = (size == 3) ? userInput[2] : generateNameVariable();  
 
 			Option<Timeseries> tmp = db.getTimeseries(nameTS);
 			Timeseries ts = tmp.get();
+
 			variable.put(v_name, ts);
-			System.out.println("  TimeSerie has been save in variable name " + v_name);
-			System.out.println("  with Schema: [ <time, int32> ][ <data, int32 ]");
+			return 0;
+			//System.out.println("  TimeSerie has been save in variable name " + v_name);
+			//System.out.println("  with Schema: [ <time, int32> ][ <data, int32 ]");
 
 		}
 		else if(!variable.containsKey(nameSchema)) {
@@ -405,16 +406,167 @@ public class ExecuteCommand {
 
 			Schema schema = (Schema)variable.get(nameSchema);
 			db.createTimeseries(nameTS, schema);
-			System.out.println("  TimeSerie has been created in database name " + nameDB);
+			//System.out.println("  TimeSerie has been created in database name " + nameDB);
 
 			// save in variable
 			String v_name = (size == 4) ? userInput[3] : generateNameVariable();  
 
 			Option<Timeseries> tmp = db.getTimeseries(nameTS);
 			Timeseries ts = tmp.get();
+
 			variable.put(v_name, ts);
-			System.out.println("  TimeSerie has been save in variable name " + v_name);
+			return 0;
+			//System.out.println("  TimeSerie has been save in variable name " + v_name);
 		}
+		return 1;
+	}
+
+	/**
+	 * CREATE timeSerie to simplify the user
+	 * --> original create and insert is now private
+	 *
+	 * user input example: CREATE nameTS FROM files [ WITH Schema] [: nameVariable] 
+	 *
+	 * @param array of userinput parameter
+	 */
+	public static void createTS2DB(String userInput[]) {
+
+		final String FROM = "FROM";
+		final String WITH = "WITH";
+		final String DELIM = ":";
+
+		int size = userInput.length;
+		String nameTS = null;
+		String nameSchema = null; 
+		String nameFile[] = null;
+		String nameVariable = null;
+		String v_name = null;
+		String tmp = null;
+
+		boolean invalid_input = false;
+
+		int pos_from = -1;
+		int pos_with = -1;
+		int pos_delim = -1;
+		int numberofFiles = -1;
+
+		/* initalisation de value */
+
+		//first element always nameTS
+		//last element if : is nameVariable
+		for(int i=1; i<size-1; i++) {
+			tmp = userInput[i].toUpperCase();
+			switch(tmp) {
+				case FROM: {
+					if(pos_from != -1) invalid_input = true;
+					pos_from = i; 
+					nameTS = userInput[i-1]; 	
+					break;
+				}
+				case WITH: {
+					if(pos_with != -1) invalid_input = true;
+					pos_with = i; 	
+					nameSchema = userInput[i+1]; 
+					break;
+				}
+				case DELIM: {
+					if(pos_delim != -1) invalid_input = true;
+					pos_delim = i; 
+					nameVariable = userInput[i+1]; 
+					break;
+				}
+				default: break;
+			}
+		}
+		
+		/* start to create */
+
+		if(db == null) {
+			System.out.println("  no database open");
+		}
+		else if(invalid_input) {
+			System.out.println("  name of many input not allow");	
+			System.out.println("  input must be : CREATE nameTS FROM files [ WITH Schema ] [ : nameVariable ]");
+		}
+		else if(size < 3 || pos_from != 1) {
+			System.out.println("  input must be : CREATE nameTS FROM files [ WITH Schema ] [ : nameVariable ]");
+		}
+		else {
+			try {
+				// our input CREATE nameTS FROM files [ WITH Schema] [: nameVariable] 
+				if(pos_delim != -1) {
+					v_name = nameVariable;
+				}
+				else {
+					v_name = generateNameVariable(); 
+				}
+
+				// CREATE nameTS [Schema]
+				String inputCreateTS[] = null;
+				if(pos_with != -1) {
+					inputCreateTS = new String[4];
+					inputCreateTS[0] = nameTS; 
+					inputCreateTS[1] = nameSchema;
+					inputCreateTS[2] = ":";
+					inputCreateTS[3] = v_name;
+				} 
+				else {
+					inputCreateTS = new String[3];
+					inputCreateTS[0] = nameTS; 
+					inputCreateTS[1] = ":";
+					inputCreateTS[2] = v_name;
+				}
+
+				// INSERT file TO nameTS
+				String inputInsert[] = null;
+				if(pos_with != -1 ){
+					numberofFiles = pos_with - pos_from - 1;
+					inputInsert = new String[numberofFiles + 2];
+				}
+				else if(pos_delim != -1) {
+					numberofFiles = pos_delim - pos_from - 1;
+					inputInsert = new String[numberofFiles + 2];
+
+				}
+				else {
+					numberofFiles = size - pos_from - 1;
+					inputInsert = new String[numberofFiles + 2];
+				}
+
+				// check validity of number of files
+				if(numberofFiles < 1) {
+					throw new Exception();
+				}
+				else {
+					for(int i=0; i<numberofFiles; i++) {
+						inputInsert[i] = userInput[pos_from + i + 1];
+					}
+					inputInsert[numberofFiles] = "TO";
+					inputInsert[numberofFiles + 1] = v_name;
+				}
+				
+				// create ts in database
+				if(createTS(inputCreateTS) != 0) throw new Exception();
+				// insert input in database
+				if(insertDataFromFile(inputInsert) != 0) throw new Exception();
+
+				System.out.println("  TimeSerie has been save in variable name " + v_name);
+
+			}
+			catch(Exception e) {
+				System.out.println("  Create TimeSerie FAIL: remove create file ");
+				// remove create file 
+				try {
+					if(variable.keySet().contains(v_name)) variable.remove(v_name);
+					File dir = new File(".");
+					File tsFile;
+					tsFile = new File(dir.getCanonicalPath() + File.separator + nameDB + File.separator + nameTS);
+					tsFile.delete();
+				}
+				catch(Exception f) {}
+			}
+		}
+		
 	}
 
 	/* ************************************
@@ -574,7 +726,7 @@ public class ExecuteCommand {
 				Schema schema = ( (Timeseries)ob ).schema();
 				String v_name = (size == 4) ? userInput[3] : generateNameVariable();
 				variable.put(v_name, schema);
-				System.out.println("  Schema of the timeserie: ");
+				System.out.println("  Schema of the timeserie: " + v_name);
 			}
 			catch (Exception e) {
 				System.out.println("  the variable is not a Timeserie");
@@ -582,7 +734,7 @@ public class ExecuteCommand {
 		}
 	}
 
-	/**
+	/*
 	 * INSERT data at a certain faile
 	 * user input example: INSERT file TO nameTS [: nameVariable] 
 	 * file input struct [times values values ...]
@@ -593,12 +745,11 @@ public class ExecuteCommand {
 	 *
 	 * @param array of userinput parameter
 	 */
-	public static void insertDataFromFile(String userInput[]) {
+	private static int insertDataFromFile(String userInput[]) {
 		int size = userInput.length;
 		String nameTS = null;
 		String nameFile[] = null;
 		int numberFiles = -1;
-		java.lang.Boolean stop = false;
 		java.lang.Boolean oneFile = true;
 
 		// have only one file 
@@ -610,29 +761,33 @@ public class ExecuteCommand {
 		}
 		// find number of file use
 		else if(size > 2) {
-			for(int i=0; i<size; i++) {
+			for(int i=0; i<size-2; i++) {
+				// find the TO
 				if(userInput[i].toUpperCase().compareTo("TO") == 0) {
 					numberFiles = i;
 					oneFile = false;
+
+					// name of TS
+					nameTS = userInput[numberFiles + 1];
+					// save each file in varable
+					nameFile = new String[numberFiles];
+					for(int j=0; j<numberFiles; j++) {
+						nameFile[j] = userInput[j];
+					}
+
 					break;
-				}
-			}
-			if(size >= numberFiles + 2) {
-				nameTS = userInput[numberFiles + 1];
-				nameFile = new String[numberFiles];
-				for(int i=0; i<numberFiles; i++) {
-					nameFile[i] = userInput[i];
 				}
 			}
 		}
 		else {
-			stop = true;
+			//save nothing (numberFile will be negative so it will end)
 		}
+		
 
 		//helper to not change code more
 		int m = numberFiles - 1;
 
-		if(stop || numberFiles < 0) {
+		if(numberFiles < 0) {
 			System.out.println("  input must be : INSERT files TO timeserie [: nameVariable]");
 		}
 		else if(size < 3+m || size > 5+m || size == 4+m) {
@@ -654,8 +809,6 @@ public class ExecuteCommand {
 			System.out.println("  Spark is not start. To start spark, enter: sparkStart");
 		}
 		else { 
-
-			
 
 			Object ob = variable.get(nameTS);
 			Timeseries ts = null;
@@ -706,7 +859,7 @@ public class ExecuteCommand {
 						if(line.compareTo("") == 0){}
 						else if(tmp.length != sizeSchema) {
 							System.out.println("   schema unfit for data: find " + tmp.length + " field and require " + sizeSchema + " field");
-							break;
+							throw new Exception();
 						}
 						else {
 							for(int i=0; i<sizeSchema; i++) {
@@ -715,19 +868,20 @@ public class ExecuteCommand {
 						}
 					}
 
-					ListBuffer<Tuple2<String, ListBuffer<Integer>>> values = new ListBuffer<Tuple2<String, ListBuffer<Integer>>> ();
+					ListBuffer<Tuple2<String, List<Integer>>> values = new ListBuffer<Tuple2<String, List<Integer>>> ();
 					for(int i=1; i<sizeSchema; i++) {
-						values.$plus$eq(new Tuple2<String, ListBuffer<Integer>>(column[i], extractData[i]));
+						values.$plus$eq(new Tuple2<String, List<Integer>>(column[i], extractData[i].toList()));
 					}
 
-					//insert the content in the database
-					// TODO
-					//ts.insert(sc.sc(), extractData[0].toList(), values.toList());
+					//insert the content in the databaseIn
+					ts.insert(sc.sc(), extractData[0].toList(), values.toList());
 					
 					//save in the variable name
-					String v_name = (size == 5) ? userInput[4] : generateNameVariable(); 
-					variable.put(v_name, ts);
-					System.out.println("  data to the timeserie has been implemented and saved in variable name " + v_name);
+					//String v_name = (size == 5) ? userInput[4] : generateNameVariable(); 
+					//variable.put(v_name, ts);
+					//System.out.println("  data to the timeserie has been implemented and saved in variable name " + v_name);
+
+					return 0;
 				}
 				catch (Exception e) {
 					System.out.println("   Reading data in file FAIL");
@@ -758,6 +912,7 @@ public class ExecuteCommand {
 			}
 
 		}
+		return -1;
 	}
 
 
@@ -812,10 +967,8 @@ public class ExecuteCommand {
 
 			if(ts != null) {
 				try {
-
-					// TODO
 					//JavaRDD<Integer> colum = new JavaRDD(ts.rangeQuery<Integer>(sc.sc(), columnName, ClassTag$.MODULE$.Int()));
-					JavaRDD<Integer> colum =  null;//new JavaRDD(ts.rangeQueryI32(sc.sc(), columnName, ClassTag$.MODULE$.Int()), ClassManifest$.MODULE$.Int());
+					JavaRDD<Integer> colum =  new JavaRDD(ts.rangeQueryI32(sc.sc(), columnName), ClassManifestFactory$.MODULE$.Int());
 
 					//save in the variable name
 					String v_name = (size == 5) ? userInput[4] : generateNameVariable(); 
@@ -1114,6 +1267,16 @@ public class ExecuteCommand {
 	/* ************************************
 	 * Application 
 	 *************************************/
+
+	/**
+	 * Test the application
+	 */
+	public static void testApplication() {
+		startSpark();
+		DNApplication.test(sc);
+
+	}
+
 
 	/* ************************************
 	 * helper function

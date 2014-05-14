@@ -22,11 +22,11 @@ public class Command {
 	 */
 	static String commands[] = {
 		/* standard commands */
-		"QUIT", "EXIT", "HELP", "VAR", "STOPSPARK", "STARTSPARK",
+		"QUIT", "EXIT", "HELP", "VAR", "DEL", "RENAME", "STOPSPARK", "STARTSPARK",
 		/* database */
 		"USE", "OPEN", "CLOSE", "SHOW", "DROP", "EXIST", "GET", "CREATE",
 		/* Time Serie */
-		"CREATE_SCHEMA", "SHOW_SCHEMA", "GET_SCHEMA", "INSERT", "SELECT_RANGE", "MAX_VALUE", "MIN_VALUE",
+		"CREATE_SCHEMA", "SHOW_SCHEMA", "GET_SCHEMA", /*"INSERT",*/ "SELECT_RANGE", "MAX_VALUE", "MIN_VALUE",
 		"SELECT", 
 		/* Transformations */
 		"SQRT TRANSFORM", "LOG TRANSFORM", "MEAN", "SHIFT", 
@@ -38,6 +38,9 @@ public class Command {
 		/* clustering */
 		
 		/* Forecasting */
+
+		/* Application */
+		"SIM",
 	};
 
 	/* help to use contain */
@@ -105,7 +108,7 @@ public class Command {
 		/* get a timeSeries */
 		case "GET" : ExecuteCommand.getTS(Arrays.copyOfRange(userCommandLine, 1, size)); break;
 		/* create a timeSeries */
-		case "CREATE" : ExecuteCommand.createTS(Arrays.copyOfRange(userCommandLine, 1, size)); break;
+		case "CREATE" : ExecuteCommand.createTS2DB(Arrays.copyOfRange(userCommandLine, 1, size)); break;
 		
 		
 		/* ************************************
@@ -119,7 +122,7 @@ public class Command {
 		/* get the schema of the timeSerie*/
 		case "GET_SCHEMA" : ExecuteCommand.getSchema(Arrays.copyOfRange(userCommandLine, 1, size)); break;
 		/* insert data at a certain file */
-		case "INSERT" : ExecuteCommand.insertDataFromFile(Arrays.copyOfRange(userCommandLine, 1, size)); break;
+		// case "INSERT" : ExecuteCommand.insertDataFromFile(Arrays.copyOfRange(userCommandLine, 1, size)); break;
 		/* select timeSerie Range from timeStart to timeEnd */
 		case "SELECT_RANGE": break;
 		/* select a column of a timeserie */
@@ -185,7 +188,7 @@ public class Command {
 		/* ************************************
 		 * Application 
 		 *************************************/
-
+		case "SIM" : ExecuteCommand.testApplication(); break;
 		
 				
 		default: System.out.println("oups it may have a code error");

@@ -146,7 +146,9 @@ class Timeseries private (val name: String,
    * @throws IllegalArgumentException if a time value is already contained in the database
    */
   @throws(classOf[IllegalArgumentException])
-  def insert(sc: SparkContext, times: List[Int],values: List[(String, List[_])])/*(implicit arg0: ClassTag[T])*/: Unit = {
+  // --> I modify the type of the list 
+  //def insert(sc: SparkContext, times: List[int],values: List[(String, List[_])])/*(implicit arg0: ClassTag[T])*/: Unit = {
+  def insert(sc: SparkContext, times: List[Integer],values: List[(String, List[Integer])])/*(implicit arg0: ClassTag[T])*/: Unit = {
     assert(values.size + 1 == schema.fields.size)
     values.foreach(s => assert(s._2.size == times.size))
 
@@ -264,7 +266,7 @@ class Timeseries private (val name: String,
           })
         case _ => rdd.map(x => typ.unserialize(x._2.getBytes))
       })
-    case _ => throw new IllegalArgumentException("Column " + column + " does not exist")
+    case _ => throw new IllegalArgumentException("Columnq " + column + " does not exist")
   }
 
   /**
