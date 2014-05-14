@@ -1,3 +1,11 @@
+/* Author - Puneet Sharma, Sciper ID - 234277
+ * Towards the completion of Big data mini project
+ * 
+ * Description -This class is responsible for doing compression using bottom up appraoch. It does so by using regression models
+ * and Adaptive piecewise constant approximation.
+ */
+
+
 import org.apache.spark.api.java.*;
 import org.apache.spark.api.java.function.*;
 import weka.classifiers.functions.LinearRegression;
@@ -7,49 +15,65 @@ import java.io.*;
 import java.util.*;
 
 
-//arg 1 - input path - string
-//arg 2 - output path - string
-
-
 public class compression {
 	
+	//The sparkcontext object 
 	static JavaSparkContext ctx;
+	
+	// no of columns in input data. user dont have to set this. detected by the program automatically.
+	static int column_no;
 	
 	/*set of default parameters which can be tuned*/
 	
+	//Maximum allowed "mean absolute error" percentage per segment relative to average value of the segment 
 	static double max_MAE = 20;
+	
+	//Minimum segment length to start with
 	static int min_seg_length = 2;
 	
-	static String compression_type = "regression"; 			// alernative "APCA" 
+	//Determine dwhich compression type to be used. Default is regression which can be changed to "APCA"  
+	static String compression_type = "regression";         //alternative is "APCA"
+	
+	/*If the compression type is "regression", then this parameter determines how to use the timestamps. Default is polynomial in which a certain degree
+	 * polynomial curve will be fit keeping time as the independent variable and value as dependent" It can be changed to "time" where timestamp will be broken down
+	 * into Year, Month, week, Day of week, Hour, minute and second. A regression model will be created using these features. */
+	
 	static String feature_type = "polynomial"; 				// alternative is "time"
+	
+	//Degree of polynomial if the compression type is "regression" and feature type is "polynomial 
 	static int degree = 2; 									// set this if feature_type is polynomial
 	
+	//if time stamps are not numerical, and feature_type is "time" then this polynomial sets the time format for time column 
 	static String time_format = "yyyy/MM/dd:HH:mm:ss";
+	
+	//if user wants to use "feature_type" = "time" and time stamps are not numerical then set this variable to false. In addition set the "time_format" to desired format. 
 	static boolean timestamps = false;
 	
-	//no of partitions for data -- change it if need to change the default partitioning by 
+	//no of partitions for data -- change it if need to change the default partitioning by spark 
 	static int partitions = 0;
 	
-	//APCA specific
+	//Total no of segments output by APCA algo. Each worker will output APCA_seg_count/partitions segments
 	static int APCA_seg_count = 10000;
 	
-	static int column_no;
+	//delimiter for input data
 	static String delimiter = ",";
 	
 	/* ---------------------------------------------------------------------------------------------------------------*/
 	
+	//The constructor just to set the sparkcontext.
 	public compression(JavaSparkContext ctx){
 		
 		compression.ctx = ctx;
 	}
 	
 	
-	// compression for each partition, will return the compressed segments
+	//Compression for each partition using "regression", will return the compressed segments 
 	
 	public static class get_compress extends FlatMapFunction <Iterator<String>, String> {
 		
 		private static final long serialVersionUID = -7630223385777784923L;
 		
+		//One segment
 		public class segment {
 			
 			int left; int right;
@@ -61,13 +85,15 @@ public class compression {
 			double mae; double merge_mae;
 		}
 		
-		
+		//Fit a regression model on given input instances
 		public segment fit_model(Instances input) throws Exception{
 			
 			LinearRegression lin_reg = new LinearRegression();
 			lin_reg.buildClassifier(input);
 			
 			segment model_seg = new segment();
+			
+			//Model parameters/coefficients
 			model_seg.coefficients = lin_reg.coefficients();
 			
 			double v_min = Double.MAX_VALUE;
@@ -92,6 +118,8 @@ public class compression {
 					v_min = pred;
 				}
 			}
+			
+			//Calculate mean absolute error percent and other model model sement parameters
 			mean_real = mean_real/input.numInstances();
 			model_seg.mae = ((mae/input.numInstances()) * 100)/mean_real;
 			
@@ -104,14 +132,14 @@ public class compression {
 		}
 		
 		
-		// merging the segments and other book keeping
-		
+		//Merging of adjacent segments and other book keeping
 		public boolean merge_segments(Instances data, List<segment> seg_list, boolean first) throws Exception{
 			
 			if(seg_list.size() < 2){
 				return true;
 			}
 			
+			// for the first time just calculate cost of merging every two adjacent segments
 			if(first){
 				
 				for(int i = 0; i < seg_list.size() - 1; i++){
@@ -132,6 +160,7 @@ public class compression {
 				double min_cost = seg_list.get(0).merge_mae;
 				int min_ind = 0;
 				
+				//get the adjacent segments with minimum merge cost
 				for(int i = 1; i < seg_list.size() - 1; i++){
 					if(seg_list.get(i).merge_mae < min_cost){
 						min_ind = i;
@@ -139,12 +168,14 @@ public class compression {
 					}
 				}
 				
+				// if merge cost is greater than max MAE threshold then stop
 				if(min_cost > max_MAE){
 					
 					return true;
 				
 				}else{
 					
+					//else merge the adjacent segments
 					segment seg = seg_list.get(min_ind);
 					seg.right = seg_list.get(min_ind + 1).right;
 					seg.t_right = seg_list.get(min_ind + 1).t_right;
@@ -156,6 +187,8 @@ public class compression {
 					
 					seg_list.remove(min_ind + 1);
 					
+					
+					//calculate the merge cost if this newly made segment with next one (right to it)
 					if(min_ind + 1 < seg_list.size()){
 						
 						Instances ins = new Instances(data, seg.left, seg_list.get(min_ind + 1).right - seg.left);
@@ -167,6 +200,7 @@ public class compression {
 						seg.merge_v_mean = model_seg.v_mean;
 					}
 					
+					// calculate the merge cost of this newly made segment with segment left to it.
 					if(min_ind - 1 >= 0){
 						
 						segment left_seg = seg_list.get(min_ind - 1);
@@ -187,7 +221,7 @@ public class compression {
 			return false;
 		}
 		
-		
+		//Main function to be called upon every partition  
 		public Iterable<String> call(Iterator<String> p)throws Exception{
 					
 			Vector<String> time_stamps = new Vector<String>();
@@ -196,6 +230,7 @@ public class compression {
 			FileWriter fw = new FileWriter(p_name);
 			fw.write("@RELATION partition \n\n");
 			
+			//break timestamps/time values into time features
 			if(feature_type.equals("time")){
 				
 				fw.write("@ATTRIBUTE year NUMERIC\n");
@@ -237,6 +272,7 @@ public class compression {
 				
 			}else if (feature_type.equals("polynomial")){
 				 
+				//create polynomial features with the degree set by user
 				for(int i = degree; i >= 0; i--){
 					fw.write("@ATTRIBUTE feature_" + i + " NUMERIC\n");
 				}
@@ -276,6 +312,7 @@ public class compression {
 			
 			int count = 0;
 			
+			//create initial segments
 			while(count < data.numInstances()){
 				
 				int left = count;
@@ -299,8 +336,10 @@ public class compression {
 				
 			}
 			
+			// calculate merge costs intially
 			boolean stop = merge_segments(data, seg_list, true);
 			
+			//merge the segments untill stop condition does not arrrive
 			while(!stop){
 				
 				stop = merge_segments(data, seg_list, false);
@@ -310,6 +349,7 @@ public class compression {
 			
 			DecimalFormat fmt = new DecimalFormat("#0.###");
 			
+			//put the resulting segments in the output 
 			for(int i = 0; i < seg_list.size(); i++){
 				
 				segment seg = seg_list.get(i);
@@ -328,6 +368,7 @@ public class compression {
 				
 			}
 			
+			// delete all temporary files
 			File f = new File(p_name);
 			f.delete();
 			
@@ -337,11 +378,12 @@ public class compression {
 	
 	}
 	
-	
+	// Compression for each partition using "APCA"
 	public static class get_APCA extends FlatMapFunction <Iterator<String>, String> {
 		
 		private static final long serialVersionUID = -7630223385777784923L;
 		
+		//one APCA segment
 		public class segment_APCA {
 			
 			int left; int right;
@@ -350,6 +392,7 @@ public class compression {
 			double mae; double merge_mae;
 		}
 		
+		// calculate the parameters for a APCA segment
 		public segment_APCA fit_model(List<Double> data) throws Exception{
 			
 			segment_APCA model_seg = new segment_APCA();
@@ -376,13 +419,14 @@ public class compression {
 			
 		}
 		
-		
+		// merge the adjacet segments having least merge cost
 		public boolean merge_segments_APCA(List<Double> data, List<segment_APCA> seg_list, boolean first) throws Exception{
 			
 			if(seg_list.size() < 2){
 				return true;
 			}
 			
+			// calculate all merge costs for the first time
 			if(first){
 				
 				for(int i = 0; i < seg_list.size() - 1; i++){
@@ -396,6 +440,8 @@ public class compression {
 				}
 			
 			}else{
+				
+				// merge adjacent segments and update the merge costs
 				
 				double min_cost = seg_list.get(0).merge_mae;
 				int min_ind = 0;
@@ -438,12 +484,14 @@ public class compression {
 			
 		}
 		
+		// main function to be called upon every partition during APCA
 		public Iterable<String> call(Iterator<String> p)throws Exception{
 			
 			List<String> time_stamps = new ArrayList<String>();
 			List <Double> data = new ArrayList<Double>();
 			
 			while(p.hasNext()){
+				
 				String pair[] = p.next().split(delimiter);
 				if(feature_type.equals("polynomial")){
 					time_stamps.add(pair[0]);
@@ -461,6 +509,7 @@ public class compression {
 				data.add(Double.parseDouble(pair[1]));
 			}
 			
+			//calculate the no of segments returned by each worker node
 			double seg_count = APCA_seg_count;
 			seg_count = Math.ceil(seg_count/partitions);
 			
@@ -468,6 +517,7 @@ public class compression {
 			
 			List<segment_APCA> seg_list = new ArrayList<segment_APCA>();
 			
+			//create initial segments
 			while(count < data.size()){
 				
 				int left = count;
@@ -492,8 +542,10 @@ public class compression {
 			
 			}
 			
+			//calculate initial merge costs
 			boolean stop = merge_segments_APCA(data, seg_list, true);
 			
+			// keep merging the segements with least cost untill stop condition arrives
 			while(seg_list.size() > seg_count && stop != true){
 				stop = merge_segments_APCA(data, seg_list, false);
 			}
@@ -516,6 +568,8 @@ public class compression {
 		}
 	}
 	
+	//create a time, value pair for each column in time series.
+	
 	public static class take_column extends Function <String, String> {
 		
 		private static final long serialVersionUID = -7630223385777784923L;
@@ -531,7 +585,7 @@ public class compression {
 	
 	
 	
-	// function to call for the compression - minimum arguments 2
+	// function to call for the compression - minimum 1 argument (input path for data), 2nd argument is optional which is the output path
 	
 	List<JavaRDD<String>> do_compress(String args[]) throws Exception{
 		
@@ -540,10 +594,12 @@ public class compression {
 			throw new Exception();
 		}
 		
+		// list of RDD objects that will be returned as output. each member of the list the is the compressed time series for a column
 		List<JavaRDD<String>> result = new ArrayList<JavaRDD<String>>();
 		
 		JavaRDD<String> input;
 		
+		// read the data 
 		if(partitions != 0){
 			input = ctx.textFile(args[0], partitions);
 		
@@ -552,9 +608,11 @@ public class compression {
 			compression.partitions = input.splits().size();
 		}
 		
+		// calculates the no of columns in the input data
 		String first_row = input.first();
 		int column_count = first_row.split(delimiter).length;
 		
+		// compress every column an store the corresponding javaRDD in output result list
 		for(int i = 1; i < column_count; i++){
 			
 			compression.column_no = i;
@@ -563,6 +621,8 @@ public class compression {
 				
 				JavaRDD<String> data = input.map(new take_column());
 				JavaRDD<String> output = data.mapPartitions(new get_compress());
+				
+				//if second argumt is there, save the output to the output path
 				if(args.length > 1){
 					output.saveAsTextFile(args[1] + "/column_" + i);
 				}
@@ -583,6 +643,8 @@ public class compression {
 		return result;
 		
 	}
+	
+	//main function test the compression
 	
 	public static void main(String args[]) throws Exception{
 		

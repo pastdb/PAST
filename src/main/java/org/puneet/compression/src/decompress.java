@@ -1,6 +1,12 @@
+/* Author - Puneet Sharma, Sciper ID - 234277
+ * Towards the completion of Big data mini project
+ * 
+ * Description -This class is responsible for doing gridding and sampling on the compressed segments. For a perticular query it grids all the qualified segments
+ * in a parallel and provides all the required values. 
+ */
+
 import org.apache.spark.api.java.*;
 import org.apache.spark.api.java.function.*;
-//import org.apache.spark.mllib.regression.LabeledPoint;
 
 import java.text.*;
 import java.io.*;
@@ -8,16 +14,25 @@ import java.util.*;
 
 public class decompress {
 	
+	// java spark context object
 	static JavaSparkContext ctx;
 	
+	// sets the feature type for gridding
 	static String feature_type = "polynomial"; // "time" can be alternative
 	
+	// time format of input query string
 	static String time_format = "yyyy/MM/dd:HH:mm:ss";
+	
+	// set it to true if the input query provide unix timestamps
 	static boolean timestamps = false;
 	
+	// set the granularity to grid for polynomial features
 	static double polynomial_granularity = 1.0;
+	
+	// set the granulaity to grid for time features
 	static int time_granularity = 1000; //in milliseconds
 	
+	// sets the query type
 	static String query_type = "time_point"; // "time_range", "value_point", "value_range", "composite" -- these are other options
 	
 	//for time range and composite query
@@ -32,15 +47,18 @@ public class decompress {
 	static String query_time;
 	static String query_value;
 	
-	
+	// contructor which sets the spark context
 	public decompress(JavaSparkContext ctx){
 		decompress.ctx = ctx;
 	}
 	
+	// for each segments returns the set of qualifies results
 	public static class grid_model extends FlatMapFunction <List<String>, String> {
 		
 		private static final long serialVersionUID = -7630223385777784923L;
 		
+		
+		// get time features from the time stamp
 		public List<Integer> get_features(long input) throws Exception{
 			
 			List<Integer> out = new ArrayList<Integer>();
@@ -63,6 +81,7 @@ public class decompress {
 			
 		}
 		
+		// gets the timestamp from the query
 		public long get_timestamp(String input) throws Exception{
 			
 			long ts;
@@ -78,16 +97,18 @@ public class decompress {
 		}
 		
 		
-		
+		// ain function to be called upton each segment
 		public Iterable<String> call(List<String> input)throws Exception{
 		
 			List<String> output = new ArrayList<String>();
 			
+			// fr polynomial features
 			if(feature_type.equals("polynomial")){
 				
 				double t_left = Double.parseDouble(input.get(0));
 				double t_right = Double.parseDouble(input.get(1));
 				
+				// time point query
 				if(query_type.equals("time_point")){
 					
 					double time = Double.parseDouble(query_time);
@@ -102,6 +123,7 @@ public class decompress {
 						output.add(time + "," + val);
 					}
 				
+				// time range query
 				}else if(query_type.equals("time_range")){
 					
 					double t_start = Double.parseDouble(query_time_start);
@@ -122,7 +144,7 @@ public class decompress {
 						
 					}
 					
-					
+				// value point query	
 				}else if(query_type.equals("value_point")){
 					
 					double value = Double.parseDouble(query_value);
@@ -141,7 +163,7 @@ public class decompress {
 						
 					}
 							
-				
+				// value range query
 				}else if(query_type.equals("value_range")){
 					
 					double v_start = Double.parseDouble(query_value_start);
@@ -160,7 +182,8 @@ public class decompress {
 						}
 						
 					}
-					
+				
+				//composite query
 				}else if(query_type.equals("composite")){
 					
 					double t_start = Double.parseDouble(query_time_start);
@@ -185,6 +208,8 @@ public class decompress {
 					}
 					
 				}
+				
+			// if feature_type = "time", i.e. time features are used for compression
 				
 			}else if(feature_type.equals("time")){
 				
@@ -300,7 +325,8 @@ public class decompress {
 		}
 	}
 			
-	
+	// call this function with a RDD object of segments
+	// each segment is - T_start, T_end, coefficients in a list object
 	public JavaRDD<String> get_data(JavaRDD<List<String>> input){
 		
 		JavaRDD<String> output = input.flatMap(new grid_model());
@@ -309,6 +335,7 @@ public class decompress {
 		
 	}
 	
+	//main function to test all
 	public static void main(String args[]) throws Exception{
 		
 		String master_url = "local[8]";
