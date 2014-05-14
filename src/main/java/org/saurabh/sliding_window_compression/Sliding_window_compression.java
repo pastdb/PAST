@@ -1,5 +1,3 @@
-package sliding_window_compression;
-
 import java.util.*;
 
 import org.apache.spark.Partition;
@@ -13,19 +11,34 @@ import org.apache.spark.mllib.classification.*;
 
 public class Sliding_window_compression {
 	
-	// Tunable variables for compression
+	// Tunable variables for compression.
 	static JavaSparkContext spark_java_context;
-	static int size_initial_segment = 10;
-	static int size_merge_segment = 5;
-	static double MAE_tolerance = 1;
-	static int degree_polynomial = 2;
-	double step_size = 1.0;
-	int no_of_iterations = 100;
 	
+	// This variable defines the initial size as well as the minimum size of the modelled segments. 
+	static int size_initial_segment = 10;
+	
+	// This variable is the size by which the current window size is extended while merging different segments.  
+	static int size_merge_segment = 5;
+	
+	// This variable defines the mean absolute error tolerance while modelling the segments. 
+	static double MAE_tolerance = 1;
+	
+	// This variable defines the degree of polynomial to fit for the regression.
+	static int degree_polynomial = 2;
+	
+	// This variable defines the step size for the gradient descent optimization. 
+	double step_size = 1.0;
+	
+	// This variable defines the maximum number of iterations used by Gradient Descent. 
+	int no_of_iterations = 20;
+	
+	
+	// This is the main class for implementation of sliding window compression algorithm.
 	public Sliding_window_compression(JavaSparkContext spark_java_context){
 		Sliding_window_compression.spark_java_context = spark_java_context;
 	}
 	
+	// This class defines the structure of a segment model. 
 	public class segment_model{
 		
 		double time_left;
@@ -39,6 +52,7 @@ public class Sliding_window_compression {
 		double length;	
 	}
 	
+	// This method generates LabeledPoint object needed by Mlib(spark) for fitting a regression model. 
 	public static class feature_value_pair_generation extends Function <String, LabeledPoint> {
 		
 		private static final long serialVersionUID = -7630223385777784923L;
@@ -62,12 +76,16 @@ public class Sliding_window_compression {
 	
 	}
 	
+	// This method is used to train a regression model on data segments using Mlib library from Spark on 
+	// LabeledPoint objects(containing feature and values) generated.
 	public segment_model train_model(JavaRDD<LabeledPoint> input, double tl, double tr) throws Exception{
 		
 		segment_model model_seg = new segment_model();
 		
 		List<LabeledPoint> training_data = input.collect();
 		
+		// Lasso regularization Regression method with Stochastic Gradient Descent has been used with default
+		// or user supplied parameters. 
 		LassoWithSGD m = new LassoWithSGD();
 		m.optimizer().setStepSize(step_size);
 		m.optimizer().setRegParam(0.0);
@@ -112,6 +130,8 @@ public class Sliding_window_compression {
 		
 	}
 	
+	// This function is the parent function calling all other functions in the correct order for compressing the 
+	// data after checking the arguements provided by users. 
 	public void compress(String args[]) throws Exception{
 		
 		if(args.length < 2){
