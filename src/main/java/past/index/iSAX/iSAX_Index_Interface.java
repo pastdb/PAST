@@ -38,4 +38,21 @@ public void configure_iSAX_index_RDD(JavaRDD<Integer> timestamp,JavaRDD<Double> 
 **/
 public void insert_raw_RDD(JavaRDD<Integer> timestamp,JavaRDD<Double> values, String ts_name, Path path);
 
+/** Run an approximate search for a smaller dataset in a larger dataset. The function returns the minimum distance for the given Timeseries
+* @param timestamp the RDD representing the timestamp of the timeseries
+* @param values the RDD representing the values of the timeseries
+* @param ts_name the name of the timeseries (it's unique identifier)
+* @param start start of interval for the timeseries
+* @param stop stop of interval for the timeseries
+**/
+public  double ApproximateSearchRDD(iSAX_Index index, JavaRDD<Integer> timestamp,JavaRDD<Double> values,String ts_name, int start, int stop);
+
+/** Run an exact search for a smaller dataset in a larger dataset. The function returns the minimum distance for the given Timeseries
+* @param timestamp the RDD representing the timestamp of the timeseries
+* @param values the RDD representing the values of the timeseries
+* @param ts_name the name of the timeseries (it's unique identifier)
+* @param start start of interval for the timeseries
+* @param stop stop of interval for the timeseries
+**/
+public  double ExactSearchRDD(iSAX_Index index, JavaRDD<Integer> timestamp,JavaRDD<Double> values, String ts_name, int start, int stop);
 }

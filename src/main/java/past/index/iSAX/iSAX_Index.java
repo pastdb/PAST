@@ -145,12 +145,18 @@ public void setTh(int threshold){
 	
 }
 //TODO check if index for TS already exists
-public static String getSAXString(Hashtable<Integer,Point> SAX){
+public static String getSAXString(Hashtable<Integer,Point> SAX,int card){
 	
 	Enumeration<Point> saxWordStruct = SAX.elements();
 	String saxWord="";
 		while(saxWordStruct.hasMoreElements()){
-			saxWord+=Integer.toBinaryString(saxWordStruct.nextElement().x);
+			String tmp=Integer.toBinaryString(saxWordStruct.nextElement().x);
+			if (tmp.length()==1){
+				for(int i=iSAX_dist_utils.log2(card)-1;i>0;i--){
+					saxWord+="0";
+				}
+			}
+			saxWord+=tmp;
 		}
 		
 	return saxWord;
@@ -212,7 +218,7 @@ public void insert_raw_RDD(JavaRDD<Integer> timestamp,JavaRDD<Double> values, St
 }
 private boolean insert(Hashtable<Integer,Point> SAX , Timeseries ts){
 
-String saxWord=iSAX_Index.getSAXString(SAX);
+String saxWord=iSAX_Index.getSAXString(SAX,cardinality);
 Path file = new Path(configPath,name);
 try{
 
@@ -252,6 +258,34 @@ return tree.insert(saxWord,ts.getName(),file,cardinality);
 
 public TreeNode getRoot(){	
 	return this.tree;
+}
+
+
+
+public static Timeseries convertRDD2Timseries(JavaRDD<Integer> timestamp,JavaRDD<Double>values,String ts_name){
+
+	List<Integer> timestamp_list = timestamp.collect();
+	List<Double> value_list = values.collect();
+	Hashtable<Integer,java.lang.Object> ts_data = new Hashtable<Integer,java.lang.Object>();
+	for(int i=0;i<timestamp_list.size();i++){
+		if(i%2==0)
+		ts_data.put(timestamp_list.get(i),value_list.get(i));
+
+	}
+	Hashtable<java.lang.String,Hashtable<Integer,java.lang.Object>> ts_hash= new Hashtable<java.lang.String,Hashtable<Integer,java.lang.Object>>();
+	ts_hash.put(ts_name,ts_data);
+	Timeseries t=new Timeseries(ts_name,ts_hash,DBType.DBInt32$.MODULE$);
+	return t;
+}
+public  double ExactSearchRDD(iSAX_Index index, JavaRDD<Integer> timestamp,JavaRDD<Double> values, String ts_name, int start, int stop){
+	Timeseries ts=iSAX_Index.convertRDD2Timseries(timestamp,values,ts_name);
+	return iSAXQuery.ExactSearch(index,ts,ts_name,start,stop);
+
+}
+public  double ApproximateSearchRDD(iSAX_Index index, JavaRDD<Integer> timestamp,JavaRDD<Double> values,String ts_name, int start, int stop){
+	Timeseries ts=iSAX_Index.convertRDD2Timseries(timestamp,values,ts_name);
+	return iSAXQuery.ApproximateSearch(index,ts,start,stop);
+
 }
 
 }

@@ -40,6 +40,9 @@ private int th;
 public static int th_max;
 private Path dataPath;  
 
+public int getCardinality(){
+	return cardinality;
+}
 public TreeNode(int cardinality, int word_len,NodeType t,int base_cardinality){
 	children=new TreeMap<String,TreeNode>();	
 	this.myType=t;
@@ -54,24 +57,13 @@ public TreeNode(int cardinality, int word_len,NodeType t,int base_cardinality){
 
 
 
-private int log2(int bits){
-	//return Math.log(x)/Math.log(2);
-	//System.out.println("BITS"+bits);
-	
-	int log = 0;
-    if( ( bits & 0xffff0000 ) != 0 ) { bits >>>= 16; log = 16; }
-    if( bits >= 256 ) { bits >>>= 8; log += 8; }
-    if( bits >= 16  ) { bits >>>= 4; log += 4; }
-    if( bits >= 4   ) { bits >>>= 2; log += 2; }
 
-    return log + ( bits >>> 1 );
-}
 
 
 protected String getSAXStringRep(String ts, int new_card,char c){
 	StringBuilder builder =new StringBuilder(ts);
 	   // System.out.println(log2(cardinality));
-	builder.insert(log2(cardinality), c);
+	builder.insert(iSAX_dist_utils.log2(cardinality), c);
 	
 	return builder.toString();
 }

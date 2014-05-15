@@ -45,8 +45,8 @@ String ts_names[]=new String[100];
 	for(int i=0;i<len;i++){
 		if(i%2==0)
 		ts_data.put(i+i*2,i*r.nextDouble());
-		//else
-		//ts_data.put(i+i*2,i/r.nextDouble());
+		else
+		ts_data.put(i+i*2,i/r.nextDouble());
 	}
 	Hashtable<java.lang.String,Hashtable<Integer,java.lang.Object>> ts_hash= new Hashtable<java.lang.String,Hashtable<Integer,java.lang.Object>>();
 	ts_hash.put(name2,ts_data);
@@ -113,25 +113,24 @@ public static void main(String args[]){
 		index.set_dataset(t1,sc);
 		if(index.build_index())
 			System.out.println("Index built successfully");
-			t1.setName("T2");
-		index.set_dataset(t1,sc);
-		if(index.insert_raw(t1)){
-			System.out.println("T2 added to index");
-		}
-		t1.setName("T3");
-		index.set_dataset(t1,sc);
-		if(index.insert_raw(t1)){
-			System.out.println("T2 added to index");
-		}
+		t1.setName("T2");
+		
+	//	t1.setName("T3");
+	//	index.set_dataset(t1,sc);
+	//	if(index.insert_raw(t1)){
+	//		System.out.println("T2 added to index");
+	//	}
 		System.out.println("Trying to find approximate matches to TS1");		
-		HashMap<String, Path> index_file = iSAXQuery.ApproximateSearch(index,t1,index.getStart(),index.getStop());
-		if(null!=index_file)
-			for (Map.Entry<String, Path> entry2 : index_file.entrySet()) {
-				System.out.println("TS::"+entry2.getKey().toString()+"::PATH::"+entry2.getValue().toString());
-			}		
-		else{
-			System.out.println("No matching file found");
-		}
+		//HashMap<String, Path> index_file = 
+		System.out.println("Closet distance="+iSAXQuery.ApproximateSearch(index,t2,index.getStart(),index.getStop()));
+		System.out.println("Exact distance="+iSAXQuery.ExactSearch(index,t2,t2.getName(),index.getStart(),index.getStop()));
+	//	if(null!=index_file)
+		//	for (Map.Entry<String, Path> entry2 : index_file.entrySet()) {
+		//		System.out.println("TS::"+entry2.getKey().toString()+"::PATH::"+entry2.getValue().toString());
+		//	}		
+	//	else{
+		//	System.out.println("No matching file found");
+		//}
 	  //  create_index(dimensions,cardinality);
 	   }catch (java.io.IOException e){
 	   	System.out.println (e);
