@@ -26,15 +26,15 @@ public class Command {
 		/* database */
 		"OPEN", "CLOSE", "RESTART", "SHOW", "DROP", "EXIST", "GET", "CREATE",
 		/* Time Serie */
-		"CREATE_SCHEMA", "SHOW_SCHEMA", "GET_SCHEMA", /*"INSERT",*/ "SELECT_RANGE", "MAX_VALUE", "MIN_VALUE",
+		"CREATE_SCHEMA", "SHOW_SCHEMA", "GET_SCHEMA", /*"INSERT",*/ /*"SELECT_RANGE",*/ "MAX_VALUE", "MIN_VALUE",
 		"SELECT", 
 		/* Transformations */
-		"SQRT TRANSFORM", "LOG TRANSFORM", "MEAN", "SHIFT", 
-		"SCALE", "STD DEVIATION", "NORMALIZE", "SEARCH", "MOVING AVERAGE", "DFT",
+		//"SQRT TRANSFORM","LOG TRANSFORM", "MEAN", "SHIFT", 
+		//"SCALE", "STD DEVIATION", "NORMALIZE", "SEARCH", "MOVING AVERAGE", "DFT",
 		/* Compression */
-		"COMPRESSION", "DECOMPRESSION",
+		"COMPRESSION", /*"DECOMPRESSION",*/
 		/* indexing */
-		"GET_INDEXING",
+		"CREATE_INDEX", "NEIGHBORS",
 		/* clustering */
 		
 		/* Forecasting */
@@ -132,11 +132,7 @@ public class Command {
 		case "MAX_VALUE" : ExecuteCommand.maxValue(Arrays.copyOfRange(userCommandLine, 1, size)); break;
 		/* find min value of timeSerie */
 		case "MIN_VALUE" : ExecuteCommand.minValue(Arrays.copyOfRange(userCommandLine, 1, size)); break;
-		/* find min timestamp of timeSerie */
-		case "MAX_TIMESTAMP" : break;
-		/* find max timestamp of timeSerie */
-		case "MIN_TIMESTAMP" : break;
-		
+				
 		
 		/* ************************************
 		 * Transformations
@@ -180,8 +176,11 @@ public class Command {
 		/* ************************************
 		 * indexing 
 		 *************************************/
-		case "SET_INDEXING" : break;
-		case "GET_INDEXING" : break;
+		
+		/* create index for many ts */
+		case "CREATE_INDEX" : ExecuteCommand.createIndex(Arrays.copyOfRange(userCommandLine, 1, size)); break;
+		/* return neighbors of a ts from the create index   */
+		case "NEIGHBORS" : break;
 		/* ************************************
 		 * clustering 
 		 *************************************/
@@ -189,6 +188,7 @@ public class Command {
 		/* ************************************
 		 * Application 
 		 *************************************/
+		case "CREATE_DNA" : break;
 		case "DNA_SIMILARITY" : ExecuteCommand.dnApplication(Arrays.copyOfRange(userCommandLine, 1, size)); break;
 		
 				

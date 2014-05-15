@@ -33,6 +33,7 @@ import scala.collection.immutable.List$;
 import scala.collection.mutable.ListBuffer;
 
 import past.storage.*;
+import past.index.*;
 
 
 /**
@@ -51,6 +52,7 @@ public class ExecuteCommand {
 	private static Map<String, Object > variable = new HashMap<String, Object >();
 	private static int varIndice = 0;
 	private static final String varName = "var";
+	private static Scanner scan = new Scanner(System.in);
 
 	/* spark context */
  	private static JavaSparkContext sc = null;
@@ -434,7 +436,7 @@ public class ExecuteCommand {
 			System.out.println("  name of timeserie already exist");
 		}
 		else if(size == 1 || size == 3) {
-			SchemaConstructor schemaCons = new SchemaConstructor("time", DBType.DBInt32$.MODULE$);
+			SchemaConstructor schemaCons = new SchemaConstructor("times", DBType.DBInt32$.MODULE$);
 			schemaCons.addField("data", DBType.DBInt32$.MODULE$);
 			Schema schema = schemaCons.get();
 			System.out.println(" schema : " + schema);
@@ -603,12 +605,11 @@ public class ExecuteCommand {
 					inputInsert[numberofFiles + 1] = v_name;
 				}
 				
+				//for(String s: inputInsert) System.out.println(s);
 				// create ts in database
 				if(createTS(inputCreateTS) != 0) throw new Exception();
-				System.out.println("- 1 -");
 				// insert input in database
 				if(insertDataFromFile(inputInsert) != 0) throw new Exception();
-				System.out.println("- 2 -");
 
 				System.out.println("  TimeSerie has been save in variable name " + v_name);
 
@@ -822,7 +823,7 @@ public class ExecuteCommand {
 		}
 		// find number of file use
 		else if(size > 2) {
-			for(int i=0; i<size-2; i++) {
+			for(int i=0; i<size-1; i++) {
 				// find the TO
 				if(userInput[i].toUpperCase().compareTo("TO") == 0) {
 					numberFiles = i;
@@ -843,7 +844,6 @@ public class ExecuteCommand {
 		else {
 			//save nothing (numberFile will be negative so it will end)
 		}
-		
 
 		//helper to not change code more
 		int m = numberFiles - 1;
@@ -958,20 +958,77 @@ public class ExecuteCommand {
 
 			/***************************
 			 *
-			 * upload with many files
+			 * upload files for DNA application
 			 *
 			 ***************************/
 			
 			// read file and load element and value of the timeserie
-			if(ts != null && !oneFile) {
+			if(ts != null && !oneFile && nameFile[0].compareTo("DNA") == 0) {
+
+				System.out.println("   creation DNA in timeserie");
 				File dir = new File(".");
 				File tsFile;
 				FileInputStream reader = null;
 				BufferedReader data = null;
 				
-				// TODO
-				System.out.println("   load many files not implmented yet, use one file with schema [time values]");
+				//only for DNA
+				//information a propos du schema
+				try {
 
+					tsFile = new File(dir.getCanonicalPath() + File.separator + nameFile[1]);
+					reader = new FileInputStream(tsFile);
+					data = new BufferedReader(new InputStreamReader(reader));
+
+					Schema schema = ts.schema();
+					int sizeSchema = schema.fields().size();
+					java.lang.Iterable<String> column_schema = scala2javaIterable(schema.fields().keys());
+					String column[] = iterable2array(column_schema);
+
+					String line = null;
+					String tmp[] = null;
+					@SuppressWarnings("unchecked")
+					ListBuffer<Integer> extractData[] = new ListBuffer[sizeSchema]; 
+					// extractData[0] -> times
+					// extractData[1] -> values
+					for(int i=0; i<sizeSchema; i++) extractData[i] = new ListBuffer<Integer>();
+
+					int memo = 0;
+					int TSnextValue = 0;
+					while ((line = data.readLine()) != null) {
+						line = line.replaceAll("\\s+","");
+							
+						if(line.compareTo("") == 0){}
+						else {
+							for(int i=0; i<line.length(); i++) {
+								memo += 1;
+								extractData[0].$plus$eq(new Integer(memo));
+								char chromozom = line.charAt(i);
+								TSnextValue += DNApplication.convertingDNA(Character.toString(chromozom));
+								extractData[1].$plus$eq(new Integer(TSnextValue));
+							}
+						}
+					}
+
+					ListBuffer<Tuple2<String, List<Integer>>> values = new ListBuffer<Tuple2<String, List<Integer>>> ();
+					for(int i=1; i<sizeSchema; i++) {
+						values.$plus$eq(new Tuple2<String, List<Integer>>(column[i], extractData[i].toList()));
+					}
+
+					//insert the content in the databaseIn
+					ts.insert(sc.sc(), extractData[0].toList(), values.toList());
+					
+					return 0;
+				}
+				catch (Exception e) {
+					System.out.println("   Reading data in file FAIL");
+				}
+				finally {
+					try {
+						if (reader != null) reader.close();
+						if (data != null) data.close();
+					}
+					catch(Exception e) {}
+				}
 			}
 
 		}
@@ -1030,7 +1087,6 @@ public class ExecuteCommand {
 
 			if(ts != null) {
 				try {
-					//JavaRDD<Integer> colum = new JavaRDD(ts.rangeQuery<Integer>(sc.sc(), columnName, ClassTag$.MODULE$.Int()));
 					JavaRDD<Integer> colum =  new JavaRDD(ts.rangeQueryI32(sc.sc(), columnName), ClassManifestFactory$.MODULE$.Int());
 
 					//save in the variable name
@@ -1423,9 +1479,128 @@ public class ExecuteCommand {
 	 * indexing 
 	 *************************************/
 
-	public static void indexing() {
-		
+	/**
+	 * CREATE INDEX
+	 * user input example: CREATE_INDEX (a demon will assist)
+	 * user input example: CREATE_INDEX FROM varTS1 ... varTSn (not implemented)
+	 */
+	public static void createIndex(String userInput[]) {
+		int size = userInput.length;
+
+		try {
+
+			if(size < 1 && db == null) {
+				System.out.println("  no database open");
+			}
+			else if(size < 1) {
+				// assiste the user
+
+				String TSlist[] = db.getTimeseries();
+							
+				if(TSlist.length == 0 ) {
+					System.out.println("   no TimeSeries in database"); 
+				}
+				else if(sc == null) {
+					System.out.println("  Spark is not start. To start spark, enter: startspark");
+				}
+				else {
+					
+					// compute dimension data for each TS
+					int datadimension[] = new int[TSlist.length];
+					for(int i=0; i<TSlist.length; i++) { 
+						Option<Timeseries> tmp = db.getTimeseries(TSlist[i]);
+						Timeseries tserie = tmp.get();
+						JavaRDD<Integer> colum =  new JavaRDD(tserie.rangeQueryI32(sc.sc(), "data"), ClassManifestFactory$.MODULE$.Int()); 
+						datadimension[i] = (int)colum.count();
+					}
+					// select TS
+					Integer choicesTS[];
+					System.out.println("  Select your timeserie with same dimension (q to end the choice) :");
+					for(int i=0; i<TSlist.length; i++) {
+						System.out.println("    [" + i + "] " + TSlist[i] + "  (dimension='" + datadimension[i] + "'')");
+					}
+					choicesTS = userChoices(0, TSlist.length - 1);
+
+					// check datadimension all the same
+					boolean sameDimension = true;
+					for(int i=0; i<choicesTS.length; i++) {
+						for(int j=0; j<choicesTS.length; j++) { 
+							if(datadimension[(int)choicesTS[i]] != datadimension[(int)choicesTS[j]]) {
+								sameDimension = false;
+								break;
+							}
+						}
+						if(!sameDimension) break;
+					}
+
+					if(!sameDimension) {
+						System.out.println("   timeseries you choose is not the same dimension");
+						throw new Exception();
+					}
+					
+					// select column for each TS
+					Schema schema = null;
+					String columnNames[] = new String[choicesTS.length];
+					Timeseries ts[] = new Timeseries[choicesTS.length];
+					for(int i=0; i< choicesTS.length; i++) {
+						//save ts
+						Option<Timeseries> tmp = db.getTimeseries(TSlist[choicesTS[i]]);
+						ts[i] = tmp.get();
+						//take column of ts
+						schema = ts[i].schema();
+						int sizeSchema = schema.fields().size();
+						java.lang.Iterable<String> column_schema = scala2javaIterable(schema.fields().keys());
+						String column[] = iterable2array(column_schema);
+						System.out.println("  Select your column for timeserie " + ts[i].name());
+
+						System.out.println("size column : " + column.length);
+						for(int j=0; j<column.length; j++) {
+							System.out.println("    [" + j + "] " + column[j]);
+						}	
+						columnNames[i] = column[userOneChoice(0, column.length - 1)];
+					}
+					System.out.println("   test"); 
+
+					// do index and save that user will use it
+					RTreeIndexConf conf = new RTreeIndexConf(sc, ts, columnNames, datadimension[0]);
+					System.out.println("   test1"); 
+					DatabaseIndex index = new RTreeIndex(conf);
+					System.out.println("   test2"); 
+					index.buildIndex();
+					System.out.println("   test3"); 
+
+					String v_name = null;
+					do {
+						varIndice += 1;	
+						v_name = "index" + varIndice;
+					}
+					while(variable.keySet().contains(v_name));
+
+					variable.put(v_name, index);
+					System.out.println("  indexing has been created and saved in variable name " + v_name);	
+				}
+			}
+			else if(size > 1 && userInput[0].toUpperCase().compareTo("FROM") != 0) {
+				System.out.println("  you forget to put 'WITH'");
+				System.out.println("  user: CREATE_INDEX FROM varTS1 ... varTSn or only CREATE_INDEX to be assisted");
+			}
+			else {
+				// mode expert
+				int nbFiles = size - 1;
+				// TODO
+				System.out.println("   expert mode not implmented yet");
+			}
+		}
+		catch(Exception e) {
+			System.out.println("   Create indexing FAIL");
+			System.out.println(e);
+		}
 	}
+
+	/**
+	 *
+	 *
+	 */
 
 	/* ************************************
 	 * clustering 
@@ -1464,12 +1639,12 @@ public class ExecuteCommand {
 			Object ob1 = variable.get(name_dna1);
 			Object ob2 = variable.get(name_dna2);
 
-			JavaRDD<String> dna1 = null;
-			JavaRDD<String> dna2 = null;
+			JavaRDD<Integer> dna1 = null;
+			JavaRDD<Integer> dna2 = null;
 
 			try {
-				dna1 = (JavaRDD<String>)ob1;
-				dna2 = (JavaRDD<String>)ob2;
+				dna1 = (JavaRDD<Integer>)ob1;
+				dna2 = (JavaRDD<Integer>)ob2;
 			}
 			catch(Exception e) {
 				System.out.println("  the variable is not a RDD");
@@ -1479,7 +1654,7 @@ public class ExecuteCommand {
 
 				try {
 					startSpark();
-					DNApplication.DNAsimilarity(sc, dna1, dna2);	
+					DNApplication.startSimDNA(sc, dna1, dna2);	
 				}
 				catch(Exception e){
 					System.out.println("  FAIL in DNA similarity");
@@ -1583,4 +1758,75 @@ public class ExecuteCommand {
       		else return 0;
     	}
   	};
+
+  	/*
+  	 * choice input user
+  	 */
+  	private static Integer[] userChoices(int startInterval_, int stopInteval_) {
+  		
+		
+		ArrayList<Integer> choices = new ArrayList<Integer>();
+		String line;
+		boolean continous = true;
+		while(continous) {
+			//System.out.println("   enter (q to quit): ");
+			line = scan.nextLine().trim();
+			
+			if(line.length() == 0) { /* do nothing */ }
+			else if(line.length() < 1 || line.length() > 1) {
+				System.out.println("   invalid input");
+			}
+			else if(line.charAt(0) == 'q') {
+				continous = false;
+			}
+			else if(!Character.isDigit(line.charAt(0)) ) {
+				System.out.println("   not a digit");
+			}
+			else if(Integer.parseInt(Character.toString(line.charAt(0))) >= startInterval_ && Integer.parseInt(Character.toString(line.charAt(0))) <= stopInteval_) {
+				choices.add(Integer.parseInt(Character.toString(line.charAt(0))));
+				System.out.println(   " your choose:" + Integer.parseInt(Character.toString(line.charAt(0))));
+			}
+			else {
+				System.out.println("   no valid choice");
+			}
+		}
+		//sc.close();
+		Integer result[] = new Integer[choices.size()];
+		choices.toArray(result);
+		return result;
+  	}
+
+  	/*
+  	 * one choice input user
+  	 */
+  	private static int userOneChoice(int startInterval_, int stopInteval_) {
+
+ 		
+		int result = -1;
+		String line = "";
+		boolean continous = true;
+
+		while(continous) {
+			//System.out.println("   enter (q to quit): ");
+			line = scan.nextLine().trim();
+			
+			if(line.length() == 0) { System.out.println("   test4"); /* do nothing */ }
+			else if(line.length() < 1 || line.length() > 1) {
+				System.out.println("   invalid input");
+			}
+			else if(!Character.isDigit(line.charAt(0)) ) {
+				System.out.println("   not a digit");
+			}
+			else if(Integer.parseInt(Character.toString(line.charAt(0))) >= startInterval_ && Integer.parseInt(Character.toString(line.charAt(0))) <= stopInteval_) {
+				result = Integer.parseInt(Character.toString(line.charAt(0)));
+				continous = false;
+			}
+			else {
+				System.out.println("   no valid choice");
+			}
+		}
+		//sc.close();
+		return result;
+  
+  	}
 }

@@ -24,19 +24,92 @@ public class DNApplication {
 	private static final Pattern SPACE = Pattern.compile(" ");
 
 
+
+	/**
+	 * method to do a brut force similairty DNA
+	 */
+	public static void startSimDNA(JavaSparkContext sc_, JavaRDD<Integer> dna_, JavaRDD<Integer> dnaWanted_) {
+        JavaRDD<Integer> rdd1 = dna_;		
+    	JavaRDD<Integer> rdd2 = dnaWanted_;	
+
+    	
+    	List<String> DNAwanted = ts2DNA(rdd2.collect());
+     	List<String> data = ts2DNA(rdd1.collect());
+
+     	DNAsimilarity(sc_, data, DNAwanted);
+    }
+
+    /**
+     * convert string to ts (int)
+     */
+    public static List<String> ts2DNA(List<Integer> dna) {
+    	int size = dna.size();
+    	String ts[] = new String[size];
+
+    	for(int i=0; i<size; i++) {
+    		if(i==0) ts[i] = char2intDNA(dna.get(i));
+    		else {
+    			ts[i] = char2intDNA(dna.get(i) - dna.get(i-1) );
+    		}
+    	}	
+    	return Arrays.asList(ts);
+    }
+
+    /**
+     * convert ts(int) to string
+     */
+    public static List<Integer> DNA2ts(List<String> dna) {
+    	int size = dna.size();
+    	Integer ts[] = new Integer[size];
+    	
+    	for(int i=0; i<size; i++) {
+    		if(i==0) ts[i] = convertingDNA(dna.get(i));
+    		else ts[i] = ts[i-1] + convertingDNA(dna.get(i));
+    	}	
+    	return Arrays.asList(ts);
+    }
+
+    /*
+     * convert weight of chromozome (string to int)
+     */
+    public static int convertingDNA (String s) {
+    	switch(s) {
+    		case "a": return 2;
+    		case "g": return 1;
+    		case "c": return -1;
+    		case "t": return -2;
+    		default: return 0;
+    	}
+    }
+
+    /*
+     * convert weight of chromozome (int to string)
+     */
+    private static String char2intDNA (int n) {
+    	switch(n) {
+    		case 2: return "a";
+    		case 1: return "g";
+    		case -1: return "c";
+    		case -2: return "t";
+    		default: return "_";
+    	}
+    }
+
+
+
     /**
      * method to do a brut force similarity 
      * sliding windows on the time serie in integer or double values
      *
      * @param javaSparkContext
      */
-    public static void DNAsimilarity(JavaSparkContext sc_, JavaRDD<String> dna_, JavaRDD<String> dnaWanted_) {
-        JavaRDD<String> rdd1 = dna_;		//sc_.parallelize(Arrays.asList( "a", "g", "c", "t", "a"));
-    	JavaRDD<String> rdd2 = dnaWanted_;	//sc_.parallelize(Arrays.asList( "g", "c"));
+    private static void DNAsimilarity(JavaSparkContext sc_, List<String> dna_, List<String> dnaWanted_) {
+        //JavaRDD<String> rdd1 = dna_;		//sc_.parallelize(Arrays.asList( "a", "g", "c", "t", "a"));
+    	//JavaRDD<String> rdd2 = dnaWanted_;	//sc_.parallelize(Arrays.asList( "g", "c"));
 
     	// genere each combinaison of DNA
-    	List<String> DNAwanted = rdd2.collect();
-     	List<String> data = rdd1.collect();
+    	List<String> DNAwanted = dna_; //rdd2.collect();
+     	List<String> data = dnaWanted_;//rdd1.collect();
      	int DNAwanted_size = (int)DNAwanted.size();
      	List<Tuple2<Integer, Vector>> slidingWindows = DNAslideWindows(slideWindows(data, DNAwanted_size));
     	
@@ -140,18 +213,6 @@ public class DNApplication {
     	return new Vector(ts);
     }
 
-    /*
-     * convert weight of chromozome
-     */
-    private static int convertingDNA (String s) {
-    	switch(s) {
-    		case "a": return 2;
-    		case "g": return 1;
-    		case "c": return -1;
-    		case "t": return -2;
-    		default: return 0;
-    	}
-    }
 
     /*
      * list all the windows (slide Windows) keeping the position

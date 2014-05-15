@@ -40,7 +40,7 @@ public class Past {
 		/*
 		 * execute spark 
 		 */
-		//ExecuteCommand.startSpark();
+		ExecuteCommand.startSpark();
 
 		/* 
 		 * welcome message 
