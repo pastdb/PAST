@@ -69,13 +69,17 @@ public class ExecuteCommand {
 		}
 		else {
 			for (String key: variable.keySet()) {
+				if(variable.get(key) == null) {
+					variable.remove(key);
+					continue;
+				}
 				System.out.println("   key : " + key + " - value : " + variable.get(key));
 			}
 		}
 	}
 
 	/**
-	 * delect one variable in memory
+	 * DELECT one variable in memory
 	 * user input example: DEL nameVariable
 	 * 
 	 * @param array of userinput parameter
@@ -103,7 +107,7 @@ public class ExecuteCommand {
 	}
 
 	/**
-	 * rename one variable in memory
+	 * RENAME one variable in memory
 	 * user input exxample: RENAME varName newVarName
 	 * 
 	 * @param array of userinput parameter
@@ -134,7 +138,7 @@ public class ExecuteCommand {
 	}
 
 	/**
-	 * start spark
+	 * START spark
 	 * user input example: STARTSPARK
 	 */
 	public static void startSpark() {
@@ -143,11 +147,12 @@ public class ExecuteCommand {
 		}
 		else {
 			sc = new JavaSparkContext("local", "PAST");
+			System.out.println("  spark has started");
 		}
 	}
 
 	/**
-	 * stop spark
+	 * STOP spark
 	 * user input example: STOPSPARK
 	 */
 	public static void stopSpark() {
@@ -157,7 +162,20 @@ public class ExecuteCommand {
 		else {
 			sc.stop();
 			sc = null;
+			System.out.println("  spark has stoped");
 		}
+	}
+
+	/*
+	 * EXIT framework
+	 */
+	public static boolean exit() {
+		if(sc != null) {
+			sc.stop();
+			sc = null;
+			System.out.println("  spark has stoped");
+		}
+		return false;
 	}
 
 	/* ************************************
@@ -226,6 +244,33 @@ public class ExecuteCommand {
 		}
 	}
 
+	/*
+	 * RESTART database
+	 */
+	public static void restartDB() {
+		if(db == null) {
+			System.out.println("  no database open");
+		}
+		else {
+			try {
+				/* fileSystem (hadoop) */
+				FileSystem hadoopFS = FileSystem.get(new URI("file:///tmp"), new Configuration());
+
+				/* path for config (hadoop) */
+				String currentDir = System.getProperty("user.dir");
+				Path path = new Path(currentDir);
+				Map mapConfig = new HashMap();
+				mapConfig.put("path", path.toString());
+
+				/* config (hadoop) */
+				Config config = ConfigFactory.parseMap(mapConfig);
+				db = new Database(nameDB, hadoopFS, config);
+				System.out.println("  database name " + nameDB + ": restart");
+			} 
+			catch(Exception e) {}	
+		}
+	}
+
 	/**
 	 * SHOW list of timeSeries 
 	 * user input example: SHOW
@@ -264,15 +309,25 @@ public class ExecuteCommand {
 		else if(size != 1) {
 			System.out.println("  input must be : DROP 'name of timeSerie' ");
 		} 
+		else if(!db.hasTimeseries(userInput[0])) {
+			System.out.println("  no found timeserie");
+		}
 		else {
+			
 			String nameTS = userInput[0];
-			if(!db.hasTimeseries(nameTS)) {
-				System.out.println("  no found timeserie");
+				
+			try {
+				File dir = new File(".");
+				File tsFile;
+				tsFile = new File(dir.getCanonicalPath() + File.separator + nameDB + File.separator + "timeseries" + File.separator + nameTS);
+				System.out.println(dir.getCanonicalPath() + File.separator + nameDB + File.separator + "timeseries" + File.separator + nameTS);	
+
+				delete(tsFile);
+				restartDB();
+				System.out.println("   " + nameTS + " is deleted!");
+    			
 			}
-			else {
-				// TODO
-				System.out.println("  right now, no DROP of timeSerie is possible ");
-			}
+			catch(Exception f) {}
 		}
 	}
 
@@ -491,6 +546,9 @@ public class ExecuteCommand {
 		else if(size < 3 || pos_from != 1) {
 			System.out.println("  input must be : CREATE nameTS FROM files [ WITH Schema ] [ : nameVariable ]");
 		}
+		else if(sc == null) {
+			System.out.println("  Spark is not start. To start spark, enter: sparkStart");
+		}
 		else {
 			try {
 				// our input CREATE nameTS FROM files [ WITH Schema] [: nameVariable] 
@@ -547,21 +605,24 @@ public class ExecuteCommand {
 				
 				// create ts in database
 				if(createTS(inputCreateTS) != 0) throw new Exception();
+				System.out.println("- 1 -");
 				// insert input in database
 				if(insertDataFromFile(inputInsert) != 0) throw new Exception();
+				System.out.println("- 2 -");
 
 				System.out.println("  TimeSerie has been save in variable name " + v_name);
 
 			}
 			catch(Exception e) {
-				System.out.println("  Create TimeSerie FAIL: remove create file ");
+				System.out.println("  Create TimeSerie FAIL: check name of files");
 				// remove create file 
 				try {
 					if(variable.keySet().contains(v_name)) variable.remove(v_name);
 					File dir = new File(".");
 					File tsFile;
-					tsFile = new File(dir.getCanonicalPath() + File.separator + nameDB + File.separator + nameTS);
-					tsFile.delete();
+					tsFile = new File(dir.getCanonicalPath() + File.separator + nameDB + File.separator + "timeseries" + File.separator + nameTS);
+					delete(tsFile);
+					restartDB();
 				}
 				catch(Exception f) {}
 			}
@@ -655,7 +716,7 @@ public class ExecuteCommand {
 		}
 
 		if(size != 1) {
-			System.out.println("  input must be : GET_SCHEMA nameVariable");
+			System.out.println("  input must be : SHOW_SCHEMA nameVariable");
 		} 
 		else if(!variable.keySet().contains(nameTS)) {
 			System.out.println("  Timeserie or schema not found");
@@ -909,6 +970,8 @@ public class ExecuteCommand {
 				BufferedReader data = null;
 				
 				// TODO
+				System.out.println("   load many files not implmented yet, use one file with schema [time values]");
+
 			}
 
 		}
@@ -976,7 +1039,7 @@ public class ExecuteCommand {
 					System.out.println("  data to the timeserie has been implemented and saved in variable name " + v_name);	
 				}
 				catch (Exception e) {
-					System.out.println("   retrieve content of a colum fail");
+					System.out.println("   retrieve content of a colum fail, bad name column ?");
 				}
 				
 			}
@@ -1054,39 +1117,27 @@ public class ExecuteCommand {
 			}
 
 			if(ts != null) {
-				JavaRDD<Integer> rdd = null;
+				JavaRDD<Integer> colum = null;
 				try {
-
-					// TODO
-
-
-
-
-
-
-					// TODO
-					rdd = null;//new JavaRDD(ts.rangeQuery(sc.sc(), columnName));
-					
+					// take column of the timeserie
+					colum =  new JavaRDD(ts.rangeQueryI32(sc.sc(), columnName), ClassManifestFactory$.MODULE$.Int());				
 				}
 				catch (Exception e) {
-					System.out.println("   retrieve content of a colum fail");
+					System.out.println("   access content of a colum fail");
 				}
 				
-				if(rdd != null) {
+				if(colum != null) {
 
-					int max = rdd.reduce(new org.apache.spark.api.java.function.Function2<Integer, Integer, Integer>() {
+					int max = colum.reduce(new org.apache.spark.api.java.function.Function2<Integer, Integer, Integer>() {
 						public Integer call(Integer a, Integer b) {
 							return (a>b) ? a : b;
 						}
 					});
 					System.out.println("  max Value = " + max);
 				}
-				
 			}
 		}
 	}
-
-
 
 	/**
 	 * MIN_VALUE of a timeserie
@@ -1137,12 +1188,12 @@ public class ExecuteCommand {
 			}
 
 			if(rdd != null) {
-				int max = rdd.reduce(new org.apache.spark.api.java.function.Function2<Integer, Integer, Integer>() {
+				int min = rdd.reduce(new org.apache.spark.api.java.function.Function2<Integer, Integer, Integer>() {
 					public Integer call(Integer a, Integer b) {
 						return (a<b) ? a : b;
 					}
 				});
-				System.out.println("  min Value = " + max);
+				System.out.println("  min Value = " + min);
 			}
 
 		}
@@ -1157,36 +1208,27 @@ public class ExecuteCommand {
 			}
 
 			if(ts != null) {
-				JavaRDD<Integer> rdd = null;
+				JavaRDD<Integer> colum = null;
 				try {
-
-					// TODO
-
-
-
-
-
-					// TODO
-					rdd = null;//new JavaRDD(ts.rangeQuery(sc.sc(), columnName));
-					
+					// take column of the timeserie
+					colum =  new JavaRDD(ts.rangeQueryI32(sc.sc(), columnName), ClassManifestFactory$.MODULE$.Int());				
 				}
 				catch (Exception e) {
-					System.out.println("   retrieve content of a colum fail");
+					System.out.println("   access content of a colum fail");
 				}
 				
-				if(rdd != null) {
-					int max = rdd.reduce(new org.apache.spark.api.java.function.Function2<Integer, Integer, Integer>() {
+				if(colum != null) {
+
+					int min = colum.reduce(new org.apache.spark.api.java.function.Function2<Integer, Integer, Integer>() {
 						public Integer call(Integer a, Integer b) {
 							return (a<b) ? a : b;
 						}
 					});
-					System.out.println("  max Value = " + max);
+					System.out.println("  min Value = " + min);
 				}
-				
 			}
 		}
 	}
-
 
 
 	/*
@@ -1213,7 +1255,7 @@ public class ExecuteCommand {
 	/**
 	 * COMPRESSION of a timeserie
 	 * user input example: COMPRESSION nameTS WITH [regression, APCA , demon]
-	 * user input example: COMPRESSION nameTS (default parameter)
+	 * user input example: COMPRESSION nameTS (launch demon parameter config)
 	 *
 	 * @param array of userinput parameter
 	 */
@@ -1232,7 +1274,8 @@ public class ExecuteCommand {
 		}
 
 		if(size < 1 || size > 3 || size == 2) {
-			System.out.println("  input must be : COMPRESSION nameTS [WITH regression, APCA] ");
+			System.out.println("  input must be : COMPRESSION nameTS WITH [regression, APCA] ");
+			System.out.println("  with more parameter : COMPRESSION nameTS (it will launch demon parameter config) ");
 		}
 		else if(size == 3 && userInput[1].toUpperCase().compareTo("WITH") != 0) {
 			System.out.println("  you forget to put 'WITH'");	
@@ -1248,9 +1291,131 @@ public class ExecuteCommand {
 		}
 		else if(size == 3) {
 			// do compression with default parameter
+			switch(parameter.toUpperCase()) {
+				case "APCA": break;
+				case "REGRESSION": break;
+				default: System.out.println("  bad parameter, user: [regression or APCA]");
+			}
 		}
 		else {
-			// do a demon to choose parameter
+			// default parameter
+			String compression_type = "regression";
+			String feature_type = "polynomial";
+			int max_MAE = 20;
+			int min_seg_length = 2;
+			int degree = 2;
+			int partition = 0;
+			int aPCA_seg_cont = 10000;
+
+			System.out.println("  -- config parameter compression -- ");
+			Scanner sc = new Scanner(System.in);
+			int choice = 0;
+			int input = -1;
+
+			// compression type
+			try {
+				System.out.println("  choose compression type [0]: ");				
+				System.out.println("   [0]: regression");
+				System.out.println("   [1]: APCA");	
+				choice = sc.nextInt();				
+			} 
+			catch (Exception e) {
+				choice = 0;
+			}
+			switch(choice) {
+				case 0: compression_type = "regression";
+				case 1: compression_type = "APCA";
+				default: compression_type = "regression";
+			}
+
+			// feature type
+			try {
+				System.out.println("  choose feature type [0]: ");				
+				System.out.println("   [0]: polynomial");
+				System.out.println("   [1]: time");	
+				choice = sc.nextInt();				
+			} 
+			catch (Exception e) {
+				choice = 0;
+			}
+			switch(choice) {
+				case 0: feature_type = "polynomial";
+				case 1: feature_type = "time";
+				default: feature_type = "polynomial";
+			}
+
+			// fmax MAE
+			try {
+				System.out.println("  enter max MAE [20]: ");				
+				input = sc.nextInt();	
+				choice = 1;			
+			} 
+			catch (Exception e) {
+				choice = -1;
+			}
+			switch(choice) {
+				case 1: max_MAE = input;
+				default: max_MAE = 20;
+			}
+
+			// min_seg_length
+			try {
+				System.out.println("  enter min seg length [2]: ");				
+				input = sc.nextInt();	
+				choice = 1;			
+			} 
+			catch (Exception e) {
+				choice = -1;
+			}
+			switch(choice) {
+				case 1: min_seg_length = input;
+				default: min_seg_length = 2;
+			}
+
+			// degree
+			try {
+				System.out.println("  enter degree [2]: ");				
+				input = sc.nextInt();	
+				choice = 1;			
+			} 
+			catch (Exception e) {
+				choice = -1;
+			}
+			switch(choice) {
+				case 1: degree = input;
+				default: degree = 2;
+			}
+
+			// partitions
+			try {
+				System.out.println("  enter partitions [0]: ");				
+				input = sc.nextInt();	
+				choice = 1;			
+			} 
+			catch (Exception e) {
+				choice = -1;
+			}
+			switch(choice) {
+				case 1: partition = input;
+				default: partition = 0;
+			}
+
+			// aPCA_seg_cont
+			try {
+				System.out.println("  enter APCA seg cont [10000]: ");				
+				input = sc.nextInt();	
+				choice = 1;			
+			} 
+			catch (Exception e) {
+				choice = -1;
+			}
+			switch(choice) {
+				case 1: aPCA_seg_cont = input;
+				default: aPCA_seg_cont = 10000;
+			}
+
+
+
 		}
 	}
 
@@ -1258,7 +1423,9 @@ public class ExecuteCommand {
 	 * indexing 
 	 *************************************/
 
-
+	public static void indexing() {
+		
+	}
 
 	/* ************************************
 	 * clustering 
@@ -1269,12 +1436,56 @@ public class ExecuteCommand {
 	 *************************************/
 
 	/**
-	 * Test the application
+	 * DNA_SIMILARITY BETWEEN dna1 AND dna2 (brutforce)
+	 * user input example: DNA_SIMILARITY BETWEEN dna1 AND dna2
 	 */
-	public static void testApplication() {
-		startSpark();
-		DNApplication.test(sc);
+	public static void dnApplication(String userInput[]) {
+		int size = userInput.length;
 
+		if(size != 4) {
+			System.out.println("  input must be : DNA_SIMILARITY BETWEEN dna1 AND dna2");
+		}
+		else if(userInput[0].toUpperCase().compareTo("BETWEEN") != 0) {
+			System.out.println("  you forget to put 'BETWEEN'");	
+		}
+		else if(userInput[2].toUpperCase().compareTo("AND") != 0) {
+			System.out.println("  you forget to put 'AND'");	
+		}
+		else if(!variable.keySet().contains(userInput[1])) {
+			System.out.println("  no found timeserie (RDD). To get a RDD use : SELECT colum FROM nameTS");
+		}
+		else if(!variable.keySet().contains(userInput[3])) {
+			System.out.println("  no found timeserie (RDD). To get a RDD use : SELECT colum FROM nameTS");
+		}
+		else {
+			String name_dna1 = userInput[1];
+			String name_dna2 = userInput[3];
+
+			Object ob1 = variable.get(name_dna1);
+			Object ob2 = variable.get(name_dna2);
+
+			JavaRDD<String> dna1 = null;
+			JavaRDD<String> dna2 = null;
+
+			try {
+				dna1 = (JavaRDD<String>)ob1;
+				dna2 = (JavaRDD<String>)ob2;
+			}
+			catch(Exception e) {
+				System.out.println("  the variable is not a RDD");
+			}
+
+			if(dna1 != null && dna2 != null) {
+
+				try {
+					startSpark();
+					DNApplication.DNAsimilarity(sc, dna1, dna2);	
+				}
+				catch(Exception e){
+					System.out.println("  FAIL in DNA similarity");
+				}
+			}	
+		}
 	}
 
 
@@ -1322,6 +1533,36 @@ public class ExecuteCommand {
 					
     }
 
+    /*
+     * delect a directory or a file
+     */
+    private static void delete(File file)throws Exception{
+ 		// it s a directory
+    	if(file.isDirectory()){
+     		// directory empty
+    		if(file.list().length==0) file.delete(); 	 
+    		// directory non empty
+    		else{
+        	   	String filesList[] = file.list();
+ 
+ 				// recursive delect file or folder
+        	   	for (String childFile : filesList) {
+        	      	File file2Delete = new File(file, childFile);
+        	    	delete(file2Delete);
+        	   	}
+ 
+        	   	// directory is now emty
+        	   	if(file.list().length==0) file.delete();  
+    		}
+ 
+    	}
+    	// it a file and not a directory
+    	else file.delete();
+    }
+
+    /*
+     * normal int comparator
+     */
     static class NormalIntComparator implements Comparator<Integer>, Serializable {
     	@Override
     	public int compare(Integer a, Integer b) {
@@ -1331,6 +1572,9 @@ public class ExecuteCommand {
     	}
   	};
 
+  	/*
+  	 * reverse int comparator
+  	 */
     static class ReverseIntComparator implements Comparator<Integer>, Serializable {
     	@Override
     	public int compare(Integer a, Integer b) {

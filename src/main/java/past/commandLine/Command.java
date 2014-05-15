@@ -24,7 +24,7 @@ public class Command {
 		/* standard commands */
 		"QUIT", "EXIT", "HELP", "VAR", "DEL", "RENAME", "STOPSPARK", "STARTSPARK",
 		/* database */
-		"USE", "OPEN", "CLOSE", "SHOW", "DROP", "EXIST", "GET", "CREATE",
+		"OPEN", "CLOSE", "RESTART", "SHOW", "DROP", "EXIST", "GET", "CREATE",
 		/* Time Serie */
 		"CREATE_SCHEMA", "SHOW_SCHEMA", "GET_SCHEMA", /*"INSERT",*/ "SELECT_RANGE", "MAX_VALUE", "MIN_VALUE",
 		"SELECT", 
@@ -40,7 +40,7 @@ public class Command {
 		/* Forecasting */
 
 		/* Application */
-		"SIM",
+		"DNA_SIMILARITY",
 	};
 
 	/* help to use contain */
@@ -81,8 +81,8 @@ public class Command {
 		 * standard commands
 		 *************************************/
 		
-		case "QUIT": return false;
-		case "EXIT": return false;
+		case "QUIT": return ExecuteCommand.exit();
+		case "EXIT": return ExecuteCommand.exit();
 		case "HELP": help( (size > 1) ? userCommandLine[1].trim() : ""); break;
 		case "VAR": ExecuteCommand.showVar(); break;
 		case "DEL" : ExecuteCommand.delVar(Arrays.copyOfRange(userCommandLine, 1, size)); break;
@@ -95,10 +95,11 @@ public class Command {
 		 *************************************/ 
 		
 		/* open database(name: String, filesystem: FileSystem, conf: Config) */
-		case "USE" : break;
 		case "OPEN" : ExecuteCommand.openDB(Arrays.copyOfRange(userCommandLine, 1, size)); break;
 		/* close database */
 		case "CLOSE" : ExecuteCommand.closeDB(); break;
+		/* restart database */
+		case "RESTART" : ExecuteCommand.restartDB(); break;
 		/* show list of TimeSeries */
 		case "SHOW" : ExecuteCommand.showTS(); break;
 		/* drop a timeSeries */
@@ -188,7 +189,7 @@ public class Command {
 		/* ************************************
 		 * Application 
 		 *************************************/
-		case "SIM" : ExecuteCommand.testApplication(); break;
+		case "DNA_SIMILARITY" : ExecuteCommand.dnApplication(Arrays.copyOfRange(userCommandLine, 1, size)); break;
 		
 				
 		default: System.out.println("oups it may have a code error");

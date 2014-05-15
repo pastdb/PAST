@@ -22,7 +22,26 @@ public class Past {
 			System.err.println("No console.");
             System.exit(1);
 		}
-		
+
+		/*
+		 * post welcome message
+		 */
+		System.out.println("*************  LOADING  **************\n");
+		System.out.println("       ****  ****  **** *****");
+		System.out.println("       *  *  *  *  *      *");
+		System.out.println("       ****  ****  ****   *");
+		System.out.println("       *     *  *     *   *");
+		System.out.println("       *     *  *  ****   *\n");
+		System.out.println("Processing And Storage of Time series");
+		System.out.println("**************************************");
+		System.out.println("************   LOADING   *************");
+		System.out.println("**************************************");
+
+		/*
+		 * execute spark 
+		 */
+		//ExecuteCommand.startSpark();
+
 		/* 
 		 * welcome message 
 		 */
@@ -31,9 +50,13 @@ public class Past {
 		System.out.println("      *  *  *  *  *      *");
 		System.out.println("      ****  ****  ****   *");
 		System.out.println("      *     *  *     *   *");
-		System.out.println("      *     *  *  ****   *");
+		System.out.println("      *     *  *  ****   *\n");
 		System.out.println("Processing And Storage of Time series");
-		System.out.println("Big Data Project v0.1 \n\n --> Type help for more information.\n\n");
+		System.out.println("**************************************");
+		System.out.println("      **************************");
+		System.out.println("            **************");
+		System.out.println("        Big Data Project v0.1 \n\n" );
+		System.out.println("--> Type help for more information.\n\n");
 		
 		/*
 		 * isContinue: console continue until quit 
