@@ -11,16 +11,17 @@ import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
-public class DNA {
+public class dna {
 
 	public static class Map extends
 			Mapper<LongWritable, Text, Text, IntWritable> {
-		private final static IntWritable one = new IntWritable(1);
+		private static IntWritable one = new IntWritable(1);
 		private Text word = new Text();
 
 		public void map(LongWritable key, Text value, Context context)
 				throws IOException, InterruptedException {
 			String line = value.toString();
+			
 			StringTokenizer tokenizer = new StringTokenizer(line);
 
 			String toFind = "GGCAATGGCCAGGATATTAGAACAGTACTCTGTGAACCCTATTTATGGTAGCACCCCTTAGACTAAGATAACACAGGGAGCAAGAGGTTGACAGGAAAGCCAGGGGAGCAGGGAAGCCTCCTGTAAAGAGAGAAGTGCTAAGTCTCCTTTCTAAGGCACATGATGGATTCAAGGGAAAGTCACATTTGACTAAAGCCCAAGGGATTGTTGCTTCTAATCCGATTCTTGGCAGAAGATATTGCAAACTAAGAGTCAGATTAATATGTGGGTGCCAAAATAAATAAACAAATAATTGAATAATCCCTGGAGGTTTAAGTGAGGAGAAACTCCTCCACAGCTTGCTACCGAGGCAGAACCGGTTGAAACTGAAATGCACCCGCTGCCAGAGGATCTGTAAAAGGGAGGTTGTTACCGAACTGGCAACTGCCAACCAAAGTCTACCAATGGACAAGCAAAAAAGAGCACTCATCTCATGCTCCCAAGGATCAACCTTCCCAGAATTTTCACTTAAGTGGCCACCAAGCCAGTTGTCAATCCAGGGCTTTGGACTGAAATCTAGGGCTTCATCCACTACCTCAGAGTGTCTTCCATTTCTTCCAGCCAGTGACAAATACAACAAACATCTGAGATGTTTTAGCTATAAATCCTTTACAATTGTTATTTATGTCTTAACTTTTGTTATACCTGGAAAAGTAGGGGAAACAATAAGAACATACTGTCTTGGCCAAGCATCCAAGGTTAAATGAGTTATGGGAATTCATTTGGGAGCCAAGACATTGCGCGTGGTTATTTATTAGTCACCCAAGCATGTATTTTGCATGTCCATCAGTTGTTCTTGGCCAAAAGAACAGAATCAATGAGCCGCTGCAGATGCAGACATAGCAGCCCCTTGCAGGAACAAGTCTGCAAGATGAGCATTGAAGAGGATGCACAAGCCCGGTAGCCCGGGAAATGGCAGGCACTTACAAGAGCCCAGGTTGTTGCCATGTTTGTTTTTGCAACTTGTCTATTTAAACAGATTTGA";
@@ -36,9 +37,9 @@ public class DNA {
 					closeness = a;
 				}
 			}
-
-			StringTokenizer tokenizer = new StringTokenizer(result);
-			private final static IntWritable one = new IntWritable(closeness);
+			System.out.println(closeness);
+			tokenizer = new StringTokenizer(result);
+			one = new IntWritable(closeness);
 
 			word.set(tokenizer.nextToken());
 			context.write(word, one);
@@ -63,7 +64,7 @@ public class DNA {
 		Configuration conf = new Configuration();
 
 		Job job = new Job(conf, "DNA");
-
+		job.setJarByClass(dna.class);
 		job.setOutputKeyClass(Text.class);
 		job.setOutputValueClass(IntWritable.class);
 
