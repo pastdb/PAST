@@ -805,9 +805,14 @@ public class ExecuteCommand {
 	 * file1 = timestamp of timeserie (integer)
 	 * file2... = values of one colum of timeserie (integer)
 	 *
+	 *
+	 * special case for DNA
+	 * user input example: INSERT file TO DNA nameTS [: nameVariable]
+	 * file input struct [values of{agct} (no timestamp)
+ 	 *
 	 * @param array of userinput parameter
 	 */
-	private static int insertDataFromFile(String userInput[]) {
+	public static int insertDataFromFile(String userInput[]) {
 		int size = userInput.length;
 		String nameTS = null;
 		String nameFile[] = null;
@@ -1288,14 +1293,98 @@ public class ExecuteCommand {
 
 
 	/*
-	 * MAX_TIMESTAMP of timeserie
+	 * PRINT_HEAD first 10 values of each column of Timeserie or JavaRDD
+	 * user input example: PRINT_HEAD FROM timeserie/RDD
 	 */
+	public static void printHead(String userInput[]) {
+		int size = userInput.length;
+		
+		if(size != 1) {
+			System.out.println("  input must be : PRINT_HEAD FROM timeserie");
+		}
+		//else if(userInput[0].toUpperCase().compareTo("FROM") != 0) {
+		//	System.out.println("  you forget to put 'FROM'");
+		//}
+		else if(sc == null) {
+			System.out.println("  Spark is not start. To start spark, enter: sparkStart");
+		}
+		else if(!variable.keySet().contains(userInput[0])) {
+			System.out.println("  Timeserie or RDD not found");
+		}
+		else {
+			Object ob = variable.get(userInput[0]);
+			Timeseries ts = null;
+			JavaRDD rdd = null;
 
+			try {
+				ts = (Timeseries)ob;
+			}
+			catch (Exception e) { /* not a time series */}
 
+			try {
+				rdd = (JavaRDD)ob;
+			}
+			catch (Exception e) { /* not a JavaRDD */	}
 
-	/*
-	 * MIN_TIMESTAMP of timeserie
-	 */
+			try {
+				if(ts == null && rdd != null) {
+					System.out.println("   print first values: ");
+					java.util.List<Integer>  values = rdd.take(10);
+					for(Integer i: values) {
+						System.out.println(i);
+					}
+				}
+				else if(ts != null && rdd == null) {
+					//information a propos du schema
+					Schema schema = ts.schema();
+					int sizeSchema = schema.fields().size();
+					java.lang.Iterable<String> column_schema = scala2javaIterable(schema.fields().keys());
+					String column[] = iterable2array(column_schema);
+
+					JavaRDD<Integer> colum = null;
+					int[][]values = new int[column.length][];
+
+					for(int i=0; i<column.length; i++) {
+						colum =  new JavaRDD(ts.rangeQueryI32(sc.sc(), column[i]), ClassManifestFactory$.MODULE$.Int());						
+						java.util.List<Integer> v = colum.take(10);
+						
+
+						values[i] = new int[v.size()];
+						for(int j=0; j<v.size(); j++){
+							values[i][j] = (int)v.get(j);
+						}
+					}
+
+					String title = "";
+					String show_value = "";
+
+					for(String s: column) {
+						title = title + s + "\t";
+					}
+					title = title + "\n";
+
+					System.out.println("   print first values: ");
+					System.out.println(title);
+					for(int j=0; j<values[0].length; j++) {	
+						for(int i=0; i<values.length; i++) {
+							//System.out.println("i=" + i + " j=" + j + " - " + values[i][j] );
+							show_value = show_value + values[i][j] + "\t";
+						}
+						System.out.println(show_value);
+						show_value = "";
+					}
+			
+				}
+				else {
+					System.out.println("  the variable is not a Timeserie or a RDD");
+				}
+			}
+			catch (Exception e) {
+				System.out.println("   print first five value FAIL");
+			}
+		}
+	}
+
 
 
 
@@ -1597,6 +1686,17 @@ public class ExecuteCommand {
 		}
 	}
 
+
+	public static void similarityISAX() {
+
+		// list<tuple<index, javaRDD>>
+		// [timestamp, dan]
+		// 2 list
+		// 1024 grand
+		// 33 petit
+
+		// output: println
+	}
 	/**
 	 *
 	 *
@@ -1611,20 +1711,20 @@ public class ExecuteCommand {
 	 *************************************/
 
 	/**
-	 * DNA_SIMILARITY BETWEEN dna1 AND dna2 (brutforce)
-	 * user input example: DNA_SIMILARITY BETWEEN dna1 AND dna2
+	 * DNA_SIMILARITY BETWEEN dna1 IN dna2 (brutforce)
+	 * user input example: DNA_SIMILARITY BETWEEN dna1 IN dna2
 	 */
 	public static void dnApplication(String userInput[]) {
 		int size = userInput.length;
 
 		if(size != 4) {
-			System.out.println("  input must be : DNA_SIMILARITY BETWEEN dna1 AND dna2");
+			System.out.println("  input must be : DNA_SIMILARITY BETWEEN dna1 IN dna2");
 		}
 		else if(userInput[0].toUpperCase().compareTo("BETWEEN") != 0) {
 			System.out.println("  you forget to put 'BETWEEN'");	
 		}
-		else if(userInput[2].toUpperCase().compareTo("AND") != 0) {
-			System.out.println("  you forget to put 'AND'");	
+		else if(userInput[2].toUpperCase().compareTo("IN") != 0) {
+			System.out.println("  you forget to put 'IN'");	
 		}
 		else if(!variable.keySet().contains(userInput[1])) {
 			System.out.println("  no found timeserie (RDD). To get a RDD use : SELECT colum FROM nameTS");

@@ -73,11 +73,11 @@ public class DNApplication {
      * convert weight of chromozome (string to int)
      */
     public static int convertingDNA (String s) {
-    	switch(s) {
-    		case "a": return 2;
-    		case "g": return 1;
-    		case "c": return -1;
-    		case "t": return -2;
+    	switch(s.toUpperCase().trim()) {
+    		case "A": return 2;
+    		case "G": return 1;
+    		case "C": return -1;
+    		case "T": return -2;
     		default: return 0;
     	}
     }
@@ -87,10 +87,10 @@ public class DNApplication {
      */
     private static String char2intDNA (int n) {
     	switch(n) {
-    		case 2: return "a";
-    		case 1: return "g";
-    		case -1: return "c";
-    		case -2: return "t";
+    		case 2: return "A";
+    		case 1: return "G";
+    		case -1: return "C";
+    		case -2: return "T";
     		default: return "_";
     	}
     }

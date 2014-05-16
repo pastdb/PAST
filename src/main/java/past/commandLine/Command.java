@@ -21,20 +21,27 @@ public class Command {
 	 * - the executing command will be on the class Execute
 	 */
 	static String commands[] = {
+
 		/* standard commands */
 		"QUIT", "EXIT", "HELP", "VAR", "DEL", "RENAME", "STOPSPARK", "STARTSPARK",
+
 		/* database */
 		"OPEN", "CLOSE", "RESTART", "SHOW", "DROP", "EXIST", "GET", "CREATE",
 		/* Time Serie */
-		"CREATE_SCHEMA", "SHOW_SCHEMA", "GET_SCHEMA", /*"INSERT",*/ /*"SELECT_RANGE",*/ "MAX_VALUE", "MIN_VALUE",
-		"SELECT", 
-		/* Transformations */
+
+		"CREATE_SCHEMA", "SHOW_SCHEMA", "GET_SCHEMA", /*"INSERT",*/ /*"SELECT_RANGE",*/ 
+		"MAX_VALUE", "MIN_VALUE", "PRINT", "SELECT", 
+
+		/* Transformations */  // --> dosn't have any function ...
 		//"SQRT TRANSFORM","LOG TRANSFORM", "MEAN", "SHIFT", 
 		//"SCALE", "STD DEVIATION", "NORMALIZE", "SEARCH", "MOVING AVERAGE", "DFT",
-		/* Compression */
+		
+		/* Compression */ // --> dosn't work on the storage ...
 		"COMPRESSION", /*"DECOMPRESSION",*/
-		/* indexing */
-		"CREATE_INDEX", "NEIGHBORS",
+
+		/* indexing */ // --> one little error one converting table to rdd
+		"CREATE_INDEX", /*"NEIGHBORS",/*
+
 		/* clustering */
 		
 		/* Forecasting */
@@ -76,6 +83,16 @@ public class Command {
 		int size = userCommandLine.length;
 
 		switch(userCommandLine[0].trim().toUpperCase()) {
+
+		/*
+		 * INFORMATION
+		 *
+		 * Add executecommand on each case
+		 * but if it dosn't yet implemented
+		 * comment the command allow to user
+		 * on the variable string[] commands
+		 *
+		 */
 		
 		/* ************************************
 		 * standard commands
@@ -123,7 +140,7 @@ public class Command {
 		/* get the schema of the timeSerie*/
 		case "GET_SCHEMA" : ExecuteCommand.getSchema(Arrays.copyOfRange(userCommandLine, 1, size)); break;
 		/* insert data at a certain file */
-		// case "INSERT" : ExecuteCommand.insertDataFromFile(Arrays.copyOfRange(userCommandLine, 1, size)); break;
+		case "INSERT" : ExecuteCommand.insertDataFromFile(Arrays.copyOfRange(userCommandLine, 1, size)); break;
 		/* select timeSerie Range from timeStart to timeEnd */
 		case "SELECT_RANGE": break;
 		/* select a column of a timeserie */
@@ -132,6 +149,8 @@ public class Command {
 		case "MAX_VALUE" : ExecuteCommand.maxValue(Arrays.copyOfRange(userCommandLine, 1, size)); break;
 		/* find min value of timeSerie */
 		case "MIN_VALUE" : ExecuteCommand.minValue(Arrays.copyOfRange(userCommandLine, 1, size)); break;
+		/* print first five values */
+		case "PRINT" : ExecuteCommand.printHead(Arrays.copyOfRange(userCommandLine, 1, size)); break;
 				
 		
 		/* ************************************
@@ -156,9 +175,6 @@ public class Command {
 		case "SEARCH" : break;
 		/* moving average */
 		case "MOVING_AVERAGE" : break;
-		//case "piecewiseAggregateApproximation" : break;
-		//case "symolicAggregateApproximation" : break;
-		
 		/* DFT of timeSerie */
 		case "DFT" : break;
 		/* DTW of 2 timeSerie (similarity between two timeseries) */
