@@ -191,11 +191,6 @@ class Timeseries private (val name: String,
 
     val chunks = chunkData(data)
 
-    /*intervals.zip(chunks).zipWithIndex.par.foreach{
-      case ((interval, dat), i ) =>
-        insert(sc, dat, i + ident)
-    } */
-
     chunks.zipWithIndex.par.foreach{
       case (dat, i ) =>
         insert(sc, dat, i + ident)
@@ -207,28 +202,6 @@ class Timeseries private (val name: String,
     MemoryIntervalIndex.store(indexes, indexPath)
   }
 
-  /*def insert2(sc: SparkContext, times: ListBuffer[Integer],values: List[(String, ListBuffer[Integer])]): Unit = {
-    assert(values.size + 1 == schema.fields.size)
-    values.foreach(s => assert(s._2.size == times.size))
-
-    //TODO check all times are sorted ?
-    val begin = times.head
-    val end = times.last
-    //get the current file identifier
-    val ident = if (indexes.intervals.size == 0) 0 else indexes.values(indexes.intervals.head)
-
-    val timeFilePath = new Path(dataPath,schema.id._1 + ident)
-    val currentFileSize = if (filesystem.exists(timeFilePath)) filesystem.getContentSummary(timeFilePath).getLength else 0
-
-    val fieldSize = schema.id._2.size
-    val insertSize = times.size * fieldSize
-
-    val maxCanAppendSize = maxFileSize - currentFileSize
-    val appendToFileSize = Math.min(maxCanAppendSize, insertSize)
-    val appendToFileNumber = (appendToFileSize / fieldSize).toInt
-    val nbElemsPerFile = (maxFileSize / fieldSize).toInt
-    val data = (schema.id._1, times) :: values
-  }  */
 
   @throws(classOf[IllegalArgumentException])
   def insertNoSplit(sc: SparkContext, values: List[(String, List[_])]): Unit = {
@@ -250,7 +223,7 @@ class Timeseries private (val name: String,
 
   @throws(classOf[IllegalArgumentException])
   private def insert(sc: SparkContext, values: List[(String, List[_])], ident: Int): Unit = {
-    values.foreach {c =>
+    values.par.foreach {c =>
       insertAtColum(sc,c._1,c._2, Some(ident))
     }
   }

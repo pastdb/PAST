@@ -74,6 +74,7 @@ class TimeseriesSpec extends FlatSpec with TestDirectory {
     val output = db.rangeQuery[Float](sc,"data", Interval(2,7))
     assert(output.collect().toList == data.take(6).drop(1))
   }   */
+
   def dna2Int(c:Char): Integer =
     if (c == 'A') 1
     else if (c == 'D') 2
@@ -81,7 +82,7 @@ class TimeseriesSpec extends FlatSpec with TestDirectory {
     else if (c == 'G') -2
     else 0
 
-  "Data" should "be inserted correctly" in new NameGenerator  {
+  /*"Data" should "be inserted correctly" in new NameGenerator  {
     val file = filesystem.open(new Path("DNA1.txt"))
 
     val data = new ListBuffer[Integer]()
@@ -98,12 +99,11 @@ class TimeseriesSpec extends FlatSpec with TestDirectory {
     val schema = new Schema(("ts", DBType.DBInt32),("adn", DBType.DBInt32))
     val db = new Timeseries(name, schema, testDirectory, filesystem,4000000)
     db.insert(sc,index.toList,List(("adn", data.toList)))
-    //val output = db.getRDD[Int](sc,"ts")            #
     val output = db.rangeQueryI32(sc,"adn", Interval(0,10))
     assert(output.collect().take(10).toList == data.take(10))
-  }
+  }*/
 
-  /*"Data" should "be inserted correctly with no split" in new NameGenerator  {
+  "Data" should "be inserted correctly with no split" in new NameGenerator  {
     val file = filesystem.open(new Path("DNA1.txt"))
 
     val data = new ListBuffer[Integer]()
@@ -119,11 +119,11 @@ class TimeseriesSpec extends FlatSpec with TestDirectory {
     }
     val schema = new Schema(("ts", DBType.DBInt32),("adn", DBType.DBInt32))
     val db = new Timeseries(name, schema, testDirectory, filesystem,4000000)
-    db.insertNoSplit(sc,List(("ts", index),("adn", data)))
+    db.insertNoSplitListBuffer(sc,List(("ts", index),("adn", data)))
     //val output = db.getRDD[Int](sc,"ts")            #
     val output = db.getRDD[Int](sc, "adn")
     assert(output.collect().take(10).toList == data.take(10).toList)
-  }*/
+  }
 
   /*"Data" should "be able to be inserted at different times with spark" in new Builder {
     val db = new Timeseries(name, testDirectory, filesystem)
