@@ -169,7 +169,7 @@ public class ExecuteCommand {
 	}
 
 	/*
-	 * EXIT framework
+	 * QUIT framework
 	 */
 	public static boolean exit() {
 		if(sc != null) {
@@ -1293,14 +1293,15 @@ public class ExecuteCommand {
 
 
 	/*
-	 * PRINT_HEAD first 10 values of each column of Timeserie or JavaRDD
-	 * user input example: PRINT_HEAD FROM timeserie/RDD
+	 * PRINT first x values of each column of Timeserie or JavaRDD
+	 * user input example: PRINT FROM timeserie/RDD [first_x_value]
 	 */
 	public static void printHead(String userInput[]) {
 		int size = userInput.length;
+		int n = 10; // default number of value to show
 		
-		if(size != 1) {
-			System.out.println("  input must be : PRINT_HEAD FROM timeserie");
+		if(size < 1 || size > 2) {
+			System.out.println("  input must be : PRINT_HEAD FROM timeserie [first_N_values]");
 		}
 		//else if(userInput[0].toUpperCase().compareTo("FROM") != 0) {
 		//	System.out.println("  you forget to put 'FROM'");
@@ -1312,6 +1313,13 @@ public class ExecuteCommand {
 			System.out.println("  Timeserie or RDD not found");
 		}
 		else {
+
+			if(size == 2) {
+				try {
+					n = Integer.parseInt(userInput[1]);
+				}
+				catch(Exception e) {};
+			}
 			Object ob = variable.get(userInput[0]);
 			Timeseries ts = null;
 			JavaRDD rdd = null;
@@ -1329,7 +1337,7 @@ public class ExecuteCommand {
 			try {
 				if(ts == null && rdd != null) {
 					System.out.println("   print first values: ");
-					java.util.List<Integer>  values = rdd.take(10);
+					java.util.List<Integer>  values = rdd.take(n);
 					for(Integer i: values) {
 						System.out.println(i);
 					}
@@ -1346,7 +1354,7 @@ public class ExecuteCommand {
 
 					for(int i=0; i<column.length; i++) {
 						colum =  new JavaRDD(ts.rangeQueryI32(sc.sc(), column[i]), ClassManifestFactory$.MODULE$.Int());						
-						java.util.List<Integer> v = colum.take(10);
+						java.util.List<Integer> v = colum.take(n);
 						
 
 						values[i] = new int[v.size()];

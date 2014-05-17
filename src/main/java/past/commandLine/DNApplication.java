@@ -28,7 +28,7 @@ public class DNApplication {
 	/**
 	 * method to do a brut force similairty DNA
 	 */
-	public static void startSimDNA(JavaSparkContext sc_, JavaRDD<Integer> dna_, JavaRDD<Integer> dnaWanted_) {
+	public static void startSimDNA(JavaSparkContext sc_, JavaRDD<Integer> dnaWanted_, JavaRDD<Integer> dna_) {
         JavaRDD<Integer> rdd1 = dna_;		
     	JavaRDD<Integer> rdd2 = dnaWanted_;	
 
@@ -36,7 +36,12 @@ public class DNApplication {
     	List<String> DNAwanted = ts2DNA(rdd2.collect());
      	List<String> data = ts2DNA(rdd1.collect());
 
-     	DNAsimilarity(sc_, data, DNAwanted);
+        System.out.println("-----------------1----------------------");
+        System.out.println("lengh of the DNA wanted : " + DNAwanted.size());
+        System.out.println("lengh of the DNA : " + data.size());
+        System.out.println("----------------------------------------");
+
+     	DNAsimilarity(sc_, DNAwanted, data);
     }
 
     /**
@@ -103,14 +108,20 @@ public class DNApplication {
      *
      * @param javaSparkContext
      */
-    private static void DNAsimilarity(JavaSparkContext sc_, List<String> dna_, List<String> dnaWanted_) {
+    private static void DNAsimilarity(JavaSparkContext sc_, List<String> dnaWanted_, List<String> dna_) {
         //JavaRDD<String> rdd1 = dna_;		//sc_.parallelize(Arrays.asList( "a", "g", "c", "t", "a"));
     	//JavaRDD<String> rdd2 = dnaWanted_;	//sc_.parallelize(Arrays.asList( "g", "c"));
 
     	// genere each combinaison of DNA
-    	List<String> DNAwanted = dna_; //rdd2.collect();
-     	List<String> data = dnaWanted_;//rdd1.collect();
+    	List<String> DNAwanted = dnaWanted_; //rdd2.collect();
+     	List<String> data = dna_;//rdd1.collect();
      	int DNAwanted_size = (int)DNAwanted.size();
+
+        System.out.println("-----------------2----------------------");
+        System.out.println("lengh of the DNA wanted : " + DNAwanted.size());
+        System.out.println("lengh of the DNA : " + data.size());
+        System.out.println("----------------------------------------");
+
      	List<Tuple2<Integer, Vector>> slidingWindows = DNAslideWindows(slideWindows(data, DNAwanted_size));
     	
     	// compaire dna and seqDNA
@@ -135,7 +146,8 @@ public class DNApplication {
 			}
 		});
 
-/*   	// check output
+   	// check output
+/*
     	System.out.println("----------------4------------------" );
     	List<Tuple2<Tuple2<Integer, Vector>, Double>> yop = ones.collect();
 		for(Tuple2<Tuple2<Integer, Vector>, Double> s: yop ) {
@@ -147,28 +159,28 @@ public class DNApplication {
 		JavaPairRDD<Tuple2<Integer, Vector>, Double> filter = ones.filter(new Function<Tuple2<Tuple2<Integer, Vector>, Double>, Boolean>() {
 			@Override
 			public Boolean call(Tuple2<Tuple2<Integer, Vector>, Double> x) {
-				return x._2 < 0.2;
+				return x._2 < 5;
 			} 
 		});
 
-/*    	// check output
+    	// check output
 		System.out.println("----------------6------------------" );
     	List<Tuple2<Tuple2<Integer, Vector>, Double>> yop2 = filter.collect();
 		for(Tuple2<Tuple2<Integer, Vector>, Double> s: yop2 ) {
 			System.out.println("content : " + s);
 		}
 		System.out.println("----------------7------------------" );
-*/
+
 
 		// output
-		List<Tuple2<Tuple2<Integer, Vector>, Double>> listSimilar = filter.collect();
+		List<Tuple2<Tuple2<Integer, Vector>, Double>> listSimilar = ones.collect();
 		int nElement = listSimilar.size();
 
 		Collections.sort( listSimilar, new Comparator< Tuple2<Tuple2<Integer, Vector>, Double> >(){
 			@Override
         	public int compare(Tuple2<Tuple2<Integer, Vector>, Double>  a, Tuple2<Tuple2<Integer, Vector>, Double>  b) {
-        		if (a._2 > b._2) return -1;
-      			else if (a._2 < b._2) return 1;
+        		if (a._2 > b._2) return 1;
+      			else if (a._2 < b._2) return -1;
       			else return 0;
         	}
 		});
