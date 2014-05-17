@@ -310,10 +310,10 @@ class Timeseries private (val name: String,
     if (idents.size == 1)
       getRDD[T](sc, column, Some(begin, end), Some(idents.head))
     else {
-      val realEndPart = end - (idents.size - 1) * (maxFileSize / schema.id._2.size).toInt
+      //val realEndPart = end - (idents.size - 1) * (maxFileSize / schema.id._2.size).toInt
       val start = getRDD[T](sc, column, Some(begin, - 1), Some(idents.head))
       val rdd = idents.slice(1, idents.size - 1).foldLeft(start){(acc, c) => acc union getRDD[T](sc, column, None, Some(c))}
-      rdd union getRDD[T](sc, column, Some(0, realEndPart), Some(idents.last))
+      rdd union getRDD[T](sc, column, Some(0, end), Some(idents.last))
     }
   }
 
@@ -371,14 +371,17 @@ class Timeseries private (val name: String,
       val rawData = rdd.toArray
       val size = rawData.size
       while (cont && pos < size) {
-        if (beginPos < 0 && pos >= beginInterval) beginPos = pos
-        else if (endPos < 0 && pos == endInterval) {
+        if (beginPos < 0 && rawData(pos) >= beginInterval) beginPos = pos
+        else if (endPos < 0 && rawData(pos) == endInterval) {
           endPos = pos
           cont = false
         }
         pos += 1
       }
-      (identifiers._1, beginPos, endPos)
+      if (identifiers._1.size == 1)
+        (identifiers._1, beginPos, endPos)
+      else
+        (identifiers._1, beginPos, endPos - maxFileSize / schema.id._2.size)
     case None => //special case where we want the full column
       val max = indexes.values(indexes.intervals.head)
       ((0 to max).toList, 0, indexes.intervals.head.end)
