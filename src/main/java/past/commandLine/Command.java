@@ -97,7 +97,6 @@ public class Command {
 		/* ************************************
 		 * standard commands
 		 *************************************/
-		
 		case "QUIT": return ExecuteCommand.exit();
 		case "EXIT": return ExecuteCommand.exit();
 		case "HELP": help( (size > 1) ? userCommandLine[1].trim() : ""); break;
@@ -221,60 +220,69 @@ public class Command {
 	 */
 	private static void help(String cmd) {
 		switch(cmd) {
-		case "quit" : System.out.println("exit the framework"); break;
-		case "exit" : System.out.println("exit the framework"); break;
-		case "load" : System.out.println("  load take parametter ");
+		case "QUIT" : System.out.println("exit the framework"); break;
+		case "EXIT" : System.out.println("exit the framework"); break;
 		default: {
 			System.out.println("List of commands:\n");
 			
 			System.out.println("************************************");
 			System.out.println("standard commands");
 			System.out.println("************************************");
-			System.out.println("quit");
-			System.out.println("help");
-			System.out.println("var");
-			System.out.println("startSpark");
-			System.out.println("stopSpark");
+			System.out.println("QUIT 				\t\t quit the application");
+			System.out.println("HELP 				\t\t show every command that can be use in PAST application");
+			System.out.println("VAR  				\t\t show every variable save in memory that can be use");
+			System.out.println("DEL name			\t\t delete the name variable that was save in memory");
+			System.out.println("RENAME name newName 	\t\t\t rename the name variable that was save in memeory with the new name");
+			System.out.println("STARTSPARK 			\t\t start spark, by default it start at the launch of the Applicationn");	
+			System.out.println("STOPSPARK 			\t\t stop spark");
 			System.out.println("************************************");
 			System.out.println("database commands");
 			System.out.println("************************************");
-			System.out.println("OPEN");
-			System.out.println("CLOSE");
-			System.out.println("SHOW");
-			System.out.println("DROP");
-			System.out.println("EXIST");
-			System.out.println("GET");
-			System.out.println("CREATE");
+			System.out.println("OPEN database			\t\t open the database but if database dosn't exist, it will create it");
+			System.out.println("CLOSE 				\t\t close the database");
+			System.out.println("RESTART 			\t\t restart the database");
+			System.out.println("SHOW 				\t\t show all Time serie in the database");
+			System.out.println("DROP timeserie			\t\t delete the time serie in the database");
+			System.out.println("EXIST timserie 			\t\t check if the time serie exist in the database");
+			System.out.println("GET timeserie [: name] 	\t\t\t load the timeserie and save in a variable (random or select name) in memory");
+			System.out.println("CREATE timeserie FROM file [schema] [: name] \t create a timeserie by loading from a file with optional schema or save in variable with random or select name");
+			System.out.println("CREATE timeserie FROM DNA file [: name] \t crreate a special timeserie for DNA (the dna file dosn't need timestampe) ");
 			System.out.println("************************************");
 			System.out.println("Time Series commands");
 			System.out.println("************************************");
-			System.out.println("CREATE_SCHEMA");
-			System.out.println("SHOW_SCHEMA");
-			System.out.println("GET_SCHEMA");
-			System.out.println("INSERT");
-			System.out.println("SELECT RANGE");
-			System.out.println("MAX VALUE");
-			System.out.println("MIN VALUE");
+			System.out.println("CREATE_SCHEMA [: name] 			\t create a personal schema with deamon tool ");
+			System.out.println("SHOW_SCHEMA timeserie 			\t show the schema of a timeserie save in memeory");
+			System.out.println("GET_SCHEMA FROM timeserie [: name] 	\t get the schema of a timeserie and save in memeory ");
+			/* System.out.println("INSERT"); */ 
+			/* System.out.println("SELECT RANGE"); */
+			System.out.println("SELECT column FROM timeserie [: name] \t\t get the RDD of the column of the timeserie and save in variable name");
+			System.out.println("MAX_VALUE colum FROM timeserie 		\t find the max value of colum of the timeserie ");
+			System.out.println("MAX_VALUE rdd 				\t find the max value of the RDD ");
+			System.out.println("MIN_VALUE colum FROM timeserie 		\t find the min value of colum of the timeserie ");
+			System.out.println("MAX_VALUE rdd 				\t find the min value of the RDD ");
+			System.out.println("PRINT FROM timeserie			\t print the 10 first values of the timeserie");
+			System.out.println("PRINT FROM rdd				\t print the 10 first values of the RDD");
 			System.out.println("************************************");
 			System.out.println("Transformation commands");
 			System.out.println("************************************");
-			System.out.println("SQRT TRANSFORM");
-			System.out.println("LOG TRANSFORM");
-			System.out.println("MEAN");
-			System.out.println("SHIFT");
-			System.out.println("SCALE");
-			System.out.println("STD DEVIATION");
-			System.out.println("NORMALIZE");
-			System.out.println("SEARCH");
-			System.out.println("MOVING AVERAGE");
+			/* System.out.println("SQRT TRANSFORM"); */
+			/* System.out.println("LOG TRANSFORM"); */
+			/* System.out.println("MEAN"); */
+			/* System.out.println("SHIFT"); */
+			/* System.out.println("SCALE"); */
+			/* System.out.println("STD DEVIATION"); */
+			/* System.out.println("NORMALIZE"); */
+			/* System.out.println("SEARCH"); */
+			/* System.out.println("MOVING AVERAGE"); */
 			System.out.println("************************************");
 			System.out.println("Compression commands");
 			System.out.println("************************************");
-			System.out.println("");
+			// System.out.println("COMPRESSION timeserie WITH {regression, APCA, demon} \t compress the timeserie with one parameter");
 			System.out.println("************************************");
 			System.out.println("indexing");
 			System.out.println("************************************");
-			System.out.println("");
+			System.out.println("CREATE_INDEX 				\t execute a deamon tool to assist of the creation of the index");
+			System.out.println("CREATE_INDEX FROM timeserie timeserie ..\t create index with the select timeserie");
 			System.out.println("************************************");
 			System.out.println("clustering");
 			System.out.println("************************************");
@@ -282,6 +290,20 @@ public class Command {
 			System.out.println("************************************");
 			System.out.println("Forecasting");
 			System.out.println("************************************");
+			System.out.println("");
+			System.out.println("************************************");
+			System.out.println("Application");
+			System.out.println("************************************");
+			System.out.println("DNA_SIMILARITY BETWEEN dna1 IN dna2	\t find the most similar part of dna1 in the dna2");
+			System.out.println("------------------------------------");
+			System.out.println("");
+			System.out.println("Example: we want to find the most similar DNA part of one file in a other file. And we have no database.");
+			System.out.println(" 1: OPEN db");
+			System.out.println(" 2: CREATE dna1 FROM DNA dna1.txt : TSchimpDNA");
+			System.out.println(" 3: CREATE dna2 FROM DNA dna2.txt : TSbigDNA");
+			System.out.println(" 4: SELECT data FROM TSchimpDNA : chimpDNA");
+			System.out.println(" 5: SELECT data FROM TSbigDNA : bigDNA");
+			System.out.println(" 6: DNA_SIMILARITY BETWEEN chimpDNA IN bigDNA");
 			System.out.println("");
 			System.out.println("");
 		}
