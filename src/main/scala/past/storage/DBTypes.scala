@@ -22,6 +22,18 @@ object DBType {
     def unserialize(in: Array[Byte]): T
   }
 
+  object DBByte extends DBType[Byte](1) {
+    def serialize(value: Any, out: FSDataOutputStream) = out.writeByte(value.asInstanceOf[Int])
+    def unserialize(in: FSDataInputStream): Byte = in.readByte()
+
+    def serialize(value: Byte): Array[Byte] = {
+      val array = new Array[Byte](1)
+      array(0) = value
+      array
+    }
+    def unserialize(in: Array[Byte]): Byte = in(0)
+  }
+
   /*
     The following implementations will probably be remplaced by sth more efficient in the future
    */
@@ -30,8 +42,15 @@ object DBType {
     def serialize(value: Any, out: FSDataOutputStream) = out.writeInt(value.asInstanceOf[Int])
     def unserialize(in: FSDataInputStream): Int = in.readInt()
 
-    def serialize(value: Int): Array[Byte] =
-      ByteBuffer.allocate(size).putInt(value).clear.array().asInstanceOf[Array[Byte]]
+    def serialize(value: Int): Array[Byte] = {
+      //ByteBuffer.allocate(size).putInt(value).clear.array().asInstanceOf[Array[Byte]]
+      val array = new Array[Byte](4)
+      array(0) = (value >>> 24).toByte
+      array(1) = (value >>> 16).toByte
+      array(2) = (value >>> 8).toByte
+      array(3) = (value).toByte
+      array
+    }
 
     def unserialize(in: Array[Byte]): Int = ByteBuffer.wrap(in).getInt
   }
