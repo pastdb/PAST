@@ -120,7 +120,7 @@ public class RTreeIndexConf implements Serializable {
 			throw new IllegalArgumentException();
 		}
 		
-    	List<JavaPairRDD<String, int[]>> rdds = new ArrayList<>();
+    	List<JavaPairRDD<String, int[]>> rdds = new ArrayList<JavaPairRDD<String, int[]>>();
 		scala.reflect.ClassTag<Integer> tag = scala.reflect.ClassTag$.MODULE$.apply(Integer.class);
 
 		for (int i = 0 ; i < timeseries.length ; i++) {
