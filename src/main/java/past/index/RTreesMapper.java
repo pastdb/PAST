@@ -30,11 +30,11 @@ public class RTreesMapper extends PairFunction<
 	public Tuple2<Integer, PRTree<NamedVector>> call(
 			Tuple2<Integer, List<NamedVector>> partitionNmbrAndVector) throws Exception {
 
-		PRTree<NamedVector> tree = new PRTree<>(
+		PRTree<NamedVector> tree = new PRTree<NamedVector>(
 				new NamedVectorConverter(conf), conf.getRTreeBranchFactor());
 		
 		tree.load(partitionNmbrAndVector._2());
-		return new Tuple2<>(partitionNmbrAndVector._1(), tree);
+		return new Tuple2<Integer, PRTree<NamedVector>>(partitionNmbrAndVector._1(), tree);
 	}
 
 }
