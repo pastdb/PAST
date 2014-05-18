@@ -22,6 +22,6 @@ public class ZCurveValuesMapper extends VectorMapper<BigInteger, Integer> {
 
 	@Override
 	public Tuple2<BigInteger, Integer> call(Tuple2<String, int[]> sampledVector) throws Exception {
-		return new Tuple2<>(this.computeZCurveValue(sampledVector._2()), RTreeIndexConf.SINGLE_VALUE);
+		return new Tuple2<BigInteger, Integer>(this.computeZCurveValue(sampledVector._2()), RTreeIndexConf.SINGLE_VALUE);
 	}
 }
