@@ -99,7 +99,7 @@ public class RTreeIndex implements DatabaseIndex<NamedVector> {
             }
         };
 
-        List<NamedVector> sortedVectors = new ArrayList<>();
+        List<NamedVector> sortedVectors = new ArrayList<NamedVector>();
         Collections.sort(nearestNeighborsVectors, comparator);
 
         for (DistanceResult<NamedVector> dr : nearestNeighborsVectors) {
