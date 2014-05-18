@@ -138,7 +138,7 @@ public class RTreeIndexConf implements Serializable {
 							for (int i = 0 ; i < vector.size() ; i++) {
 								array[i] = vector.get(i);
 							}
-							return new Tuple2<>(tsName, array);
+							return new Tuple2<String, int[]>(tsName, array);
 						}
 					});
 			
