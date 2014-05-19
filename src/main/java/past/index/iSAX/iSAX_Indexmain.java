@@ -244,11 +244,12 @@ public static void main(String args[]){
 		System.out.println("Closet distance=" + min_app_dist);
 	//	System.out.println("Closest DNA:: "+ iSAX_Indexmain.TS2DNA(minTS));
 		
-		min_exact_dist=-1;
+		min_exact_dist=5000;
 		for(Timeseries ts : chimp_ts){
 			tmp_app=iSAXQuery.ExactSearch(index,ts,ts.getName(),0,1024); //CALL ExactSearchRDD(iSAX_Index index, JavaRDD<Integer> timestamp,JavaRDD<Double> values, String ts_name, int start, int stop);
 			
 			if(min_exact_dist<0 || min_exact_dist>tmp_app){
+				System.out.println("Changing min dist");
 				min_exact_dist=tmp_app;
 				minTS=ts;
 			}

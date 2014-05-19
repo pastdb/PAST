@@ -257,7 +257,37 @@ public static double ApproximateSearch(iSAX_Index index, Timeseries ts,int start
 		}
 	}
 
+private static double getEuclidianDist(Hashtable<Integer,java.lang.Object> ts_data, Hashtable<Integer,java.lang.Object> test_TS){
+	double sum=0;
+	for(Map.Entry<Integer,java.lang.Object> entry:ts_data.entrySet()){
+			sum+=(((java.lang.Double)(entry.getValue())).doubleValue()-((java.lang.Double)(test_TS.get(entry.getKey()))).doubleValue())*(((java.lang.Double)(entry.getValue())).doubleValue()-((java.lang.Double)(test_TS.get(entry.getKey()))).doubleValue()) ;
 
+		}
+		sum=Math.sqrt(sum);
+		return sum;
+}
+private static TreeNode getTerminalFromParent(TreeNode root){
+System.out.println("Hashed to internal node, traversing to find the terminal node");
+	TreeMap<String,TreeNode> children = root.children;
+	boolean found=false;
+	TreeNode firstChild=null;
+	int i=0;
+	for(Map.Entry<String,TreeNode> child:children.entrySet()){
+		if(child.getValue().myType==TreeNode.NodeType.TERMINAL){
+			found=true;
+			return child.getValue();
+		}
+		else{
+			if(i==0){
+				firstChild=child.getValue();
+				i=1;
+			}
+		}
+	}
+	
+	return iSAXQuery.getTerminalFromParent(firstChild);
+
+}
 public static double ExactSearch(iSAX_Index index, Timeseries ts,String name,int start, int stop) {
 		int cardinality = index.getCardinality();
 		int word_length = index.getWordLength();
@@ -267,10 +297,17 @@ public static double ExactSearch(iSAX_Index index, Timeseries ts,String name,int
 		double min_dist=-1; 
 		String tmp_ts_name="";
 	Closest_node node =ApproximateSearch(index,ts,start,stop,true,PAA);
-	if(node.getNode().myType==TreeNode.NodeType.TERMINAL){
+	TreeNode terminal=null;
+	if(node.getNode().myType!=TreeNode.NodeType.TERMINAL){
+		terminal=iSAXQuery.getTerminalFromParent(node.getNode());
+	}
+	else{
+		terminal=node.getNode();
+	}
+	//if(node.getNode().myType==TreeNode.NodeType.TERMINAL){
 	try{
 		Hashtable<Integer,java.lang.Object>ts_data = new Hashtable<Integer,java.lang.Object>();
-		for(Map.Entry<String,Path> e:node.getNode().indexed_timeseries.entrySet()){
+		for(Map.Entry<String,Path> e:terminal.indexed_timeseries.entrySet()){
 			  BufferedReader reader = new BufferedReader( new FileReader (e.getValue().toString()));
 		    String         line = null;
 		    StringBuilder  stringBuilder = new StringBuilder();
@@ -287,13 +324,19 @@ public static double ExactSearch(iSAX_Index index, Timeseries ts,String name,int
 		}
 		Timeseries tmp_ts=new Timeseries(tmp_ts_name, ts_table,DBType.DBInt32$.MODULE$);
 		System.out.println("Matchin TS:"+ tmp_ts_name+"::INITIAL DIST::"+node.getDist());
-		return Transformations.DTWDistance(ts,name,tmp_ts,tmp_ts_name);
+			double sum=0;
+		Hashtable<Integer,java.lang.Object> test_TS=ts.getTimeseries().get(name);
+		sum=iSAXQuery.getEuclidianDist(ts_data,test_TS);
+			System.out.println("Euclidian distance::"+sum);
+		return sum;
+
+		//return Transformations.DTWDistance(ts,name,tmp_ts,tmp_ts_name);
 		
 	}catch(IOException e){
 	
 		System.out.println(e);
 	}
-	}
+	//}
 	return node.getDist();
 
 	
