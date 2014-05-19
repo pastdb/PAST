@@ -32,7 +32,7 @@ private static Database db = null;
 		    System.out.println(entry.getKey()+" : "+entry.getValue());
 			}
 	}
-	
+private static String hypoString="";
 public static String readFile( String file ) throws IOException {
     BufferedReader reader = new BufferedReader( new FileReader (file));
     String         line = null;
@@ -56,7 +56,9 @@ public static ArrayList<Timeseries> generateDNATS(String dnaType, String path)th
 	int window_sep=0;
 	int part=0;
 	double prev=0;
-	
+	if(dnaType.compareTo("hypo")==0){
+		hypoString=dnaString;
+	}
 	Hashtable<java.lang.String,Hashtable<Integer,java.lang.Object>> ts_hash= new Hashtable<java.lang.String,Hashtable<Integer,java.lang.Object>>();
 	Hashtable<Integer,java.lang.Object> ts_data = new Hashtable<Integer,java.lang.Object>();
 	for (int i=0;i<dnaString.length();i++){
@@ -257,7 +259,8 @@ public static void main(String args[]){
 		}
 		
 		System.out.println("Closet exact distance=" + min_exact_dist+"::"+minTS.getName()); 
-		
+		String number=minTS.getName().substring(4);
+		System.out.println("DNA sequence:: "+ hypoString.substring(Integer.parseInt(number)*1024,Integer.parseInt(number)*1024+1024));
 	//	System.out.println("Closest DNA:: "+ iSAX_Indexmain.TS2DNA(minTS));
 		double timeE=System.currentTimeMillis();
 		System.out.println("TS_GENERATION_TIME::CLOCK::"+ TS_generationT/1000);
