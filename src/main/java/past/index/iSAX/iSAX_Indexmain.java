@@ -173,7 +173,7 @@ public static boolean create_index(int dimensions, int cardinality){
 public static void main(String args[]){
 	String logFile = "/home/jasmina/spark-0.9.1-bin-hadoop1/README.md"; // Should be some file on your system
     sc= new JavaSparkContext("local", "Simple App",
-      "/home/jasmina/spark-0.9.1-bin-hadoop1", new String[]{"target/simple-project-1.0.jar"});
+      "/home/jasmina/spark-0.9.1-bin-hadoop1", new String[]{});
     JavaRDD<String> logData = sc.textFile(logFile).cache();
 	double indexS=0;
 	double indexE=0;
