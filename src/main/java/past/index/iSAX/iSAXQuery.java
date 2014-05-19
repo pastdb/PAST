@@ -336,7 +336,7 @@ public static double ExactSearch(iSAX_Index index, Timeseries ts,String name,int
 			double sum=0;
 		
 		//sum=iSAXQuery.getEuclidianDist(ts_data,test_TS);
-			System.out.println("Euclidian distance::"+min_euclidian;
+			System.out.println("Euclidian distance::"+min_euclidian);
 		return min_euclidian;
 
 		//return Transformations.DTWDistance(ts,name,tmp_ts,tmp_ts_name);
