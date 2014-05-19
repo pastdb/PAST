@@ -68,14 +68,14 @@ protected String getSAXStringRep(String ts, int new_card,char c){
 	return builder.toString();
 }
 public boolean insert(String SAX , String name, Path path,int card){
-System.out.println("..............Indexing" + name + "::"+SAX);
+//System.out.println("..............Indexing" + name + "::"+SAX);
 	if(children.containsKey(SAX)){
-	System.out.println("..............Contains the key");
+	//System.out.println("..............Contains the key");
 		TreeNode node=children.get(SAX);
 		if(node.myType == NodeType.TERMINAL){
 			if(node.indexed_timeseries.size()==TreeNode.th_max){
 				//split
-					System.out.println("..............SPLIT");
+	//				System.out.println("..............SPLIT");
 				TreeNode newInternal=new TreeNode(cardinality,word_len,NodeType.INTERNAL,base_card);
 				
 				
@@ -91,7 +91,7 @@ System.out.println("..............Indexing" + name + "::"+SAX);
 				return true;
 			}
 			else {
-					System.out.println(".............NO SPLIT");
+				//	System.out.println(".............NO SPLIT");
 				children.get(SAX).indexed_timeseries.put(name,path);
 				children.get(SAX).th++;
 				return true;
@@ -99,7 +99,7 @@ System.out.println("..............Indexing" + name + "::"+SAX);
 			
 		}
 		else{
-			System.out.println("..............CONTAINS THE KEY BUT IT'S AN INTERNAL NODE");
+		//	System.out.println("..............CONTAINS THE KEY BUT IT'S AN INTERNAL NODE");
 		 	String newSAX=getSAXStringRep(SAX,cardinality,last_index_promoted==0?'1':'0');
 			last_index_promoted=1-last_index_promoted;
 		 	return node.insert(newSAX,name,path,cardinality*2);
@@ -108,7 +108,7 @@ System.out.println("..............Indexing" + name + "::"+SAX);
 		
 	}
 	else{
-		System.out.println(".............DOESNT CONTAINT THE KEY");
+		//System.out.println(".............DOESNT CONTAINT THE KEY");
 		TreeNode newNode=new TreeNode(card, word_len, NodeType.TERMINAL, base_card);
 		newNode.indexed_timeseries.put(name,path);
 		newNode.th++;

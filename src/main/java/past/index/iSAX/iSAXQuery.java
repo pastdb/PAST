@@ -55,10 +55,10 @@ private static class  Closest_node{
 }
 
 private static TreeNode traverseTree(TreeNode root, String SAX){
-	System.out.println("Traversing ROOT");
+	//System.out.println("Traversing ROOT");
 	TreeNode node =null;
 	if(root.children.containsKey(SAX)){
-		System.out.println("Found in root");
+	//	System.out.println("Found in root");
 		return root.children.get(SAX);
 		
 	}
@@ -81,17 +81,38 @@ private static int getSAXNo(char x,char y){
 
 	return Character.getNumericValue(x)*2+Character.getNumericValue(y);
 }
+private static int getSAXNoD(char x, int degree){
+	int no=0;
+	if(Character.getNumericValue(x) == 0){
+		return 0;
+	}
+	if(degree==0){
+		no+=Character.getNumericValue(x);
+	}	
+	else{
+	for(int i=0;i<degree;i++){
+		no+=2;		
+		}
+	no*=Character.getNumericValue(x);
+	}
+	
+	return no;
+}
 private static double getMINDIST(String saxWord, String nodeKey, int cardinality,int length){
 	double sum=0;
 	double [][] lookupMatrix=iSAX_dist_utils.getLookupMatrix(cardinality);
-	
+	int pieces=iSAX_dist_utils.log2(cardinality);
 	for(int j=0;j<cardinality;j++)
-		for(int i=0;i<saxWord.length()-1;i+=2){
-			int x=iSAXQuery.getSAXNo(saxWord.charAt(i),saxWord.charAt(i+1));
+		for(int i=0;i<saxWord.length();i++){
+		 int x=0;
+		 int y=0;
+			for(int k=0;k<pieces;k++){
+				x+=iSAXQuery.getSAXNoD(saxWord.charAt(i),k);
+				y+=iSAXQuery.getSAXNoD(saxWord.charAt(i),k);
+			}
 			
-			int y=iSAXQuery.getSAXNo(nodeKey.charAt(i),nodeKey.charAt(i+1));
-
 			sum+=lookupMatrix[x][y];	
+			i+=pieces;
 		}
 
 	return Math.sqrt((double)length/(double)cardinality)*(double)Math.sqrt((double)sum);
@@ -183,14 +204,14 @@ private static Closest_node  ApproximateSearch(iSAX_Index index, Timeseries ts,i
 
 	int cardinality = index.getCardinality();
 		int word_length = index.getWordLength();
-		System.out.println("card::"+cardinality+"::word::"+word_length+"::name::"+ts.getPath().getName()+"::start::"+start+"::stop::"+stop);
+	//	System.out.println("card::"+cardinality+"::word::"+word_length+"::name::"+ts.getPath().getName()+"::start::"+start+"::stop::"+stop);
 		Hashtable<Integer,Point> SAX = Transformations.symbolicAggregateApproximation(ts, ts.getPath().getName(), start, stop, word_length, cardinality);		
 		String saxWord=iSAX_Index.getSAXString(SAX,index.getCardinality());	
-		System.out.println("Searching for "+saxWord);
+		//System.out.println("Searching for "+saxWord);
 		TreeNode node=iSAXQuery.traverseTree(index.getRoot(),saxWord);// get the note with the matching Hashcode
 		
 		if(null==node){
-		System.out.println("Exact match not found");
+	//	System.out.println("Exact match not found");
 		double dist=0;
 		Closest_node result_node=iSAXQuery.find_most_similar_nodePAA(index.getRoot(),cardinality,saxWord,index.getStop()-index.getStart(),PAA);
 		String result = result_node.getSAX();
@@ -214,14 +235,14 @@ public static double ApproximateSearch(iSAX_Index index, Timeseries ts,int start
 		
 		int cardinality = index.getCardinality();
 		int word_length = index.getWordLength();
-		System.out.println("card::"+cardinality+"::word::"+word_length+"::name::"+ts.getPath().getName()+"::start::"+start+"::stop::"+stop);
+		//System.out.println("card::"+cardinality+"::word::"+word_length+"::name::"+ts.getPath().getName()+"::start::"+start+"::stop::"+stop);
 		Hashtable<Integer,Point> SAX = Transformations.symbolicAggregateApproximation(ts, ts.getPath().getName(), start, stop, word_length, cardinality);		
 		String saxWord=iSAX_Index.getSAXString(SAX,index.getCardinality());	
-		System.out.println("Searching for "+saxWord);
+		//System.out.println("Searching for "+saxWord);
 		TreeNode node=iSAXQuery.traverseTree(index.getRoot(),saxWord);// get the note with the matching Hashcode
 		
 		if(null==node){
-		System.out.println("Exact match not found");
+		//System.out.println("Exact match not found");
 		double dist=0;
 		Closest_node result_node=iSAXQuery.find_most_similar_node(index.getRoot(),cardinality,saxWord,index.getStop()-index.getStart());
 		String result = result_node.getSAX();
@@ -237,14 +258,42 @@ public static double ApproximateSearch(iSAX_Index index, Timeseries ts,int start
 	}
 
 
-public static double ExactSearch(iSAX_Index index, Timeseries ts,String name,int start, int stop){
+public static double ExactSearch(iSAX_Index index, Timeseries ts,String name,int start, int stop) {
 		int cardinality = index.getCardinality();
 		int word_length = index.getWordLength();
 //		Closest_node node = ApproximitySearch(index,ts,start, stop,false,null);
 			 Hashtable<Integer, Object> PAA = Transformations.piecewiseAggregateApproximation(ts, name,start,stop,cardinality);
+	 Hashtable<java.lang.String,Hashtable<Integer,java.lang.Object>> ts_table=new Hashtable<java.lang.String,Hashtable<Integer,java.lang.Object>>();
 		double min_dist=-1; 
-	
+		String tmp_ts_name="";
 	Closest_node node =ApproximateSearch(index,ts,start,stop,true,PAA);
+	if(node.getNode().myType==TreeNode.NodeType.TERMINAL){
+	try{
+		Hashtable<Integer,java.lang.Object>ts_data = new Hashtable<Integer,java.lang.Object>();
+		for(Map.Entry<String,Path> e:node.getNode().indexed_timeseries.entrySet()){
+			  BufferedReader reader = new BufferedReader( new FileReader (e.getValue().toString()));
+		    String         line = null;
+		    StringBuilder  stringBuilder = new StringBuilder();
+		    String         ls = System.getProperty("line.separator");
+			
+		    while( ( line = reader.readLine() ) != null ) {
+			  String[] data=line.split(" ");
+			  ts_data.put(Integer.valueOf(data[0]),Double.valueOf(data[1]));  
+		    }
+
+		    tmp_ts_name=e.getKey();
+		    ts_table.put(e.getKey(),ts_data);
+		    break;
+		}
+		Timeseries tmp_ts=new Timeseries(tmp_ts_name, ts_table,DBType.DBInt32$.MODULE$);
+		System.out.println("Matchin TS:"+ tmp_ts_name+"::INITIAL DIST::"+node.getDist());
+		return Transformations.DTWDistance(ts,name,tmp_ts,tmp_ts_name);
+		
+	}catch(IOException e){
+	
+		System.out.println(e);
+	}
+	}
 	return node.getDist();
 
 	

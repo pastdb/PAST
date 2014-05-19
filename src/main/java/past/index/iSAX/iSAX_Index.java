@@ -49,7 +49,7 @@ private JavaSparkContext sc;
  FileSystem fs;
  String name;
 String configPath;
-
+private static int pr_ts=0;
 public int getCardinality(){
 	return this.cardinality;
 }
@@ -109,9 +109,9 @@ public void configure_iSAX_index_RDD(JavaRDD<Integer> timestamp,JavaRDD<Double> 
 }
 
 public iSAX_Index() throws URISyntaxException,IOException {
-	this.configure_iSAX_index(4,2,4);	
+	this.configure_iSAX_index(4,1000,4);	
 	this.start =0;
-	this.stop=50;
+	this.stop=1024;
 	this.tree=new TreeNode(this.cardinality,this.word_length, TreeNode.NodeType.ROOT,this.cardinality);
 	TreeNode.th_max=th;	
 	fs = FileSystem.get(new URI("file:///tmp"), new Configuration());
@@ -151,6 +151,7 @@ public static String getSAXString(Hashtable<Integer,Point> SAX,int card){
 	String saxWord="";
 		while(saxWordStruct.hasMoreElements()){
 			String tmp=Integer.toBinaryString(saxWordStruct.nextElement().x);
+			
 			if (tmp.length()==1){
 				for(int i=iSAX_dist_utils.log2(card)-1;i>0;i--){
 					saxWord+="0";
@@ -168,7 +169,7 @@ public boolean build_index(){
 
 
 
-private void print_index(int i, TreeNode node){
+public void print_index(int i, TreeNode node){
 System.out.println("Printing .... LEVEL:"+i);
 System.out.println("Node level: "+node.myType);
 System.out.println("Printing children of : "+i);
@@ -184,7 +185,9 @@ for (Map.Entry<String, Path> entry2 : node.indexed_timeseries.entrySet()) {
 	}
 }
 public boolean insert_raw(Timeseries ts){
-Hashtable<Integer,Point> SAX = Transformations.symbolicAggregateApproximation(ts, ts.getPath().getName(), start, stop, word_length, cardinality);
+String s=ts.getPath().getName();
+
+Hashtable<Integer,Point> SAX = Transformations.symbolicAggregateApproximation(ts, ts.getPath().getName(), ts.timeStart, ts.timeEnd, word_length, cardinality);
 boolean inserted=insert(SAX,ts);
 	
 	if(!inserted){
@@ -193,7 +196,8 @@ boolean inserted=insert(SAX,ts);
 		}
 		
 	else{
-		print_index(0,tree);
+		//print_index(0,tree);
+
 	}
 	return inserted;
 
@@ -205,7 +209,7 @@ public void insert_raw_RDD(JavaRDD<Integer> timestamp,JavaRDD<Double> values, St
 	List<Double> value_list = values.collect();
 	Hashtable<Integer,java.lang.Object> ts_data = new Hashtable<Integer,java.lang.Object>();
 	for(int i=0;i<timestamp_list.size();i++){
-		if(i%2==0)
+	//	if(i%2==0)
 		ts_data.put(timestamp_list.get(i),value_list.get(i));
 
 	}
@@ -219,37 +223,52 @@ public void insert_raw_RDD(JavaRDD<Integer> timestamp,JavaRDD<Double> values, St
 private boolean insert(Hashtable<Integer,Point> SAX , Timeseries ts){
 
 String saxWord=iSAX_Index.getSAXString(SAX,cardinality);
+		//System.out.println("SAX:: "+saxWord);
 Path file = new Path(configPath,name);
+//if( pr_ts<2){
 try{
 
-System.out.println(saxWord);
+System.out.println("INSERTING::"+saxWord);
 
 //saves the timeseries that is being indexed to disk in a separate file; to be used for clustering 
 
 if(fs.exists(file)) {
- fs.delete(file,true);
+ //fs.delete(file,true);
 }
 OutputStream os= fs.create(file, new Progressable() {
-	public void progress(){
+public void progress(){
 		System.out.println("..writting..");
 	}
-});
+	});
+	
+int curr_offset=0;
 BufferedWriter br = new BufferedWriter(new OutputStreamWriter(os, "UTF-8"));
 
 
-	for (String key:ts.getTimeseries().keySet()){
-		Hashtable<Integer,Object> ts_hash = ts.getTimeseries().get(key);
-		for(Integer key2:ts_hash.keySet()){
-			br.write(key2.toString());
-			br.write(" ");
-			br.write(ts_hash.get(key2).toString());
+	for (Map.Entry<String,Hashtable<Integer,Object>> entry:ts.getTimeseries().entrySet()){
+		Hashtable<Integer,Object> ts_hash = entry.getValue();
+		if(ts_hash.isEmpty()){
+			System.out.println("Empty timeseries ");
+			//System.exit(1);
+		}
+
+		for(Map.Entry<Integer,Object> key2:ts_hash.entrySet()){
+		//System.out.println("Iteration "+curr_offset++);
+			br.append(key2.getKey().toString());
+			br.append(" ");
+			br.append(key2.getValue().toString());
 			br.newLine();
+		
 		}
 	}
+	br.flush();
 	br.close();
 }catch (IOException e){
 	System.out.println(e);
-}
+} 
+ //pr_ts++;
+//} 
+
 return tree.insert(saxWord,ts.getName(),file,cardinality);
 
 //rn true;
@@ -268,7 +287,7 @@ public static Timeseries convertRDD2Timseries(JavaRDD<Integer> timestamp,JavaRDD
 	List<Double> value_list = values.collect();
 	Hashtable<Integer,java.lang.Object> ts_data = new Hashtable<Integer,java.lang.Object>();
 	for(int i=0;i<timestamp_list.size();i++){
-		if(i%2==0)
+		//if(i%2==0)
 		ts_data.put(timestamp_list.get(i),value_list.get(i));
 
 	}
