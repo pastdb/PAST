@@ -17,7 +17,8 @@ public class Timeseries {
 	private DBType.DBType<?> type;
 	private Path path;
 	private String name;
-	
+	public int timeStart=0;
+	public int timeEnd=0;
 	String containingPath = "pastdb_timeseries_"+java.lang.System.nanoTime();
 	/**
 	 * constructor with outside data
