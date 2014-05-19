@@ -305,7 +305,10 @@ public static double ExactSearch(iSAX_Index index, Timeseries ts,String name,int
 		terminal=node.getNode();
 	}
 	//if(node.getNode().myType==TreeNode.NodeType.TERMINAL){
+	Hashtable<Integer,java.lang.Object> test_TS=ts.getTimeseries().get(name);
 	try{
+		double min_euclidian=-1;
+		double tmp_euclidian=0;
 		Hashtable<Integer,java.lang.Object>ts_data = new Hashtable<Integer,java.lang.Object>();
 		for(Map.Entry<String,Path> e:terminal.indexed_timeseries.entrySet()){
 			  BufferedReader reader = new BufferedReader( new FileReader (e.getValue().toString()));
@@ -317,15 +320,21 @@ public static double ExactSearch(iSAX_Index index, Timeseries ts,String name,int
 			  String[] data=line.split(" ");
 			  ts_data.put(Integer.valueOf(data[0]),Double.valueOf(data[1]));  
 		    }
-
-		    tmp_ts_name=e.getKey();
-		    ts_table.put(e.getKey(),ts_data);
-		    break;
+		tmp_euclidian=iSAXQuery.getEuclidianDist(ts_data,test_TS);
+		if(min_euclidian<0 || min_euclidian>tmp_euclidian){
+			min_euclidian=tmp_euclidian;
+			tmp_ts_name=e.getKey();
 		}
-		Timeseries tmp_ts=new Timeseries(tmp_ts_name, ts_table,DBType.DBInt32$.MODULE$);
+		    
+		    
+		    
+		   // break;
+		}
+	//	ts_table.put(tmp_ts_name,ts_data);
+	//	Timeseries tmp_ts=new Timeseries(tmp_ts_name, ts_table,DBType.DBInt32$.MODULE$);
 		System.out.println("Matchin TS:"+ tmp_ts_name+"::INITIAL DIST::"+node.getDist());
 			double sum=0;
-		Hashtable<Integer,java.lang.Object> test_TS=ts.getTimeseries().get(name);
+		
 		sum=iSAXQuery.getEuclidianDist(ts_data,test_TS);
 			System.out.println("Euclidian distance::"+sum);
 		return sum;
