@@ -31,7 +31,7 @@ public class Transformations {
 		Collections.sort(keys);
 		for (int i:keys) {
 			if (i >= timeStart && i <= timeEnd) {
-				Double temp = Math.sqrt((double)tsData.get(i));
+				Double temp = Math.sqrt((Double)tsData.get(i));
 				resultTsData.put(i, temp);
 			}
 		}
@@ -56,7 +56,7 @@ public class Transformations {
 		Collections.sort(keys);
 		for (int i:keys) {
 			if (i >= timeStart && i <= timeEnd) {
-				Double temp = Math.log((double)tsData.get(i));
+				Double temp = Math.log((Double)tsData.get(i));
 				resultTsData.put(i, temp);
 			}
 		}
@@ -82,7 +82,7 @@ public class Transformations {
 		Collections.sort(keys);
 		for (int i:keys) {
 			if (i >= timeStart && i <= timeEnd) {
-				avg += (double)tsData.get(i);
+				avg += (Double)tsData.get(i);
 				count ++;
 			}
 		}
@@ -108,7 +108,7 @@ public class Transformations {
 		double average = mean(ts, attribute, timeStart, timeEnd);
 		for (int i:keys) {
 			if (i >= timeStart && i <= timeEnd) {
-				resultTsData.put(i, (double)tsData.get(i)-average);
+				resultTsData.put(i, (Double)tsData.get(i)-average);
 			}
 		}
 		return resultTsData;
@@ -127,13 +127,13 @@ public class Transformations {
 		Hashtable<Integer, Object> tsData = ts.getTimeseries().get(attribute);	
 		
 		ArrayList<Integer> keys = new ArrayList<Integer>(tsData.keySet());
-		Double min = (double)tsData.get(timeStart);
-		Double max = (double)tsData.get(timeStart);
+		Double min = (Double)tsData.get(timeStart);
+		Double max = (Double)tsData.get(timeStart);
 		
 		for (int i:keys) {
 			if (i >= timeStart && i <= timeEnd) {
-				if ((double)tsData.get(i) < min) min = (double)tsData.get(i);
-				if ((double)tsData.get(i) > max) max = (double)tsData.get(i);
+				if ((Double)tsData.get(i) < min) min = (Double)tsData.get(i);
+				if ((Double)tsData.get(i) > max) max = (Double)tsData.get(i);
 			}
 		}
 		
@@ -143,13 +143,13 @@ public class Transformations {
 	
 	public static Double range(Hashtable<Integer, Object> tsData, int timeStart, int timeEnd) {
 		ArrayList<Integer> keys = new ArrayList<Integer>(tsData.keySet());
-		Double min = (double)tsData.get(timeStart);
-		Double max = (double)tsData.get(timeStart);
+		Double min = (Double)tsData.get(timeStart);
+		Double max = (Double)tsData.get(timeStart);
 		
 		for (int i:keys) {
 			if (i >= timeStart && i <= timeEnd) {
-				if ((double)tsData.get(i) < min) min = (double)tsData.get(i);
-				if ((double)tsData.get(i) > max) max = (double)tsData.get(i);
+				if ((Double)tsData.get(i) < min) min = (Double)tsData.get(i);
+				if ((Double)tsData.get(i) > max) max = (Double)tsData.get(i);
 			}
 		}
 		
@@ -173,7 +173,7 @@ public class Transformations {
 		Collections.sort(keys);
 		for (int i:keys) {
 			if (i > timeStart && i < timeEnd) {
-				resultFrame.add((double)tsData.get(i));
+				resultFrame.add((Double)tsData.get(i));
 			}
 		}
 		return resultFrame;
@@ -235,7 +235,7 @@ public class Transformations {
 		Collections.sort(keys);
 		for (int i:keys) {
 			if (i >= timeStart && i <= timeEnd) {
-				resultTsData.put(i, (double)tsData.get(i)+coeff);
+				resultTsData.put(i, (Double)tsData.get(i)+coeff);
 			}
 		}
 		return resultTsData;
@@ -259,7 +259,7 @@ public class Transformations {
 		Collections.sort(keys);
 		for (int i:keys) {
 			if (i >= timeStart && i <= timeEnd) {
-				resultTsData.put(i, (double)tsData.get(i)*coeff);
+				resultTsData.put(i, (Double)tsData.get(i)*coeff);
 			}
 		}
 		return resultTsData;
@@ -284,7 +284,7 @@ public class Transformations {
 		Collections.sort(keys);
 		for (int i:keys) {
 			if (i >= timeStart && i <= timeEnd) {
-				STD += ((double)tsData.get(i)-avg)*((double)tsData.get(i)-avg);
+				STD += (((Double)tsData.get(i)).doubleValue()-avg)*(((Double)tsData.get(i)).doubleValue()-avg);
 				count ++;
 			}
 		}
@@ -311,7 +311,7 @@ public class Transformations {
 		Collections.sort(keys);
 		for (int i:keys) {
 			if (i >= timeStart && i <= timeEnd) {
-				resultTsData.put(i, ((double)tsData.get(i)-avg)/std);
+				resultTsData.put(i, (((Double)tsData.get(i)).doubleValue()-avg)/std);
 			}
 		}
 		return resultTsData;
@@ -351,7 +351,7 @@ public class Transformations {
 		int middle = (first + last)/2;
 		
 		while (first <= last) {
-			if ((double)searchData.get(middle) < timeStart) {
+			if ((Double)searchData.get(middle) < timeStart) {
 				first = middle + 1;
 			}
 			else if (searchData.get(middle) == timeStart) {
@@ -428,7 +428,7 @@ public class Transformations {
 			int start = (length/dimensions)*(i-1);
 			int end = (length/dimensions)*i;
 			for (int j = start; j < end; ++j) {
-				temp += (double)tsData.get(keys.get(j));
+				temp += ((Double)tsData.get(keys.get(j))).doubleValue();
 			}
 			temp *= dimensions;
 			temp /= length;
@@ -473,7 +473,7 @@ public class Transformations {
 		// write new time series symbol values
 		Hashtable<Integer, Point> SAX = new Hashtable<Integer, Point>();
 		for (int i = 0; i < keys.size(); ++i) {
-			int position = binarySearch(mapSymbolTime, (double)PAA.get(keys.get(i)));
+			int position = binarySearch(mapSymbolTime, (Double)PAA.get(keys.get(i)));
 			SAX.put(i, new Point(position, cardinality));
 		}
 		return SAX;		
@@ -500,8 +500,8 @@ public class Transformations {
 			double sumImag = 0;
 			for (int j:keys) {
 				double angle = (2*Math.PI*i*j)/(keys.size());
-				sumReal = (double)tsData.get(keys.get(i)) * Math.cos(angle);
-				sumImag = (double)tsData.get(keys.get(i)) * Math.sin(angle);
+				sumReal = (Double)tsData.get(keys.get(i)) * Math.cos(angle);
+				sumImag = (Double)tsData.get(keys.get(i)) * Math.sin(angle);
 			}
 			DFTdata.put(i, new Complex(sumReal, sumImag));
 		}
@@ -535,7 +535,7 @@ public class Transformations {
 		for (int i = 1; i <= TS1.size(); ++i) {
 			for (int j = 1; j <= TS2.size(); ++j) {
 				// choose other cost?
-				double cost = Math.abs((double)TS1.get(i-1) - (double)TS2.get(j-1));
+				double cost = Math.abs((Double)TS1.get(i-1) - (Double)TS2.get(j-1));
 				double min1 = Math.min(DTW.get(new Point(i-1, j)), DTW.get(new Point(i, j-1)));
 				double min2 = Math.min(min1, DTW.get(new Point(i-1, j-1)));
 				double value = cost + min2;
