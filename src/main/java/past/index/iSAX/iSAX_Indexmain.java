@@ -200,30 +200,28 @@ public static void main(String args[]){
 		 	System.out.println("EMPTY CHIMP DNA");
 		 	System.exit(1);
 		 }
+		 
+		 //****** TO BE IMPLEMENTED USING RDD
 		 int k=0;
 		 indexS=System.currentTimeMillis();
 		 for(int i=0;i<human_ts.size();i++){
-		 	human_ts.get(i).setPath(new Path(currentDir,human_ts.get(i).getName()));
+		 	human_ts.get(i).setPath(new Path(currentDir,human_ts.get(i).getName())); //** NO NEED WHEN USING RDD
 			if(human_ts.get(i).getTimeseries().isEmpty()){
 				System.out.println("Empty timeseries, can not build index");
 				System.exit(1);
 			}
-		 	index.set_dataset(human_ts.get(i),sc);
+		 	index.set_dataset(human_ts.get(i),sc); //*** start: INSTEAD OF THIS , IF IT IS THE FIRST TS CALL configure_iSAX_index_RDD
 		 	if(k==0){
-		 		if(index.build_index())
+		 		if(index.build_index()) //*** THIS WILL BE HANDLED IN THE configure_iSAX....
 		 		
 		 		System.out.println("Index built successfuly");
 		 		k=-1;	 		
 		 	
-		 	}
+		 	} //*** end: 
 		 	else{
-		 		index.insert_raw(human_ts.get(i));
+		 		index.insert_raw(human_ts.get(i)); //***INSTEAD OF THIS CALL insert_raw_RDD(JavaRDD<Integer> timestamp,JavaRDD<Double> values, String ts_name, Path path);
 		 	}
-		 	
-		 	
-		 	
-		 	//System.out.println("Added one more to the index");
-		 	
+
 		 }
 		 indexE=System.currentTimeMillis();
 		 System.out.println("All humanDNA samples added to the index");
@@ -233,10 +231,10 @@ public static void main(String args[]){
 		double min_app_dist=-1;
 		double min_exact_dist=-1;
 		double tmp_app=-1;
-		double tmp_exact=-1;
+		double tmp_exact=-1; //*** THIS IS SEARCHING FOR THE MATCH
 		for(int i=0;i<chimp_ts.size();i++){
-		chimp_ts.get(i).setPath(path);
-			tmp_app=iSAXQuery.ApproximateSearch(index,chimp_ts.get(i),0,1024);
+		chimp_ts.get(i).setPath(path); //**NO NEED 
+			tmp_app=iSAXQuery.ApproximateSearch(index,chimp_ts.get(i),0,1024); //CALL  ApproximateSearchRDD(iSAX_Index index, JavaRDD<Integer> timestamp,JavaRDD<Double> values,String ts_name, int start, int stop);
 			if(min_app_dist<0 || min_app_dist>tmp_app){
 				min_app_dist=tmp_app;
 				minTS=chimp_ts.get(i);
@@ -248,7 +246,7 @@ public static void main(String args[]){
 		
 		min_exact_dist=-1;
 		for(Timeseries ts : chimp_ts){
-			tmp_app=iSAXQuery.ExactSearch(index,ts,ts.getName(),0,1024);
+			tmp_app=iSAXQuery.ExactSearch(index,ts,ts.getName(),0,1024); //CALL ExactSearchRDD(iSAX_Index index, JavaRDD<Integer> timestamp,JavaRDD<Double> values, String ts_name, int start, int stop);
 			
 			if(min_exact_dist<0 || min_exact_dist>tmp_app){
 				min_exact_dist=tmp_app;
@@ -257,7 +255,7 @@ public static void main(String args[]){
 			
 		}
 		
-		System.out.println("Closet exact distance=" + min_exact_dist+"::"+minTS.getName());
+		System.out.println("Closet exact distance=" + min_exact_dist+"::"+minTS.getName()); 
 		
 	//	System.out.println("Closest DNA:: "+ iSAX_Indexmain.TS2DNA(minTS));
 		double timeE=System.currentTimeMillis();
